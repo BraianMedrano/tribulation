@@ -290,6 +290,22 @@ Si el port se alarga, **BuffMobs** ya soporta 26.3 en Fabric (escalado por días
 - La primera vez, el server de test necesita `eula=true` en `build/clientGametest/eula.txt`. La tarea lo escribe sola, igual que el `eula = true` de Loom.
 - `./gradlew build`: OK, 910 tests unitarios (907 + 3). `./gradlew runGametest`: OK, 150 gametests.
 
+### Fase 8 (efectos visuales, 2026-11-01)
+
+Los cuatro mixins de cliente volvieron, reescritos contra el render de 26.3 y con la misma matemática (`BloodMoonClientEffects` y `EnvironmentalPressureClientEffects` no cambian de constantes):
+
+| Efecto | 1.21.1 | 26.3 |
+|---|---|---|
+| Color del cielo | RETURN de `ClientLevel#getSkyColor` | El cielo es el *environment attribute* `SKY_COLOR`: una capa más al final de `ClientLevel#addEnvironmentAttributeLayers`, después del destello del rayo (el mismo lugar del RETURN). La leen el cielo y la niebla atmosférica |
+| Niebla | `FogRenderer#setupColor`, antes del último `clearColor` | Final de `renderer/fog/FogRenderer#computeFogColor`, después de los ajustes de vacío, jefe y visión nocturna. Bajo agua o lava sigue vanilla |
+| Sol y luna | `@ModifyArgs` sobre el `setShaderColor` compartido por sol y luna | `@ModifyArg` sobre el color que `SkyRenderer#renderSun` y `#renderMoon` pasan a `writeTransform` (`require = 2`: tienen que aplicar los dos). Las estrellas siguen vanilla |
+| Oscuridad de Oppressive Nights | RETURN de `LightTexture#calculateDarknessScale` | RETURN del mismo método, ahora en `LightmapRenderStateExtractor`. El shader del lightmap la resta en el mismo orden (restar, recortar, gamma) |
+
+- El client gametest suma un chequeo a medianoche con el HUD oculto: el cielo pasa de (4, 5, 8) a (44, 6, 8) con la Blood Moon, la luna pierde verde y azul, y el suelo se oscurece con Oppressive Nights (el chequeo activa `environmentalPressure.enabled`, que viene apagado). Sin los mixins falla: el cielo queda en (4, 4, 7).
+- El rojo del cielo es el de 1.21.1: allá el cielo de medianoche era negro y el tinte lo llevaba a ~(50, 3, 3).
+- Con `maxDarkness = 0.25` (valor por defecto) el suelo a medianoche queda casi negro. Es el mismo cálculo que en 1.21.1, no un cambio del port.
+- `./gradlew build`: OK, 912 tests unitarios (910 + 2). `./gradlew runGametest`: OK, 150 gametests. `./gradlew runClientGametest`: OK.
+
 ### Desactivado temporalmente
 
 | Qué | Cómo | Motivo | Cómo restaurarlo |
@@ -300,7 +316,6 @@ Si el port se alarga, **BuffMobs** ya soporta 26.3 en Fabric (escalado por días
 | EMI | Igual, `compat/emi/EmiShardPlugin.java` excluido de `client`. `EmiShardRefresh` sigue compilando porque usa reflection, no importa EMI y `compat/common/ShardViewerRefresh` lo llama | `emi_version=1.1.22+1.21.1` | Igual |
 | REI (+ Architectury en dev) | Igual, `compat/rei/**` excluido de `client` | `rei_version=16.0.799`, `architectury_version=13.0.6` | Igual |
 | JEI | Igual, `compat/jei/**` excluido de `client` | El artefacto se llama `jei-1.21.1-fabric`, `jei_version=19.27.0.340` | Igual |
-| Efectos visuales de Blood Moon (niebla, color de cielo, tinte de luna) y oscuridad de "Oppressive Nights" | `mixin/client/**` excluido del source set `client` y la lista `client` de `tribulation.client.mixins.json` vacía | 26.x reescribió ese render: `FogRenderer.setupColor` y `RenderSystem.clearColor` ya no existen (la niebla pasó a `renderer/fog/FogRenderer` y a *environment attributes*), y `LightTexture` ya no existe: `calculateDarknessScale` ahora es privado en `LightmapRenderStateExtractor`. Con `defaultRequire: 1`, un mixin que no aplica crashea el cliente al arrancar. La lógica pura (`BloodMoonClientEffects`, `EnvironmentalPressureClientEffects`) sigue compilando; el servidor sigue mandando los payloads | Fase 8: reescribir los cuatro mixins contra el render de 26.3, volver a listarlos en el JSON y quitar el exclude |
 
 El código de esas integraciones sigue en el repo, solo está fuera de la compilación. El bloque `suggests` de `fabric.mod.json` se dejó como estaba: es solo informativo, y `ClothGuardTest` (guard de Concord que lee los fuentes del disco) exige `cloth-config` mientras `TribulationConfigScreen` exista.
 

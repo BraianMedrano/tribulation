@@ -14,6 +14,7 @@ import net.fabricmc.fabric.api.client.gametest.v1.FabricClientGameTest;
 import net.fabricmc.fabric.api.client.gametest.v1.context.ClientGameTestContext;
 import net.fabricmc.fabric.api.client.gametest.v1.context.TestDedicatedServerConnection;
 import net.fabricmc.fabric.api.client.gametest.v1.context.TestDedicatedServerContext;
+import net.minecraft.client.Minecraft;
 import net.minecraft.server.level.ServerPlayer;
 
 import javax.imageio.ImageIO;
@@ -45,6 +46,76 @@ public class TribulationClientGameTest implements FabricClientGameTest {
             checkHudBadge(context);
             checkPeekPanel(context);
             checkHeartFragment(context, server, connection, name, uuid);
+            checkAtmosphere(context, server, connection, name);
+        }
+    }
+
+    /**
+     * At midnight, the Blood Moon pulls the sky toward red and tints the moon, and Oppressive Nights
+     * darkens the lit ground. Each effect is compared with a frame where only that effect is off,
+     * with the GUI hidden so only the world is measured.
+     */
+    private static void checkAtmosphere(ClientGameTestContext context, TestDedicatedServerContext server,
+                                        TestDedicatedServerConnection connection, String name) {
+        TribulationConfig config = Tribulation.getConfig();
+        boolean savedClientEnabled = config.environmentalPressure.oppressiveNights.clientEnabled;
+        boolean savedPressureEnabled = config.environmentalPressure.enabled;
+        try {
+            server.runCommand("weather clear");
+            // 18000 is midnight: the moon is straight overhead and night darkness is at its peak.
+            server.runCommand("time set 18000");
+            connection.waitForClientboundPackets();
+            context.runOnClient(mc -> {
+                setHudHidden(mc, true);
+                mc.player.setXRot(-90.0f);
+            });
+            context.waitTicks(SETTLE_TICKS);
+
+            BufferedImage plainSky = screenshot(context, "tribulation_sky_vanilla");
+            server.runCommand("tribulation bloodmoon start");
+            context.waitFor(mc -> ClientTribulationState.isBloodMoonActive());
+            context.waitTicks(SETTLE_TICKS);
+            BufferedImage bloodSky = screenshot(context, "tribulation_sky_blood_moon");
+            server.runCommand("tribulation bloodmoon stop");
+            context.waitFor(mc -> !ClientTribulationState.isBloodMoonActive());
+
+            int w = plainSky.getWidth();
+            int h = plainSky.getHeight();
+            // A corner of open sky, well away from the moon at the centre of the frame.
+            int[] skyOff = meanRgb(plainSky, w / 20, h / 20, w / 8, h / 8);
+            int[] skyOn = meanRgb(bloodSky, w / 20, h / 20, w / 8, h / 8);
+            check(skyOn[0] - skyOff[0] > 20 && skyOn[0] > skyOn[2] + 20,
+                    "Blood Moon sky should turn red, rgb " + rgb(skyOff) + " -> " + rgb(skyOn));
+            // The centre of the moon disc: vanilla is grey, the Blood Moon cuts green and blue.
+            int box = h / 40;
+            int[] moonOff = meanRgb(plainSky, w / 2 - box, h / 2 - box, 2 * box, 2 * box);
+            int[] moonOn = meanRgb(bloodSky, w / 2 - box, h / 2 - box, 2 * box, 2 * box);
+            check(moonOff[1] > moonOff[0] * 0.7 && moonOn[1] < moonOn[0] * 0.5,
+                    "Blood Moon should tint the moon, rgb " + rgb(moonOff) + " -> " + rgb(moonOn));
+
+            // Environmental pressure is opt-in. Tier 5 is above the default Oppressive Nights threshold,
+            // so once it is on, the next level sync sends the night darkness.
+            config.environmentalPressure.enabled = true;
+            server.runCommand("tribulation set " + name + " " + TIER_FIVE_LEVEL);
+            context.waitFor(mc -> ClientTribulationState.getOppressiveNightDarkness() > 0f);
+            context.runOnClient(mc -> mc.player.setXRot(90.0f));
+            config.environmentalPressure.oppressiveNights.clientEnabled = false;
+            context.waitTicks(SETTLE_TICKS);
+            BufferedImage plainGround = screenshot(context, "tribulation_ground_vanilla");
+            config.environmentalPressure.oppressiveNights.clientEnabled = true;
+            context.waitTicks(SETTLE_TICKS);
+            BufferedImage darkGround = screenshot(context, "tribulation_ground_oppressive_night");
+
+            int[] groundOff = meanRgb(plainGround, w / 4, h / 4, w / 2, h / 2);
+            int[] groundOn = meanRgb(darkGround, w / 4, h / 4, w / 2, h / 2);
+            int lumaOff = groundOff[0] + groundOff[1] + groundOff[2];
+            int lumaOn = groundOn[0] + groundOn[1] + groundOn[2];
+            check(lumaOn < lumaOff * 0.8,
+                    "Oppressive Nights should darken the ground, rgb " + rgb(groundOff) + " -> " + rgb(groundOn));
+        } finally {
+            config.environmentalPressure.oppressiveNights.clientEnabled = savedClientEnabled;
+            config.environmentalPressure.enabled = savedPressureEnabled;
+            context.runOnClient(mc -> setHudHidden(mc, false));
         }
     }
 
@@ -174,6 +245,30 @@ public class TribulationClientGameTest implements FabricClientGameTest {
             }
         }
         return (double) changed / total;
+    }
+
+    private static void setHudHidden(Minecraft mc, boolean hidden) {
+        if (mc.gui.hud.isHidden() != hidden) mc.gui.hud.toggle();
+    }
+
+    private static int[] meanRgb(BufferedImage image, int x0, int y0, int w, int h) {
+        long r = 0;
+        long g = 0;
+        long b = 0;
+        for (int y = y0; y < y0 + h; y++) {
+            for (int x = x0; x < x0 + w; x++) {
+                int rgb = image.getRGB(x, y);
+                r += (rgb >> 16) & 0xFF;
+                g += (rgb >> 8) & 0xFF;
+                b += rgb & 0xFF;
+            }
+        }
+        long n = (long) w * h;
+        return new int[] {(int) (r / n), (int) (g / n), (int) (b / n)};
+    }
+
+    private static String rgb(int[] c) {
+        return "(" + c[0] + ", " + c[1] + ", " + c[2] + ")";
     }
 
     private static int countMagenta(BufferedImage image, int x0, int y0, int w, int h) {

@@ -3,7 +3,12 @@
     "minVersion": "0.8",
     "package": "com.rfizzle.tribulation.mixin",
     "compatibilityLevel": "JAVA_25",
-    "client": [],
+    "client": [
+        "client.BloodMoonFogMixin",
+        "client.BloodMoonMoonTintMixin",
+        "client.BloodMoonSkyColorMixin",
+        "client.OppressiveNightLightMixin"
+    ],
     "injectors": {
         "defaultRequire": 1
     },

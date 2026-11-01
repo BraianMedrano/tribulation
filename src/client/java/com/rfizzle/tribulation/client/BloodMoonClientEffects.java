@@ -2,7 +2,8 @@ package com.rfizzle.tribulation.client;
 
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.world.level.Level;
-import net.minecraft.world.phys.Vec3;
+import org.joml.Vector3f;
+import org.joml.Vector3fc;
 
 /**
  * Color math for the Blood Moon client tint. The server is authoritative —
@@ -38,11 +39,12 @@ public final class BloodMoonClientEffects {
                 && level.dimension() == Level.OVERWORLD;
     }
 
-    public static Vec3 tintSky(Vec3 skyColor) {
-        return new Vec3(
-                blend(skyColor.x, SKY_RED, SKY_BLEND),
-                blend(skyColor.y, SKY_GREEN, SKY_BLEND),
-                blend(skyColor.z, SKY_BLUE, SKY_BLEND));
+    /** Returns a new tinted color; the source is shared attribute state and is never mutated. */
+    public static Vector3fc tintSky(Vector3fc skyColor) {
+        return new Vector3f(
+                (float) blend(skyColor.x(), SKY_RED, SKY_BLEND),
+                (float) blend(skyColor.y(), SKY_GREEN, SKY_BLEND),
+                (float) blend(skyColor.z(), SKY_BLUE, SKY_BLEND));
     }
 
     /** Returns the tinted {@code [red, green, blue]} fog components. */
