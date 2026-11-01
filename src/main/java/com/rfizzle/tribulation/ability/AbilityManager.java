@@ -6,7 +6,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.effect.MobEffect;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.entity.Mob;
@@ -60,7 +60,7 @@ public final class AbilityManager {
 
     private AbilityManager() {}
 
-    public static ResourceLocation abilityId(String name) {
+    public static Identifier abilityId(String name) {
         return Tribulation.id("ability_" + name);
     }
 
@@ -109,7 +109,7 @@ public final class AbilityManager {
         lookup.get(enchantment).ifPresent(holder -> mainHand.enchant(holder, level));
     }
 
-    static void addAttributeModifier(Mob mob, Holder<Attribute> attr, ResourceLocation id, double amount, AttributeModifier.Operation op) {
+    static void addAttributeModifier(Mob mob, Holder<Attribute> attr, Identifier id, double amount, AttributeModifier.Operation op) {
         AttributeInstance inst = mob.getAttribute(attr);
         if (inst == null) return;
         inst.removeModifier(id);

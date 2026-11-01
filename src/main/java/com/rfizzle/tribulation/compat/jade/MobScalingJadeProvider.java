@@ -5,7 +5,7 @@ import com.rfizzle.tribulation.compat.common.MobScalingDataCollector;
 import com.rfizzle.tribulation.compat.common.TribulationTooltipFormatter;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Mob;
 import snownee.jade.api.EntityAccessor;
 import snownee.jade.api.IEntityComponentProvider;
@@ -18,7 +18,7 @@ final class MobScalingJadeProvider
 
     static final MobScalingJadeProvider INSTANCE = new MobScalingJadeProvider();
 
-    static final ResourceLocation UID = ResourceLocation.fromNamespaceAndPath(
+    static final Identifier UID = Identifier.fromNamespaceAndPath(
             Tribulation.MOD_ID, "mob_scaling");
 
     private MobScalingJadeProvider() {}
@@ -39,7 +39,7 @@ final class MobScalingJadeProvider
     }
 
     @Override
-    public ResourceLocation getUid() {
+    public Identifier getUid() {
         return UID;
     }
 }

@@ -13,7 +13,7 @@ import net.minecraft.client.gui.GuiGraphics;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.Mob;
@@ -42,8 +42,8 @@ import java.util.Set;
  * page dots, while the header and progress stay static.
  */
 public final class TierDetailPanelRenderer implements HudRenderCallback {
-    private static final ResourceLocation PANEL = Tribulation.id("textures/gui/tier_detail_panel.png");
-    private static final ResourceLocation ICON = Tribulation.id("textures/gui/hud_icon.png");
+    private static final Identifier PANEL = Tribulation.id("textures/gui/tier_detail_panel.png");
+    private static final Identifier ICON = Tribulation.id("textures/gui/hud_icon.png");
 
     private static final int TEX_SIZE = 64;   // panel texture is 64x64
     private static final int SLICE = 12;       // 9-slice corner inset (holds the crimson accents)
@@ -294,7 +294,7 @@ public final class TierDetailPanelRenderer implements HudRenderCallback {
         double range = Math.min(MAX_SCAN_RANGE, Math.max(1.0, configured));
         AABB box = player.getBoundingBox().inflate(range);
         for (Entity entity : level.getEntities(player, box, e -> e instanceof Mob)) {
-            ResourceLocation id = EntityType.getKey(entity.getType());
+            Identifier id = EntityType.getKey(entity.getType());
             if ("minecraft".equals(id.getNamespace())) {
                 nearbyMobKeys.add(id.getPath());
             }
@@ -419,7 +419,7 @@ public final class TierDetailPanelRenderer implements HudRenderCallback {
         g.blit(PANEL, x, y, dw, dh, u, v, sw, sh, TEX_SIZE, TEX_SIZE);
     }
 
-    private static void blitTinted(GuiGraphics g, ResourceLocation tex, int x, int y, int color) {
+    private static void blitTinted(GuiGraphics g, Identifier tex, int x, int y, int color) {
         float r = ((color >> 16) & 0xFF) / 255f;
         float gr = ((color >> 8) & 0xFF) / 255f;
         float b = (color & 0xFF) / 255f;

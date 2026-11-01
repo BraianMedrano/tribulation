@@ -10,7 +10,7 @@ import com.rfizzle.tribulation.scaling.TierManager;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -57,7 +57,7 @@ import java.util.concurrent.ConcurrentHashMap;
 public final class EnvironmentalPressureHandler {
 
     /** Modifier id for the night-senses follow-range boost. */
-    public static final ResourceLocation NIGHT_SENSES_MODIFIER_ID = Tribulation.id("oppressive_night_senses");
+    public static final Identifier NIGHT_SENSES_MODIFIER_ID = Tribulation.id("oppressive_night_senses");
 
     /**
      * Last darkness strength sent per player, so the periodic level sync only

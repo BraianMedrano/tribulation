@@ -5,7 +5,7 @@ import com.rfizzle.tribulation.config.TribulationConfig;
 import com.rfizzle.tribulation.scaling.StructureBoostManager;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.chat.contents.TranslatableContents;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -266,7 +266,7 @@ class TribulationCommandTest {
     void formatStructureBoostLine_outsideZones_showsNone() {
         StructureBoostManager.BoostZone[] zones = {
                 new StructureBoostManager.BoostZone(0, 0, 0, 16, 16, 16, 20,
-                        ResourceLocation.parse("minecraft:fortress")),
+                        Identifier.parse("minecraft:fortress")),
         };
         assertEquals("Structure boost: +0  (none)",
                 TribulationCommand.formatStructureBoostLine(zones, 100, 64, 100));
@@ -278,9 +278,9 @@ class TribulationCommandTest {
     void formatStructureBoostLine_insideZones_showsBoostAndIds() {
         StructureBoostManager.BoostZone[] zones = {
                 new StructureBoostManager.BoostZone(0, 0, 0, 100, 100, 100, 20,
-                        ResourceLocation.parse("minecraft:fortress")),
+                        Identifier.parse("minecraft:fortress")),
                 new StructureBoostManager.BoostZone(40, 40, 40, 60, 60, 60, 30,
-                        ResourceLocation.parse("minecraft:ancient_city")),
+                        Identifier.parse("minecraft:ancient_city")),
         };
         assertEquals("Structure boost: +30  (minecraft:fortress, minecraft:ancient_city)",
                 TribulationCommand.formatStructureBoostLine(zones, 50, 50, 50),

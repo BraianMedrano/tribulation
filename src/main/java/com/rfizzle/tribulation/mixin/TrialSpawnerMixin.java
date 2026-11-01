@@ -9,7 +9,7 @@ import com.rfizzle.tribulation.data.PlayerDifficultyState;
 import com.rfizzle.tribulation.event.MobScalingHandler;
 import com.rfizzle.tribulation.scaling.ScalingEngine;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -56,7 +56,7 @@ public abstract class TrialSpawnerMixin {
         if (cfg != null && cfg.trialSpawner.enabled
                 && entity instanceof Mob mob
                 && !mob.getTags().contains(MobScalingHandler.PROCESSED_TAG)) {
-            ResourceLocation typeId = BuiltInRegistries.ENTITY_TYPE.getKey(mob.getType());
+            Identifier typeId = BuiltInRegistries.ENTITY_TYPE.getKey(mob.getType());
             if (!MobScalingHandler.isExcluded(typeId, cfg.general.excludedEntities)) {
                 TrialSpawnerData data = ((TrialSpawner) (Object) this).getData();
                 int playerLevel = tribulation$detectedPlayerLevel(world, data, cfg, mob.position());

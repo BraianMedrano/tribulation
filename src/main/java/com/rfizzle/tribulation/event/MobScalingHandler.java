@@ -13,7 +13,7 @@ import com.rfizzle.tribulation.scaling.TierManager;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerEntityEvents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -39,7 +39,7 @@ public final class MobScalingHandler {
 
     public static final TagKey<EntityType<?>> BOSSES_TAG = TagKey.create(
             Registries.ENTITY_TYPE,
-            ResourceLocation.fromNamespaceAndPath("c", "bosses")
+            Identifier.fromNamespaceAndPath("c", "bosses")
     );
 
     private MobScalingHandler() {}
@@ -64,7 +64,7 @@ public final class MobScalingHandler {
 
     private static void processMob(Mob mob, ServerLevel world, TribulationConfig cfg) {
         EntityType<?> type = mob.getType();
-        ResourceLocation typeId = BuiltInRegistries.ENTITY_TYPE.getKey(type);
+        Identifier typeId = BuiltInRegistries.ENTITY_TYPE.getKey(type);
 
         if (isExcluded(typeId, cfg.general.excludedEntities)) {
             return;
@@ -85,7 +85,7 @@ public final class MobScalingHandler {
      * hook above and {@code TrialSpawnerMixin}.
      */
     public static void applyScaling(Mob mob, ServerLevel world, EntityType<?> type,
-                                    ResourceLocation typeId, int playerLevel, TribulationConfig cfg) {
+                                    Identifier typeId, int playerLevel, TribulationConfig cfg) {
         // Bosses route through BossScalingEngine: uniform rates for health+damage,
         // time + distance axes only (no height), and distance ignores the
         // excludeInOtherDimensions flag. affectBosses=false skips them entirely.
@@ -173,16 +173,16 @@ public final class MobScalingHandler {
 
     /**
      * Derive the {@code mobToggles} config key from a vanilla {@link EntityType}
-     * ResourceLocation. Only the {@code minecraft} namespace is supported; modded
+     * Identifier. Only the {@code minecraft} namespace is supported; modded
      * entities are skipped unless added to the excluded/boss tag systems.
      */
-    public static String resolveToggleKey(ResourceLocation typeId) {
+    public static String resolveToggleKey(Identifier typeId) {
         if (typeId == null) return null;
         if (!MINECRAFT_NAMESPACE.equals(typeId.getNamespace())) return null;
         return typeId.getPath();
     }
 
-    public static boolean isExcluded(ResourceLocation typeId, List<String> excludedEntities) {
+    public static boolean isExcluded(Identifier typeId, List<String> excludedEntities) {
         if (typeId == null || excludedEntities == null || excludedEntities.isEmpty()) {
             return false;
         }

@@ -9,7 +9,7 @@ import com.google.gson.JsonParser;
 import com.google.gson.JsonSyntaxException;
 import net.fabricmc.loader.api.FabricLoader;
 import net.minecraft.core.Holder;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.monster.Monster;
 import net.minecraft.world.level.biome.Biome;
@@ -309,7 +309,7 @@ public class TribulationConfig {
      * dimensions (the Overworld by default) are unaffected. Null-safe against
      * a missing map or a {@code null} JSON value.
      */
-    public int getDimensionOffset(ResourceLocation dimension) {
+    public int getDimensionOffset(Identifier dimension) {
         if (dimensionOffsets == null || dimension == null) return 0;
         Integer offset = dimensionOffsets.get(dimension.toString());
         return offset != null ? offset : 0;
@@ -400,16 +400,16 @@ public class TribulationConfig {
      *   <li>Otherwise {@code null} — no scaling applied</li>
      * </ol>
      */
-    public MobScaling resolveScalingForEntity(ResourceLocation typeId, Mob mob) {
+    public MobScaling resolveScalingForEntity(Identifier typeId, Mob mob) {
         return resolveScalingForEntity(typeId, mob instanceof Monster);
     }
 
     /**
-     * Pure-logic variant of {@link #resolveScalingForEntity(ResourceLocation, Mob)}
+     * Pure-logic variant of {@link #resolveScalingForEntity(Identifier, Mob)}
      * that takes the {@code instanceof Monster} result as a boolean so it can be
      * exercised by unit tests without constructing real {@link Mob} instances.
      */
-    public MobScaling resolveScalingForEntity(ResourceLocation typeId, boolean isMonster) {
+    public MobScaling resolveScalingForEntity(Identifier typeId, boolean isMonster) {
         if (typeId == null) return null;
 
         // 1. Full-ID override — hand-tuned escape hatch for any namespace.
@@ -1063,7 +1063,7 @@ public class TribulationConfig {
      * Baseline threat offsets per dimension. The Nether and End only receive the
      * time axis by default (distance/height are Overworld-only), so a flat level
      * offset restores the intended difficulty escalation in those dimensions.
-     * Keys are dimension {@link ResourceLocation} strings; modded dimensions can
+     * Keys are dimension {@link Identifier} strings; modded dimensions can
      * be added here too.
      */
     private static Map<String, Integer> defaultDimensionOffsets() {
@@ -1075,7 +1075,7 @@ public class TribulationConfig {
 
     /**
      * Baseline threat offsets per biome, stacking additively with the
-     * dimension offset. Keys are biome {@link ResourceLocation} strings or
+     * dimension offset. Keys are biome {@link Identifier} strings or
      * {@code #}-prefixed biome tags (so modded biomes and whole categories
      * work). Only the Deep Dark carries a default — everything else is
      * opt-in tuning.
@@ -1095,7 +1095,7 @@ public class TribulationConfig {
     static boolean isValidIdOrTagKey(String key) {
         if (key == null || key.isEmpty()) return false;
         String id = key.startsWith("#") ? key.substring(1) : key;
-        return !id.isEmpty() && ResourceLocation.tryParse(id) != null;
+        return !id.isEmpty() && Identifier.tryParse(id) != null;
     }
 
     /**

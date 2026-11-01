@@ -9,7 +9,7 @@ import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
 import net.minecraft.core.Registry;
 import net.minecraft.core.SectionPos;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.ChunkPos;
@@ -59,7 +59,7 @@ public final class StructureBoostManager {
      * containment test is allocation-free.
      */
     public record BoostZone(int minX, int minY, int minZ, int maxX, int maxY, int maxZ,
-                            int boost, ResourceLocation structureId) {
+                            int boost, Identifier structureId) {
 
         /**
          * Block-inclusive containment: bounds are inclusive block coordinates
@@ -72,7 +72,7 @@ public final class StructureBoostManager {
                     && z >= minZ && z < maxZ + 1;
         }
 
-        static BoostZone of(BoundingBox box, int margin, int boost, ResourceLocation structureId) {
+        static BoostZone of(BoundingBox box, int margin, int boost, Identifier structureId) {
             return new BoostZone(
                     box.minX() - margin, box.minY() - margin, box.minZ() - margin,
                     box.maxX() + margin, box.maxY() + margin, box.maxZ() + margin,
@@ -254,7 +254,7 @@ public final class StructureBoostManager {
                     int boost = cfg.getStructureBoost(registry.wrapAsHolder(structure));
                     if (boost <= 0) continue;
 
-                    ResourceLocation structureId = registry.getKey(structure);
+                    Identifier structureId = registry.getKey(structure);
                     for (LongIterator refs = entry.getValue().iterator(); refs.hasNext(); ) {
                         long ref = refs.nextLong();
                         // A reference points at the start's own chunk, which for

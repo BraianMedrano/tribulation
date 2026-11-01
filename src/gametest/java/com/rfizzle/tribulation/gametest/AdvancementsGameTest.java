@@ -17,7 +17,7 @@ import net.minecraft.core.registries.Registries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
@@ -77,7 +77,7 @@ public class AdvancementsGameTest implements FabricGameTest {
             Holder<Enchantment> soulbound = helper.getLevel().getServer().registryAccess()
                     .registryOrThrow(Registries.ENCHANTMENT)
                     .getHolderOrThrow(ResourceKey.create(Registries.ENCHANTMENT,
-                            ResourceLocation.parse(cfg.soulInventory.soulboundEnchantment)));
+                            Identifier.parse(cfg.soulInventory.soulboundEnchantment)));
             ItemStack sword = new ItemStack(Items.DIAMOND_SWORD);
             sword.enchant(soulbound, 1);
             oldPlayer.getInventory().add(sword);

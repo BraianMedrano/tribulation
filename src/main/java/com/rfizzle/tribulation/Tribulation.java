@@ -26,7 +26,7 @@ import com.rfizzle.tribulation.network.TribulationNetworking;
 import com.rfizzle.tribulation.scaling.StructureBoostManager;
 import com.rfizzle.tribulation.scaling.TierManager;
 import net.minecraft.network.protocol.game.ClientboundSoundPacket;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.fabricmc.api.ModInitializer;
 import net.fabricmc.fabric.api.command.v2.CommandRegistrationCallback;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
@@ -83,8 +83,8 @@ public class Tribulation implements ModInitializer {
         return TribulationConfig.get();
     }
 
-    public static ResourceLocation id(String path) {
-        return ResourceLocation.fromNamespaceAndPath(MOD_ID, path);
+    public static Identifier id(String path) {
+        return Identifier.fromNamespaceAndPath(MOD_ID, path);
     }
 
     public static void reloadConfig() {

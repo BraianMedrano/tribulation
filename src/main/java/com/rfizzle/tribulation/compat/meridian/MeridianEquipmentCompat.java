@@ -12,7 +12,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.HolderSet;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Mob;
@@ -43,7 +43,7 @@ public final class MeridianEquipmentCompat {
 
     /** Meridian's curated pool of mob-appropriate enchants. Absent until Meridian's data loads. */
     private static final TagKey<Enchantment> MOB_EQUIPMENT = TagKey.create(
-            Registries.ENCHANTMENT, ResourceLocation.fromNamespaceAndPath("meridian", "mob_equipment"));
+            Registries.ENCHANTMENT, Identifier.fromNamespaceAndPath("meridian", "mob_equipment"));
 
     private static final AtomicBoolean FAILURE_LOGGED = new AtomicBoolean(false);
 

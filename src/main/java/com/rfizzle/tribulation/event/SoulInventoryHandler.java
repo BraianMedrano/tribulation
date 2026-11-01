@@ -7,7 +7,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.entity.player.Inventory;
@@ -31,7 +31,7 @@ public final class SoulInventoryHandler {
      * for the soul inventory, in addition to the configured enchantment id.
      */
     public static final TagKey<Enchantment> SOULBOUND_ENCHANTMENTS =
-            TagKey.create(Registries.ENCHANTMENT, ResourceLocation.fromNamespaceAndPath("c", "soulbound"));
+            TagKey.create(Registries.ENCHANTMENT, Identifier.fromNamespaceAndPath("c", "soulbound"));
 
     private static final Map<UUID, List<SlotEntry>> SOULBOUND_STASH = new WeakHashMap<>();
 
@@ -108,7 +108,7 @@ public final class SoulInventoryHandler {
             return Optional.empty();
         }
 
-        ResourceLocation rl = ResourceLocation.tryParse(enchantId);
+        Identifier rl = Identifier.tryParse(enchantId);
         if (rl == null) {
             Tribulation.LOGGER.warn("Invalid soulboundEnchantment ID '{}'; only #c:soulbound enchants will be kept", enchantId);
             return Optional.empty();

@@ -6,7 +6,7 @@ import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -23,13 +23,13 @@ public final class TribulationItems {
     public static final String HEART_FRAGMENT_PATH = "heart_fragment";
     public static final String CREATIVE_TAB_PATH = "main";
 
-    public static final ResourceLocation SHATTER_SHARD_ID =
+    public static final Identifier SHATTER_SHARD_ID =
             Tribulation.id(SHATTER_SHARD_PATH);
-    public static final ResourceLocation ASCENDANT_SHARD_ID =
+    public static final Identifier ASCENDANT_SHARD_ID =
             Tribulation.id(ASCENDANT_SHARD_PATH);
-    public static final ResourceLocation HEART_FRAGMENT_ID =
+    public static final Identifier HEART_FRAGMENT_ID =
             Tribulation.id(HEART_FRAGMENT_PATH);
-    public static final ResourceLocation CREATIVE_TAB_ID =
+    public static final Identifier CREATIVE_TAB_ID =
             Tribulation.id(CREATIVE_TAB_PATH);
 
     public static final Item SHATTER_SHARD = new ShatterShardItem(

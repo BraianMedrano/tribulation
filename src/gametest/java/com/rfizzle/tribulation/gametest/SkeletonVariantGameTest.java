@@ -12,7 +12,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Mob;
@@ -20,7 +20,7 @@ import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.RangedBowAttackGoal;
-import net.minecraft.world.entity.monster.AbstractSkeleton;
+import net.minecraft.world.entity.monster.skeleton.AbstractSkeleton;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
@@ -231,12 +231,12 @@ public class SkeletonVariantGameTest implements FabricGameTest {
         removeMod(mob, Attributes.SCALE, SkeletonVariantHandler.BRUTE_SIZE_ID);
     }
 
-    private static void removeMod(Mob mob, Holder<Attribute> attr, ResourceLocation id) {
+    private static void removeMod(Mob mob, Holder<Attribute> attr, Identifier id) {
         AttributeInstance inst = mob.getAttribute(attr);
         if (inst != null) inst.removeModifier(id);
     }
 
-    private static boolean hasMod(Mob mob, Holder<Attribute> attr, ResourceLocation id) {
+    private static boolean hasMod(Mob mob, Holder<Attribute> attr, Identifier id) {
         AttributeInstance inst = mob.getAttribute(attr);
         return inst != null && inst.getModifier(id) != null;
     }

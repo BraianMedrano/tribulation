@@ -8,7 +8,7 @@ import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.gametest.framework.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 /**
  * Smoke test that the three threat-telegraphing particle types resolve in
@@ -28,8 +28,8 @@ public class ParticleRegistrationGameTest implements FabricGameTest {
     }
 
     private static void assertRegistered(GameTestHelper helper, String path, ParticleType<?> type) {
-        ResourceLocation expected = Tribulation.id(path);
-        ResourceLocation actual = BuiltInRegistries.PARTICLE_TYPE.getKey(type);
+        Identifier expected = Tribulation.id(path);
+        Identifier actual = BuiltInRegistries.PARTICLE_TYPE.getKey(type);
         helper.assertTrue(expected.equals(actual),
                 "particle type " + expected + " must be registered, got key " + actual);
     }

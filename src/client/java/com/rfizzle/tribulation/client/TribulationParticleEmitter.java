@@ -14,7 +14,7 @@ import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.Holder;
 import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.particles.SimpleParticleType;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -141,7 +141,7 @@ public final class TribulationParticleEmitter {
         return ThreatCue.Variant.NONE;
     }
 
-    private static boolean hasModifier(Mob mob, Holder<Attribute> attribute, ResourceLocation id) {
+    private static boolean hasModifier(Mob mob, Holder<Attribute> attribute, Identifier id) {
         AttributeInstance instance = mob.getAttribute(attribute);
         return instance != null && instance.getModifier(id) != null;
     }

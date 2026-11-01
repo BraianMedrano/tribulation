@@ -2,7 +2,7 @@ package com.rfizzle.tribulation.config;
 
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.levelgen.structure.Structure;
 
@@ -28,13 +28,13 @@ import java.util.function.Predicate;
  */
 final class StructureBoostResolver {
     private final Map<String, Integer> source;
-    private final Map<ResourceLocation, Integer> byId;
+    private final Map<Identifier, Integer> byId;
     private final List<TagEntry> tags;
 
     private record TagEntry(TagKey<Structure> tag, int boost) {}
 
     private StructureBoostResolver(Map<String, Integer> source,
-                                   Map<ResourceLocation, Integer> byId,
+                                   Map<Identifier, Integer> byId,
                                    List<TagEntry> tags) {
         this.source = source;
         this.byId = byId;
@@ -43,7 +43,7 @@ final class StructureBoostResolver {
 
     static StructureBoostResolver build(Map<String, Integer> boosts) {
         Map<String, Integer> source = new LinkedHashMap<>(boosts);
-        Map<ResourceLocation, Integer> byId = new LinkedHashMap<>();
+        Map<Identifier, Integer> byId = new LinkedHashMap<>();
         List<TagEntry> tags = new ArrayList<>();
         for (Map.Entry<String, Integer> entry : source.entrySet()) {
             String key = entry.getKey();
@@ -51,12 +51,12 @@ final class StructureBoostResolver {
             if (key == null || value == null) continue;
             int boost = Math.max(0, value);
             if (key.startsWith("#")) {
-                ResourceLocation id = ResourceLocation.tryParse(key.substring(1));
+                Identifier id = Identifier.tryParse(key.substring(1));
                 if (id != null) {
                     tags.add(new TagEntry(TagKey.create(Registries.STRUCTURE, id), boost));
                 }
             } else {
-                ResourceLocation id = ResourceLocation.tryParse(key);
+                Identifier id = Identifier.tryParse(key);
                 if (id != null) {
                     byId.put(id, boost);
                 }
@@ -77,7 +77,7 @@ final class StructureBoostResolver {
 
     int boostFor(Holder<Structure> structure) {
         if (structure == null) return 0;
-        ResourceLocation id = structure.unwrapKey().map(key -> key.location()).orElse(null);
+        Identifier id = structure.unwrapKey().map(key -> key.location()).orElse(null);
         return boostFor(id, structure::is);
     }
 
@@ -87,7 +87,7 @@ final class StructureBoostResolver {
      * predicate so unit tests can exercise the match semantics without
      * constructing a real {@link Holder}.
      */
-    int boostFor(ResourceLocation structureId, Predicate<TagKey<Structure>> isInTag) {
+    int boostFor(Identifier structureId, Predicate<TagKey<Structure>> isInTag) {
         if (structureId != null) {
             Integer exact = byId.get(structureId);
             if (exact != null) return exact;

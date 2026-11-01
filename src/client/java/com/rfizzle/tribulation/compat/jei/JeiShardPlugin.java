@@ -10,17 +10,17 @@ import mezz.jei.api.IModPlugin;
 import mezz.jei.api.JeiPlugin;
 import mezz.jei.api.registration.IRecipeRegistration;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 
 @JeiPlugin
 public final class JeiShardPlugin implements IModPlugin {
 
-    private static final ResourceLocation PLUGIN_UID = ResourceLocation.fromNamespaceAndPath(
+    private static final Identifier PLUGIN_UID = Identifier.fromNamespaceAndPath(
             Tribulation.MOD_ID, "jei_plugin");
 
     @Override
-    public ResourceLocation getPluginUid() {
+    public Identifier getPluginUid() {
         return PLUGIN_UID;
     }
 

@@ -5,7 +5,7 @@ import com.rfizzle.tribulation.config.TribulationConfig;
 import com.rfizzle.tribulation.config.TribulationConfig.Bosses;
 import com.rfizzle.tribulation.config.TribulationConfig.DistanceScaling;
 import net.minecraft.core.Holder;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -185,7 +185,7 @@ public final class BossScalingEngine {
     }
 
     private static void applyAxis(AttributeInstance instance, String axis, String attributeKey, double amount) {
-        ResourceLocation id = modifierId(axis, attributeKey);
+        Identifier id = modifierId(axis, attributeKey);
         instance.removeModifier(id);
         if (amount > 0) {
             instance.addPermanentModifier(new AttributeModifier(
@@ -195,7 +195,7 @@ public final class BossScalingEngine {
     }
 
     /** Boss-namespaced modifier ID so inspect/debug can tell boss from mob modifiers. */
-    public static ResourceLocation modifierId(String axis, String attribute) {
+    public static Identifier modifierId(String axis, String attribute) {
         return Tribulation.id(axis + "_" + attribute);
     }
 

@@ -3,14 +3,14 @@ package com.rfizzle.tribulation.event;
 import com.rfizzle.tribulation.Tribulation;
 import com.rfizzle.tribulation.config.TribulationConfig.SpecialZombies;
 import net.minecraft.core.Holder;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.monster.Zombie;
+import net.minecraft.world.entity.monster.zombie.Zombie;
 
 import java.util.Set;
 
@@ -30,17 +30,17 @@ import java.util.Set;
 public final class ZombieVariantHandler {
     public static final String PROCESSED_TAG = "tribulation_variant_processed";
 
-    public static final ResourceLocation BIG_HEALTH_ID =
+    public static final Identifier BIG_HEALTH_ID =
             Tribulation.id("variant_big_health");
-    public static final ResourceLocation BIG_DAMAGE_ID =
+    public static final Identifier BIG_DAMAGE_ID =
             Tribulation.id("variant_big_damage");
-    public static final ResourceLocation BIG_SPEED_ID =
+    public static final Identifier BIG_SPEED_ID =
             Tribulation.id("variant_big_speed");
-    public static final ResourceLocation BIG_SIZE_ID =
+    public static final Identifier BIG_SIZE_ID =
             Tribulation.id("variant_big_size");
-    public static final ResourceLocation SPEED_SPEED_ID =
+    public static final Identifier SPEED_SPEED_ID =
             Tribulation.id("variant_speed_speed");
-    public static final ResourceLocation SPEED_HEALTH_ID =
+    public static final Identifier SPEED_HEALTH_ID =
             Tribulation.id("variant_speed_health");
 
     /**
@@ -153,7 +153,7 @@ public final class ZombieVariantHandler {
     private static void setAttributeModifier(
             Mob mob,
             Holder<Attribute> attr,
-            ResourceLocation id,
+            Identifier id,
             double amount,
             AttributeModifier.Operation op
     ) {

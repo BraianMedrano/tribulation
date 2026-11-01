@@ -3,14 +3,14 @@ package com.rfizzle.tribulation.event;
 import com.rfizzle.tribulation.Tribulation;
 import com.rfizzle.tribulation.config.TribulationConfig.SpecialSkeletons;
 import net.minecraft.core.Holder;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.AttributeModifier;
 import net.minecraft.world.entity.ai.attributes.Attributes;
-import net.minecraft.world.entity.monster.AbstractSkeleton;
+import net.minecraft.world.entity.monster.skeleton.AbstractSkeleton;
 
 import java.util.Set;
 
@@ -41,13 +41,13 @@ public final class SkeletonVariantHandler {
     public static final String DEADEYE_TAG = "tribulation_variant_deadeye";
     public static final String BRUTE_TAG = "tribulation_variant_brute";
 
-    public static final ResourceLocation DEADEYE_HEALTH_ID =
+    public static final Identifier DEADEYE_HEALTH_ID =
             Tribulation.id("variant_deadeye_health");
-    public static final ResourceLocation BRUTE_HEALTH_ID =
+    public static final Identifier BRUTE_HEALTH_ID =
             Tribulation.id("variant_brute_health");
-    public static final ResourceLocation BRUTE_KNOCKBACK_ID =
+    public static final Identifier BRUTE_KNOCKBACK_ID =
             Tribulation.id("variant_brute_knockback");
-    public static final ResourceLocation BRUTE_SIZE_ID =
+    public static final Identifier BRUTE_SIZE_ID =
             Tribulation.id("variant_brute_size");
 
     /**
@@ -159,7 +159,7 @@ public final class SkeletonVariantHandler {
     private static void setAttributeModifier(
             Mob mob,
             Holder<Attribute> attr,
-            ResourceLocation id,
+            Identifier id,
             double amount,
             AttributeModifier.Operation op
     ) {

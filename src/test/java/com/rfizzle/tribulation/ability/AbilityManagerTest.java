@@ -2,7 +2,7 @@
 package com.rfizzle.tribulation.ability;
 
 import com.rfizzle.tribulation.config.TribulationConfig;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.*;
@@ -11,7 +11,7 @@ class AbilityManagerTest {
 
     @Test
     void abilityId_returnsNamespacedLocation() {
-        ResourceLocation id = AbilityManager.abilityId("zombie_sprint");
+        Identifier id = AbilityManager.abilityId("zombie_sprint");
         assertEquals("tribulation", id.getNamespace());
         assertEquals("ability_zombie_sprint", id.getPath());
     }

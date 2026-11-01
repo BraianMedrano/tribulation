@@ -1,7 +1,7 @@
 package com.rfizzle.tribulation.advancement;
 
 import com.rfizzle.tribulation.Tribulation;
-import net.minecraft.advancements.CriteriaTriggers;
+import net.minecraft.advancements.triggers.CriteriaTriggers;
 
 /**
  * Registry for Tribulation's custom advancement criterion triggers. Each

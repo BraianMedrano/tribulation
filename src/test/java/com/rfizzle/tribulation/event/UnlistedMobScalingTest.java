@@ -3,7 +3,7 @@ package com.rfizzle.tribulation.event;
 
 import com.rfizzle.tribulation.config.TribulationConfig;
 import com.rfizzle.tribulation.config.TribulationConfig.MobScaling;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -28,8 +28,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class UnlistedMobScalingTest {
 
-    private static ResourceLocation id(String ns, String path) {
-        return ResourceLocation.fromNamespaceAndPath(ns, path);
+    private static Identifier id(String ns, String path) {
+        return Identifier.fromNamespaceAndPath(ns, path);
     }
 
     /** Build a distinctive MobScaling for identity comparisons. */

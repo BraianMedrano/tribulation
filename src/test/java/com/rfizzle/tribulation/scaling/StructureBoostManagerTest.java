@@ -1,7 +1,7 @@
 package com.rfizzle.tribulation.scaling;
 
 import com.rfizzle.tribulation.scaling.StructureBoostManager.BoostZone;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.junit.jupiter.api.Test;
 
 import static org.junit.jupiter.api.Assertions.assertEquals;
@@ -16,8 +16,8 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class StructureBoostManagerTest {
 
-    private static final ResourceLocation FORTRESS = ResourceLocation.parse("minecraft:fortress");
-    private static final ResourceLocation ANCIENT_CITY = ResourceLocation.parse("minecraft:ancient_city");
+    private static final Identifier FORTRESS = Identifier.parse("minecraft:fortress");
+    private static final Identifier ANCIENT_CITY = Identifier.parse("minecraft:ancient_city");
 
     private static BoostZone zone(int minX, int minY, int minZ, int maxX, int maxY, int maxZ, int boost) {
         return new BoostZone(minX, minY, minZ, maxX, maxY, maxZ, boost, FORTRESS);

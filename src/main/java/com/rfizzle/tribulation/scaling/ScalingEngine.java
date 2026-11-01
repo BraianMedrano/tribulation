@@ -12,7 +12,7 @@ import com.rfizzle.tribulation.event.BloodMoonHandler;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceKey;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -93,7 +93,7 @@ public final class ScalingEngine {
 
     // ---- Identifier helpers ----
 
-    public static ResourceLocation modifierId(String axis, String attribute) {
+    public static Identifier modifierId(String axis, String attribute) {
         return Tribulation.id(axis + "_" + attribute);
     }
 
@@ -605,7 +605,7 @@ public final class ScalingEngine {
     }
 
     private static void applyAxis(AttributeInstance instance, String axis, String attributeKey, double amount, AttributeModifier.Operation op) {
-        ResourceLocation id = modifierId(axis, attributeKey);
+        Identifier id = modifierId(axis, attributeKey);
         instance.removeModifier(id);
         if (amount > 0) {
             instance.addPermanentModifier(new AttributeModifier(id, amount, op));
@@ -620,7 +620,7 @@ public final class ScalingEngine {
      * not extra reward. It still lands in the {@code tribulation} namespace,
      * so {@code /tribulation inspect}'s modifier enumeration shows it.
      */
-    public static ResourceLocation groupHealthModifierId() {
+    public static Identifier groupHealthModifierId() {
         return Tribulation.id("group_health");
     }
 
@@ -636,7 +636,7 @@ public final class ScalingEngine {
         if (holder == null) return;
         AttributeInstance instance = mob.getAttribute(holder);
         if (instance == null) return;
-        ResourceLocation id = groupHealthModifierId();
+        Identifier id = groupHealthModifierId();
         instance.removeModifier(id);
         if (bonus > 0) {
             instance.addPermanentModifier(new AttributeModifier(
@@ -760,7 +760,7 @@ public final class ScalingEngine {
         // Other modifiers (not tribulation, not equipment) already in the instance.
         double otherSum = 0;
         for (AttributeModifier mod : instance.getModifiers()) {
-            ResourceLocation id = mod.id();
+            Identifier id = mod.id();
             boolean isTrib = id.getNamespace().equals(Tribulation.MOD_ID);
             // Armor modifiers use "minecraft:armor.X" namespaced IDs; weapons use "minecraft:base_attack_damage" or "minecraft:weapon.mainhand"
             boolean isEquip = id.getNamespace().equals("minecraft") && (
@@ -790,7 +790,7 @@ public final class ScalingEngine {
                 : AttributeModifier.Operation.ADD_MULTIPLIED_BASE;
 
         for (AttributeModifier mod : tribMods) {
-            ResourceLocation id = mod.id();
+            Identifier id = mod.id();
             double newAmount = mod.amount() * scale;
             instance.removeModifier(id);
             if (newAmount > 0) {

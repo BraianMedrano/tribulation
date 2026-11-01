@@ -2,7 +2,7 @@ package com.rfizzle.tribulation.config;
 
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.biome.Biome;
 
@@ -27,13 +27,13 @@ import java.util.function.Predicate;
  */
 final class BiomeOffsetResolver {
     private final Map<String, Integer> source;
-    private final Map<ResourceLocation, Integer> byId;
+    private final Map<Identifier, Integer> byId;
     private final List<TagEntry> tags;
 
     private record TagEntry(TagKey<Biome> tag, int offset) {}
 
     private BiomeOffsetResolver(Map<String, Integer> source,
-                                Map<ResourceLocation, Integer> byId,
+                                Map<Identifier, Integer> byId,
                                 List<TagEntry> tags) {
         this.source = source;
         this.byId = byId;
@@ -42,7 +42,7 @@ final class BiomeOffsetResolver {
 
     static BiomeOffsetResolver build(Map<String, Integer> biomeOffsets) {
         Map<String, Integer> source = new LinkedHashMap<>(biomeOffsets);
-        Map<ResourceLocation, Integer> byId = new LinkedHashMap<>();
+        Map<Identifier, Integer> byId = new LinkedHashMap<>();
         List<TagEntry> tags = new ArrayList<>();
         for (Map.Entry<String, Integer> entry : source.entrySet()) {
             String key = entry.getKey();
@@ -50,12 +50,12 @@ final class BiomeOffsetResolver {
             if (key == null || value == null) continue;
             int offset = Math.max(0, value);
             if (key.startsWith("#")) {
-                ResourceLocation id = ResourceLocation.tryParse(key.substring(1));
+                Identifier id = Identifier.tryParse(key.substring(1));
                 if (id != null) {
                     tags.add(new TagEntry(TagKey.create(Registries.BIOME, id), offset));
                 }
             } else {
-                ResourceLocation id = ResourceLocation.tryParse(key);
+                Identifier id = Identifier.tryParse(key);
                 if (id != null) {
                     byId.put(id, offset);
                 }
@@ -76,7 +76,7 @@ final class BiomeOffsetResolver {
 
     int offsetFor(Holder<Biome> biome) {
         if (biome == null) return 0;
-        ResourceLocation id = biome.unwrapKey().map(key -> key.location()).orElse(null);
+        Identifier id = biome.unwrapKey().map(key -> key.location()).orElse(null);
         return offsetFor(id, biome::is);
     }
 
@@ -86,7 +86,7 @@ final class BiomeOffsetResolver {
      * predicate so unit tests can exercise the match semantics without
      * constructing a real {@link Holder}.
      */
-    int offsetFor(ResourceLocation biomeId, Predicate<TagKey<Biome>> isInTag) {
+    int offsetFor(Identifier biomeId, Predicate<TagKey<Biome>> isInTag) {
         if (biomeId != null) {
             Integer exact = byId.get(biomeId);
             if (exact != null) return exact;

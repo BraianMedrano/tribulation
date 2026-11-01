@@ -1,7 +1,7 @@
 // Tier: 1 (pure JUnit)
 package com.rfizzle.tribulation.event;
 
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.junit.jupiter.api.Test;
 
 import java.util.List;
@@ -21,19 +21,19 @@ class MobScalingHandlerTest {
     @Test
     void resolveToggleKey_returnsPathForVanillaMinecraftNamespace() {
         assertEquals("zombie",
-                MobScalingHandler.resolveToggleKey(ResourceLocation.fromNamespaceAndPath("minecraft", "zombie")));
+                MobScalingHandler.resolveToggleKey(Identifier.fromNamespaceAndPath("minecraft", "zombie")));
         assertEquals("cave_spider",
-                MobScalingHandler.resolveToggleKey(ResourceLocation.fromNamespaceAndPath("minecraft", "cave_spider")));
+                MobScalingHandler.resolveToggleKey(Identifier.fromNamespaceAndPath("minecraft", "cave_spider")));
         assertEquals("wither_skeleton",
-                MobScalingHandler.resolveToggleKey(ResourceLocation.fromNamespaceAndPath("minecraft", "wither_skeleton")));
+                MobScalingHandler.resolveToggleKey(Identifier.fromNamespaceAndPath("minecraft", "wither_skeleton")));
     }
 
     @Test
     void resolveToggleKey_nullForNonMinecraftNamespace() {
         assertNull(MobScalingHandler.resolveToggleKey(
-                ResourceLocation.fromNamespaceAndPath("modid", "custommob")));
+                Identifier.fromNamespaceAndPath("modid", "custommob")));
         assertNull(MobScalingHandler.resolveToggleKey(
-                ResourceLocation.fromNamespaceAndPath("the_bumblezone", "cosmic_crystal_entity")));
+                Identifier.fromNamespaceAndPath("the_bumblezone", "cosmic_crystal_entity")));
     }
 
     @Test
@@ -48,19 +48,19 @@ class MobScalingHandlerTest {
                 "minecraft:armor_stand"
         );
         assertTrue(MobScalingHandler.isExcluded(
-                ResourceLocation.fromNamespaceAndPath("the_bumblezone", "cosmic_crystal_entity"),
+                Identifier.fromNamespaceAndPath("the_bumblezone", "cosmic_crystal_entity"),
                 excluded));
         assertTrue(MobScalingHandler.isExcluded(
-                ResourceLocation.fromNamespaceAndPath("minecraft", "armor_stand"),
+                Identifier.fromNamespaceAndPath("minecraft", "armor_stand"),
                 excluded));
         assertFalse(MobScalingHandler.isExcluded(
-                ResourceLocation.fromNamespaceAndPath("minecraft", "zombie"),
+                Identifier.fromNamespaceAndPath("minecraft", "zombie"),
                 excluded));
     }
 
     @Test
     void isExcluded_handlesEmptyAndNullLists() {
-        ResourceLocation zombie = ResourceLocation.fromNamespaceAndPath("minecraft", "zombie");
+        Identifier zombie = Identifier.fromNamespaceAndPath("minecraft", "zombie");
         assertFalse(MobScalingHandler.isExcluded(zombie, null));
         assertFalse(MobScalingHandler.isExcluded(zombie, List.of()));
         assertFalse(MobScalingHandler.isExcluded(null, List.of("minecraft:zombie")));

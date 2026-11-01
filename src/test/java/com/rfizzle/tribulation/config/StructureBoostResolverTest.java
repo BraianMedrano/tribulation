@@ -1,7 +1,7 @@
 package com.rfizzle.tribulation.config;
 
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.levelgen.structure.Structure;
 import org.junit.jupiter.api.Test;
@@ -17,15 +17,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class StructureBoostResolverTest {
 
-    private static final ResourceLocation FORTRESS = ResourceLocation.parse("minecraft:fortress");
-    private static final ResourceLocation ANCIENT_CITY = ResourceLocation.parse("minecraft:ancient_city");
+    private static final Identifier FORTRESS = Identifier.parse("minecraft:fortress");
+    private static final Identifier ANCIENT_CITY = Identifier.parse("minecraft:ancient_city");
 
     private static final Predicate<TagKey<Structure>> NO_TAGS = tag -> false;
 
     private static Predicate<TagKey<Structure>> inTags(String... tagIds) {
         Set<TagKey<Structure>> keys = new java.util.HashSet<>();
         for (String id : tagIds) {
-            keys.add(TagKey.create(Registries.STRUCTURE, ResourceLocation.parse(id)));
+            keys.add(TagKey.create(Registries.STRUCTURE, Identifier.parse(id)));
         }
         return keys::contains;
     }

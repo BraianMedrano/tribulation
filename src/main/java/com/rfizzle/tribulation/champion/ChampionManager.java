@@ -6,7 +6,7 @@ import com.rfizzle.tribulation.config.TribulationConfig.Champions;
 import com.rfizzle.tribulation.data.TribulationAttachments;
 import net.minecraft.core.Holder;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -33,8 +33,8 @@ import java.util.List;
  */
 public final class ChampionManager {
 
-    public static final ResourceLocation HEALTH_ID = Tribulation.id("champion_health");
-    public static final ResourceLocation DAMAGE_ID = Tribulation.id("champion_damage");
+    public static final Identifier HEALTH_ID = Tribulation.id("champion_health");
+    public static final Identifier DAMAGE_ID = Tribulation.id("champion_damage");
 
     private ChampionManager() {}
 
@@ -161,7 +161,7 @@ public final class ChampionManager {
         return scaled > Integer.MAX_VALUE ? Integer.MAX_VALUE : (int) scaled;
     }
 
-    private static void setMultiplier(Mob mob, Holder<Attribute> attr, ResourceLocation id, double multiplier) {
+    private static void setMultiplier(Mob mob, Holder<Attribute> attr, Identifier id, double multiplier) {
         double delta = multiplier - 1.0;
         if (delta == 0) return;
         AttributeInstance inst = mob.getAttribute(attr);

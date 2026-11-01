@@ -7,10 +7,10 @@ import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.GuiGraphics;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 
 public final class TribulationHudOverlay implements HudRenderCallback {
-    private static final ResourceLocation ICON = Tribulation.id("textures/gui/hud_icon.png");
+    private static final Identifier ICON = Tribulation.id("textures/gui/hud_icon.png");
     private static final int ICON_SIZE = 16;
 
     private static final int BAR_HEIGHT = 2;

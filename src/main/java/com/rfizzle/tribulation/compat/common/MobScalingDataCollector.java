@@ -8,7 +8,7 @@ import com.rfizzle.tribulation.event.ZombieVariantHandler;
 import com.rfizzle.tribulation.scaling.ScalingEngine;
 import net.minecraft.core.Holder;
 import net.minecraft.nbt.CompoundTag;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.Attribute;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
@@ -115,7 +115,7 @@ public final class MobScalingDataCollector {
         }
 
         for (Map.Entry<String, String> entry : MODIFIER_ABILITIES.entrySet()) {
-            ResourceLocation id = ResourceLocation.fromNamespaceAndPath(
+            Identifier id = Identifier.fromNamespaceAndPath(
                     Tribulation.MOD_ID, entry.getKey());
             if (hasModifier(mob, id)) {
                 found.add(entry.getValue());
@@ -149,7 +149,7 @@ public final class MobScalingDataCollector {
         }
     }
 
-    private static boolean hasModifier(Mob mob, ResourceLocation id) {
+    private static boolean hasModifier(Mob mob, Identifier id) {
         for (Map.Entry<String, Holder<Attribute>> entry : ScalingEngine.attributeHolders().entrySet()) {
             AttributeInstance inst = mob.getAttribute(entry.getValue());
             if (inst != null && inst.getModifier(id) != null) return true;

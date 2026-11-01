@@ -8,7 +8,7 @@ import com.rfizzle.tribulation.scaling.ScalingEngine;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
@@ -161,7 +161,7 @@ public final class PackTacticsHandler {
         if (source != cache.source()) {
             Set<EntityType<?>> resolved = new HashSet<>();
             for (String id : source) {
-                ResourceLocation key = id == null || id.isEmpty() ? null : ResourceLocation.tryParse(id);
+                Identifier key = id == null || id.isEmpty() ? null : Identifier.tryParse(id);
                 if (key == null || BuiltInRegistries.ENTITY_TYPE.getOptional(key).isEmpty()) {
                     Tribulation.LOGGER.warn("packTactics.eligibleMobs entry '{}' is not a known entity type; ignoring", id);
                     continue;

@@ -10,12 +10,12 @@ import net.fabricmc.fabric.api.datagen.v1.provider.FabricAdvancementProvider;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementHolder;
 import net.minecraft.advancements.AdvancementType;
-import net.minecraft.advancements.CriteriaTriggers;
-import net.minecraft.advancements.Criterion;
-import net.minecraft.advancements.critereon.PlayerTrigger;
+import net.minecraft.advancements.triggers.CriteriaTriggers;
+import net.minecraft.advancements.triggers.Criterion;
+import net.minecraft.advancements.triggers.PlayerTrigger;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
@@ -31,8 +31,8 @@ import java.util.function.Consumer;
  * never hand-edited — rerun {@code ./gradlew runDatagen} after any change.
  */
 public class TribulationAdvancementProvider extends FabricAdvancementProvider {
-    private static final ResourceLocation BACKGROUND =
-            ResourceLocation.withDefaultNamespace("textures/gui/advancements/backgrounds/stone.png");
+    private static final Identifier BACKGROUND =
+            Identifier.withDefaultNamespace("textures/gui/advancements/backgrounds/stone.png");
 
     public TribulationAdvancementProvider(FabricDataOutput output,
                                           CompletableFuture<HolderLookup.Provider> registryLookup) {

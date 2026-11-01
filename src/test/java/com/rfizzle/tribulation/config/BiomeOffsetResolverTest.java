@@ -1,7 +1,7 @@
 package com.rfizzle.tribulation.config;
 
 import net.minecraft.core.registries.Registries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.tags.TagKey;
 import net.minecraft.world.level.biome.Biome;
 import org.junit.jupiter.api.Test;
@@ -17,15 +17,15 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
 
 class BiomeOffsetResolverTest {
 
-    private static final ResourceLocation DEEP_DARK = ResourceLocation.parse("minecraft:deep_dark");
-    private static final ResourceLocation SWAMP = ResourceLocation.parse("minecraft:swamp");
+    private static final Identifier DEEP_DARK = Identifier.parse("minecraft:deep_dark");
+    private static final Identifier SWAMP = Identifier.parse("minecraft:swamp");
 
     private static final Predicate<TagKey<Biome>> NO_TAGS = tag -> false;
 
     private static Predicate<TagKey<Biome>> inTags(String... tagIds) {
         Set<TagKey<Biome>> keys = new java.util.HashSet<>();
         for (String id : tagIds) {
-            keys.add(TagKey.create(Registries.BIOME, ResourceLocation.parse(id)));
+            keys.add(TagKey.create(Registries.BIOME, Identifier.parse(id)));
         }
         return keys::contains;
     }

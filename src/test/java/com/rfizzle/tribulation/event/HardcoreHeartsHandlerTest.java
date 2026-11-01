@@ -3,7 +3,7 @@ package com.rfizzle.tribulation.event;
 
 import com.rfizzle.tribulation.config.TribulationConfig;
 import com.rfizzle.tribulation.data.PlayerDifficultyState;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import org.junit.jupiter.api.Test;
 
 import java.util.UUID;
@@ -20,7 +20,7 @@ class HardcoreHeartsHandlerTest {
 
     @Test
     void modifierId_isCorrectNamespace() {
-        ResourceLocation id = HardcoreHeartsHandler.MODIFIER_ID;
+        Identifier id = HardcoreHeartsHandler.MODIFIER_ID;
         assertNotNull(id);
         assertEquals("tribulation", id.getNamespace());
         assertEquals("hardcore_hearts", id.getPath());

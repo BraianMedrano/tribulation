@@ -32,7 +32,7 @@ import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
@@ -724,7 +724,7 @@ public final class TribulationCommand {
 
     static List<String> formatInspect(Mob mob) {
         List<String> lines = new ArrayList<>();
-        ResourceLocation typeId = BuiltInRegistries.ENTITY_TYPE.getKey(mob.getType());
+        Identifier typeId = BuiltInRegistries.ENTITY_TYPE.getKey(mob.getType());
         EntityType<?> type = mob.getType();
         boolean isBoss = type.is(MobScalingHandler.BOSSES_TAG);
         String toggleKey = MobScalingHandler.resolveToggleKey(typeId);
@@ -855,7 +855,7 @@ public final class TribulationCommand {
         return Variant.NONE;
     }
 
-    private static boolean hasModifier(Mob mob, ResourceLocation id) {
+    private static boolean hasModifier(Mob mob, Identifier id) {
         for (Map.Entry<String, Holder<Attribute>> entry : ScalingEngine.attributeHolders().entrySet()) {
             AttributeInstance inst = mob.getAttribute(entry.getValue());
             if (inst != null && inst.getModifier(id) != null) {
@@ -877,7 +877,7 @@ public final class TribulationCommand {
             AttributeInstance inst = mob.getAttribute(entry.getValue());
             if (inst == null) continue;
             for (AttributeModifier mod : inst.getModifiers()) {
-                ResourceLocation id = mod.id();
+                Identifier id = mod.id();
                 if (id == null) continue;
                 if (!Tribulation.MOD_ID.equals(id.getNamespace())) continue;
                 out.add(String.format(Locale.ROOT,

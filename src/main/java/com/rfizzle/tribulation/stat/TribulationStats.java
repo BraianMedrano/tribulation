@@ -9,7 +9,7 @@ import com.rfizzle.tribulation.scaling.TierManager;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.resources.ResourceLocation;
+import net.minecraft.resources.Identifier;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.stats.StatFormatter;
 import net.minecraft.stats.Stats;
@@ -20,14 +20,14 @@ import net.minecraft.world.entity.Mob;
  * CUSTOM_STAT registry and persist via the standard player statistics system.
  */
 public final class TribulationStats {
-    public static final ResourceLocation HIGHEST_LEVEL_REACHED = Tribulation.id("highest_level_reached");
-    public static final ResourceLocation LEVELS_LOST_TO_DEATH_RELIEF = Tribulation.id("levels_lost_to_death_relief");
-    public static final ResourceLocation LEVELS_LOST_TO_DECAY = Tribulation.id("levels_lost_to_decay");
-    public static final ResourceLocation SHATTER_SHARDS_USED = Tribulation.id("shatter_shards_used");
-    public static final ResourceLocation ASCENDANT_SHARDS_USED = Tribulation.id("ascendant_shards_used");
-    public static final ResourceLocation HEARTS_LOST = Tribulation.id("hearts_lost");
-    public static final ResourceLocation HEARTS_RESTORED = Tribulation.id("hearts_restored");
-    public static final ResourceLocation TIER_5_MOBS_KILLED = Tribulation.id("tier_5_mobs_killed");
+    public static final Identifier HIGHEST_LEVEL_REACHED = Tribulation.id("highest_level_reached");
+    public static final Identifier LEVELS_LOST_TO_DEATH_RELIEF = Tribulation.id("levels_lost_to_death_relief");
+    public static final Identifier LEVELS_LOST_TO_DECAY = Tribulation.id("levels_lost_to_decay");
+    public static final Identifier SHATTER_SHARDS_USED = Tribulation.id("shatter_shards_used");
+    public static final Identifier ASCENDANT_SHARDS_USED = Tribulation.id("ascendant_shards_used");
+    public static final Identifier HEARTS_LOST = Tribulation.id("hearts_lost");
+    public static final Identifier HEARTS_RESTORED = Tribulation.id("hearts_restored");
+    public static final Identifier TIER_5_MOBS_KILLED = Tribulation.id("tier_5_mobs_killed");
 
     private TribulationStats() {}
 
@@ -65,7 +65,7 @@ public final class TribulationStats {
         });
     }
 
-    private static void registerStat(ResourceLocation id, StatFormatter formatter) {
+    private static void registerStat(Identifier id, StatFormatter formatter) {
         Registry.register(BuiltInRegistries.CUSTOM_STAT, id, id);
         Stats.CUSTOM.get(id, formatter);
     }
