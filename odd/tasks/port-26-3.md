@@ -18,7 +18,7 @@ Branch: `mc/26.3` (from `master` @ 3ac1524). Delivery: `ask-on-risk`. Runners: `
 | ID | Phase | Specs | Route | Status | Evidence |
 |---|---|---|---|---|---|
 | T0 | 0 Baseline on 1.21.1 | S1, S2 | inline | done | build OK, 896 unit tests, 147 gametests (JDK 21) |
-| T1 | 1 Disable optional integrations | S6 | inline | done | build OK, 896 unit tests, 147 gametests on 1.21.1; disabled classes absent from the jar |
+| T1 | 1 Disable optional integrations | S6 | inline | done | build OK, 896 unit tests, 147 gametests on 1.21.1; disabled classes absent from the jar; commit 7259df0 |
 | T2 | 2 Build files to 26.3 (+ Meridian decision, minimal Concord decoupling) | S1, S6, S7 | inline | pending | |
 | T3 | 3 Compile fixes, common logic first | S1, S6 | inline | pending | |
 | T4 | 4 Unit tests green | S1, S6 | inline | pending | |
