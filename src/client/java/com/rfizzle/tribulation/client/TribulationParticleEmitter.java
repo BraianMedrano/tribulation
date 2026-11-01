@@ -65,7 +65,7 @@ public final class TribulationParticleEmitter {
 
         int minimumTier = Math.max(0, cfg.threatParticles.minimumTier);
         int frequency = Math.max(1, cfg.threatParticles.particleFrequencyTicks);
-        RandomSource random = level.random;
+        RandomSource random = level.getRandom();
 
         Vec3 eye = player.getEyePosition();
         Vec3 view = player.getViewVector(1.0F);

@@ -3,13 +3,14 @@ package com.rfizzle.tribulation.client;
 import com.rfizzle.tribulation.Tribulation;
 import com.rfizzle.tribulation.config.TribulationConfig;
 import com.rfizzle.tribulation.scaling.TierManager;
-import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElement;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.resources.Identifier;
 
-public final class TribulationHudOverlay implements HudRenderCallback {
+public final class TribulationHudOverlay implements HudElement {
     private static final Identifier ICON = Tribulation.id("textures/gui/hud_icon.png");
     private static final int ICON_SIZE = 16;
 
@@ -53,8 +54,8 @@ public final class TribulationHudOverlay implements HudRenderCallback {
     public static boolean isHudVisible() {
         Minecraft mc = Minecraft.getInstance();
         if (mc == null || mc.player == null) return false;
-        if (mc.options.hideGui) return false;
-        if (mc.screen != null) return false;
+        if (mc.gui.hud.isHidden()) return false;
+        if (mc.gui.screen() != null) return false;
         if (mc.player.isSpectator()) return false;
         if (mc.player.isDeadOrDying()) return false;
 
@@ -75,7 +76,7 @@ public final class TribulationHudOverlay implements HudRenderCallback {
     }
 
     @Override
-    public void onHudRender(GuiGraphics graphics, DeltaTracker delta) {
+    public void extractRenderState(GuiGraphicsExtractor graphics, DeltaTracker delta) {
         if (!isHudVisible()) return;
 
         TribulationConfig config = Tribulation.getConfig();
@@ -96,12 +97,9 @@ public final class TribulationHudOverlay implements HudRenderCallback {
         int x = computeOriginX(anchor, screenW, config.hudOffsetX);
         int y = computeOriginY(anchor, screenH, config.hudOffsetY);
 
-        float r = ((color >> 16) & 0xFF) / 255f;
-        float g = ((color >> 8) & 0xFF) / 255f;
-        float b = (color & 0xFF) / 255f;
-        graphics.setColor(r, g, b, 1.0f);
-        graphics.blit(ICON, x, y, ICON_SIZE, ICON_SIZE, 0, 0, 32, 32, 32, 32);
-        graphics.setColor(1.0f, 1.0f, 1.0f, 1.0f);
+        // Tint the icon with the tier colour (forced opaque), as the old setColor call did.
+        graphics.blit(RenderPipelines.GUI_TEXTURED, ICON, x, y, 0, 0, ICON_SIZE, ICON_SIZE, 32, 32, 32, 32,
+                0xFF000000 | (color & 0xFFFFFF));
 
         // Progress bar under the icon — fraction of ticks toward next level.
         int barX = x;
@@ -113,10 +111,6 @@ public final class TribulationHudOverlay implements HudRenderCallback {
         if (filledW > 0) {
             graphics.fill(barX, barY, barX + filledW, barY + BAR_HEIGHT, color);
         }
-
-        // Commit the batch before anything can re-batch or read the framebuffer,
-        // so ImmediatelyFast / Blur+ can't drop these sprites (Concord HUD Standard).
-        graphics.flush();
     }
 
     static int computeWidth() {

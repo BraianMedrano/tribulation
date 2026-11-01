@@ -46,6 +46,9 @@ sourceSets {
     client {
         java.exclude 'com/rfizzle/tribulation/compat/modmenu/**', 'com/rfizzle/tribulation/compat/emi/EmiShardPlugin.java',
                 'com/rfizzle/tribulation/compat/rei/**', 'com/rfizzle/tribulation/compat/jei/**'
+        // Blood Moon sky/fog/moon tint and the oppressive-night darkness target render code 26.x
+        // rewrote; they return with phase 8 (optional visual effects). See PORTING.md.
+        java.exclude 'com/rfizzle/tribulation/mixin/client/**'
     }
 }
 

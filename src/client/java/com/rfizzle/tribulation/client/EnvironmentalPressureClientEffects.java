@@ -3,6 +3,7 @@ package com.rfizzle.tribulation.client;
 import com.rfizzle.tribulation.Tribulation;
 import com.rfizzle.tribulation.config.TribulationConfig;
 import net.minecraft.client.multiplayer.ClientLevel;
+import net.minecraft.world.attribute.EnvironmentAttributes;
 import net.minecraft.util.Mth;
 import net.minecraft.world.level.dimension.DimensionType;
 
@@ -43,7 +44,7 @@ public final class EnvironmentalPressureClientEffects {
         // Night only exists where time advances and the sky is visible — the
         // Nether/End (fixed time) and modded skyless dimensions stay vanilla.
         if (dimension.hasFixedTime() || !dimension.hasSkyLight()) return 0f;
-        return computeDarkness(synced, level.getTimeOfDay(partialTick));
+        return computeDarkness(synced, level.environmentAttributes().getDimensionValue(EnvironmentAttributes.SUN_ANGLE) / 360.0f);
     }
 
     /** Bounded darkness scaled by how deep into the night we are. */

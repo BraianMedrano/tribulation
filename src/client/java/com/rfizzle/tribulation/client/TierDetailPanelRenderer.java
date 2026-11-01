@@ -5,11 +5,12 @@ import com.rfizzle.tribulation.ability.MobAbilities;
 import com.rfizzle.tribulation.ability.MobAbility;
 import com.rfizzle.tribulation.config.TribulationConfig;
 import com.rfizzle.tribulation.scaling.TierManager;
-import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElement;
 import net.minecraft.client.DeltaTracker;
 import net.minecraft.client.Minecraft;
 import net.minecraft.client.gui.Font;
-import net.minecraft.client.gui.GuiGraphics;
+import net.minecraft.client.gui.GuiGraphicsExtractor;
+import net.minecraft.client.renderer.RenderPipelines;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.network.chat.Component;
@@ -41,7 +42,7 @@ import java.util.Set;
  * and any overflow is paged — the body cross-fades between pages of mobs, with
  * page dots, while the header and progress stay static.
  */
-public final class TierDetailPanelRenderer implements HudRenderCallback {
+public final class TierDetailPanelRenderer implements HudElement {
     private static final Identifier PANEL = Tribulation.id("textures/gui/tier_detail_panel.png");
     private static final Identifier ICON = Tribulation.id("textures/gui/hud_icon.png");
 
@@ -92,7 +93,7 @@ public final class TierDetailPanelRenderer implements HudRenderCallback {
     private long lastScanTick = Long.MIN_VALUE;
 
     @Override
-    public void onHudRender(GuiGraphics graphics, DeltaTracker delta) {
+    public void extractRenderState(GuiGraphicsExtractor graphics, DeltaTracker delta) {
         // Same visibility rules as the badge (F1, open screen, spectator, death),
         // plus the hold-to-peek gate: the panel shows only while the bound key is
         // held down.
@@ -188,7 +189,6 @@ public final class TierDetailPanelRenderer implements HudRenderCallback {
         int panelY = (graphics.guiHeight() - panelH) / 2;
 
         // ---- Safety net: scale the whole panel down if it still wouldn't fit ----
-        graphics.setColor(1f, 1f, 1f, 1f);
         float fitScale = Math.min(1f, Math.min(
                 graphics.guiWidth() * MAX_SCREEN_FRACTION / panelW,
                 graphics.guiHeight() * MAX_SCREEN_FRACTION / panelH));
@@ -196,10 +196,10 @@ public final class TierDetailPanelRenderer implements HudRenderCallback {
         if (scaled) {
             float scx = graphics.guiWidth() / 2f;
             float scy = graphics.guiHeight() / 2f;
-            graphics.pose().pushPose();
-            graphics.pose().translate(scx, scy, 0f);
-            graphics.pose().scale(fitScale, fitScale, 1f);
-            graphics.pose().translate(-scx, -scy, 0f);
+            graphics.pose().pushMatrix();
+            graphics.pose().translate(scx, scy);
+            graphics.pose().scale(fitScale, fitScale);
+            graphics.pose().translate(-scx, -scy);
         }
 
         // ---- Frame, content ----
@@ -210,15 +210,15 @@ public final class TierDetailPanelRenderer implements HudRenderCallback {
 
         // Header: tier-tinted skull + title, with the tier label right-aligned.
         blitTinted(graphics, ICON, contentX, y, tierColor);
-        graphics.drawString(font, title, contentX + ICON_SIZE + 4, y + 4, COLOR_BONE, true);
-        graphics.drawString(font, tierLabel, contentX + contentW - font.width(tierLabel), y + 4, tierColor, true);
+        graphics.text(font, title, contentX + ICON_SIZE + 4, y + 4, COLOR_BONE, true);
+        graphics.text(font, tierLabel, contentX + contentW - font.width(tierLabel), y + 4, tierColor, true);
         y += ICON_SIZE + SECTION_GAP;
 
         y = divider(graphics, contentX, y, contentW, tierColor);
 
         // Level + next-tier row.
-        graphics.drawString(font, levelText, contentX, y, COLOR_BONE, true);
-        graphics.drawString(font, nextText, contentX + contentW - font.width(nextText), y, COLOR_ASH, true);
+        graphics.text(font, levelText, contentX, y, COLOR_BONE, true);
+        graphics.text(font, nextText, contentX + contentW - font.width(nextText), y, COLOR_ASH, true);
         y += LINE_H + 3;
 
         // Progress bar: ash track, tier-colored fill.
@@ -230,17 +230,17 @@ public final class TierDetailPanelRenderer implements HudRenderCallback {
         y += BAR_H + 3;
 
         // Progress figures row.
-        graphics.drawString(font, progressText, contentX, y, COLOR_ASH, true);
-        graphics.drawString(font, percentText, contentX + contentW - font.width(percentText), y, COLOR_ASH, true);
+        graphics.text(font, progressText, contentX, y, COLOR_ASH, true);
+        graphics.text(font, percentText, contentX + contentW - font.width(percentText), y, COLOR_ASH, true);
         y += LINE_H + SECTION_GAP;
 
         y = divider(graphics, contentX, y, contentW, tierColor);
 
         // ---- Body: static "Nearby" caption + dots, with the page cross-fading ----
         if (!hasList) {
-            graphics.drawString(font, emptyText, contentX, y, COLOR_ASH, true);
+            graphics.text(font, emptyText, contentX, y, COLOR_ASH, true);
         } else {
-            graphics.drawString(font, nearbyHeading, contentX, y, COLOR_ASH, true);
+            graphics.text(font, nearbyHeading, contentX, y, COLOR_ASH, true);
 
             int page = 0;
             float bodyAlpha = 1f;
@@ -263,13 +263,8 @@ public final class TierDetailPanelRenderer implements HudRenderCallback {
         }
 
         if (scaled) {
-            graphics.pose().popPose();
+            graphics.pose().popMatrix();
         }
-        graphics.setColor(1f, 1f, 1f, 1f);
-
-        // Commit the batch before anything can re-batch or read the framebuffer,
-        // so ImmediatelyFast / Blur+ can't drop these sprites (Concord HUD Standard).
-        graphics.flush();
     }
 
     /**
@@ -345,7 +340,7 @@ public final class TierDetailPanelRenderer implements HudRenderCallback {
         return 1f;
     }
 
-    private static void drawDots(GuiGraphics g, int x, int y, int count, int active, int activeColor) {
+    private static void drawDots(GuiGraphicsExtractor g, int x, int y, int count, int active, int activeColor) {
         int dx = x;
         for (int i = 0; i < count; i++) {
             g.fill(dx, y, dx + DOT_SIZE, y + DOT_SIZE, i == active ? activeColor : COLOR_DOT_OFF);
@@ -353,14 +348,14 @@ public final class TierDetailPanelRenderer implements HudRenderCallback {
         }
     }
 
-    private static void drawColumn(GuiGraphics graphics, Font font, List<Group> column, int x, int top,
+    private static void drawColumn(GuiGraphicsExtractor graphics, Font font, List<Group> column, int x, int top,
                                    int headerColor, int abilityColor) {
         int cy = top;
         for (Group g : column) {
-            graphics.drawString(font, g.header(), x, cy, headerColor, true);
+            graphics.text(font, g.header(), x, cy, headerColor, true);
             cy += LINE_H;
             for (MobAbility ability : g.abilities()) {
-                graphics.drawString(font, abilityComponent(ability), x + ABILITY_INDENT, cy, abilityColor, true);
+                graphics.text(font, abilityComponent(ability), x + ABILITY_INDENT, cy, abilityColor, true);
                 cy += LINE_H;
             }
         }
@@ -390,13 +385,13 @@ public final class TierDetailPanelRenderer implements HudRenderCallback {
         return rows;
     }
 
-    private int divider(GuiGraphics graphics, int x, int y, int width, int color) {
+    private int divider(GuiGraphicsExtractor graphics, int x, int y, int width, int color) {
         graphics.fill(x, y, x + width, y + 1, withAlpha(color, 0xB0));
         return y + 1 + SECTION_GAP;
     }
 
     /** Draw the 64x64 panel texture as a 9-slice scaled to {@code w}x{@code h}. */
-    private static void drawNineSlice(GuiGraphics g, int x, int y, int w, int h) {
+    private static void drawNineSlice(GuiGraphicsExtractor g, int x, int y, int w, int h) {
         int s = SLICE;
         int center = TEX_SIZE - 2 * s;          // 40px center region in the texture
         int innerW = w - 2 * s;
@@ -415,17 +410,13 @@ public final class TierDetailPanelRenderer implements HudRenderCallback {
         blit(g, x + s, y + s, innerW, innerH, s, s, center, center);
     }
 
-    private static void blit(GuiGraphics g, int x, int y, int dw, int dh, int u, int v, int sw, int sh) {
-        g.blit(PANEL, x, y, dw, dh, u, v, sw, sh, TEX_SIZE, TEX_SIZE);
+    private static void blit(GuiGraphicsExtractor g, int x, int y, int dw, int dh, int u, int v, int sw, int sh) {
+        g.blit(RenderPipelines.GUI_TEXTURED, PANEL, x, y, u, v, dw, dh, sw, sh, TEX_SIZE, TEX_SIZE);
     }
 
-    private static void blitTinted(GuiGraphics g, Identifier tex, int x, int y, int color) {
-        float r = ((color >> 16) & 0xFF) / 255f;
-        float gr = ((color >> 8) & 0xFF) / 255f;
-        float b = (color & 0xFF) / 255f;
-        g.setColor(r, gr, b, 1f);
-        g.blit(tex, x, y, ICON_SIZE, ICON_SIZE, 0, 0, 32, 32, 32, 32);
-        g.setColor(1f, 1f, 1f, 1f);
+    private static void blitTinted(GuiGraphicsExtractor g, Identifier tex, int x, int y, int color) {
+        g.blit(RenderPipelines.GUI_TEXTURED, tex, x, y, 0, 0, ICON_SIZE, ICON_SIZE, 32, 32, 32, 32,
+                0xFF000000 | (color & 0xFFFFFF));
     }
 
     private static int withAlpha(int argb, int alpha) {

@@ -3,10 +3,10 @@ package com.rfizzle.tribulation.client;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
 import net.minecraft.client.particle.ParticleProvider;
-import net.minecraft.client.particle.ParticleRenderType;
 import net.minecraft.client.particle.SpriteSet;
-import net.minecraft.client.particle.TextureSheetParticle;
+import net.minecraft.client.particle.SingleQuadParticle;
 import net.minecraft.core.particles.SimpleParticleType;
+import net.minecraft.util.RandomSource;
 
 /**
  * Client-side threat-telegraphing particle. A single class drives all three
@@ -15,12 +15,12 @@ import net.minecraft.core.particles.SimpleParticleType;
  * the cue's lifetime so it fades rather than popping. Purely cosmetic — no
  * physics, no collision, no light.
  */
-public class ThreatParticle extends TextureSheetParticle {
+public class ThreatParticle extends SingleQuadParticle {
     private final float baseAlpha;
 
     protected ThreatParticle(ClientLevel level, double x, double y, double z,
                              double xd, double yd, double zd, SpriteSet sprites, Style style) {
-        super(level, x, y, z);
+        super(level, x, y, z, sprites.first());
         this.friction = 0.94f;
         this.hasPhysics = false;
         this.xd = xd;
@@ -31,7 +31,7 @@ public class ThreatParticle extends TextureSheetParticle {
         this.quadSize = style.size * (0.85f + this.random.nextFloat() * 0.3f);
         this.baseAlpha = style.alpha;
         this.alpha = style.alpha;
-        this.pickSprite(sprites);
+        this.setSprite(sprites.get(this.random));
     }
 
     @Override
@@ -43,8 +43,8 @@ public class ThreatParticle extends TextureSheetParticle {
     }
 
     @Override
-    public ParticleRenderType getRenderType() {
-        return ParticleRenderType.PARTICLE_SHEET_TRANSLUCENT;
+    protected SingleQuadParticle.Layer getLayer() {
+        return SingleQuadParticle.Layer.TRANSLUCENT;
     }
 
     /** Per-cue motion and appearance presets. */
@@ -84,7 +84,7 @@ public class ThreatParticle extends TextureSheetParticle {
         @Override
         public Particle createParticle(SimpleParticleType type, ClientLevel level,
                                        double x, double y, double z,
-                                       double xd, double yd, double zd) {
+                                       double xd, double yd, double zd, RandomSource random) {
             return new ThreatParticle(level, x, y, z, xd, yd, zd, sprites, style);
         }
     }

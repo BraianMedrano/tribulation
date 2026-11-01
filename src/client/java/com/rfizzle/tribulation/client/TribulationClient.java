@@ -1,16 +1,16 @@
 package com.rfizzle.tribulation.client;
 
 import com.mojang.blaze3d.platform.InputConstants;
+import com.rfizzle.tribulation.Tribulation;
 import com.rfizzle.tribulation.compat.common.TooltipDetailProvider;
 import com.rfizzle.tribulation.particle.TribulationParticles;
 import net.fabricmc.api.ClientModInitializer;
-import net.fabricmc.fabric.api.client.keybinding.v1.KeyBindingHelper;
+import net.fabricmc.fabric.api.client.keymapping.v1.KeyMappingHelper;
 import net.fabricmc.fabric.api.client.networking.v1.ClientPlayConnectionEvents;
-import net.fabricmc.fabric.api.client.particle.v1.ParticleFactoryRegistry;
-import net.fabricmc.fabric.api.client.rendering.v1.HudRenderCallback;
+import net.fabricmc.fabric.api.client.particle.v1.ParticleProviderRegistry;
+import net.fabricmc.fabric.api.client.rendering.v1.hud.HudElementRegistry;
 import net.minecraft.client.KeyMapping;
-import net.minecraft.client.gui.screens.Screen;
-import org.lwjgl.glfw.GLFW;
+import net.minecraft.client.Minecraft;
 
 public class TribulationClient implements ClientModInitializer {
     /**
@@ -25,20 +25,20 @@ public class TribulationClient implements ClientModInitializer {
 
     @Override
     public void onInitializeClient() {
-        KEY_PEEK_DETAIL = KeyBindingHelper.registerKeyBinding(new KeyMapping(
+        KEY_PEEK_DETAIL = KeyMappingHelper.registerKeyMapping(new KeyMapping(
                 "key.tribulation.peek_detail",
-                InputConstants.Type.KEYSYM,
-                GLFW.GLFW_KEY_LEFT_ALT,
-                "key.categories.tribulation"));
+                InputConstants.Type.KEYBOARD,
+                InputConstants.KEY_LALT,
+                KeyMapping.Category.register(Tribulation.id("main"))));
 
         ClientNetworkHandler.register();
 
         // Feed the client-only tooltip inputs into the shared item classes.
-        TooltipDetailProvider.setShiftHeld(Screen::hasShiftDown);
+        TooltipDetailProvider.setShiftHeld(() -> Minecraft.getInstance().hasShiftDown());
         TooltipDetailProvider.setEffectiveConfig(ClientConfigState::effective);
 
-        HudRenderCallback.EVENT.register(new TribulationHudOverlay());
-        HudRenderCallback.EVENT.register(new TierDetailPanelRenderer());
+        HudElementRegistry.addLast(Tribulation.id("tier_badge"), new TribulationHudOverlay());
+        HudElementRegistry.addLast(Tribulation.id("tier_detail_panel"), new TierDetailPanelRenderer());
         ClientPlayConnectionEvents.DISCONNECT.register((handler, client) -> ClientTribulationState.reset());
 
         registerThreatParticles();
@@ -46,7 +46,7 @@ public class TribulationClient implements ClientModInitializer {
     }
 
     private static void registerThreatParticles() {
-        ParticleFactoryRegistry registry = ParticleFactoryRegistry.getInstance();
+        ParticleProviderRegistry registry = ParticleProviderRegistry.getInstance();
         registry.register(TribulationParticles.THREAT_TIER,
                 sprites -> new ThreatParticle.Provider(sprites, ThreatParticle.Style.TIER));
         registry.register(TribulationParticles.THREAT_BIG,
