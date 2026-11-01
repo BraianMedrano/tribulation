@@ -306,6 +306,12 @@ Los cuatro mixins de cliente volvieron, reescritos contra el render de 26.3 y co
 - Con `maxDarkness = 0.25` (valor por defecto) el suelo a medianoche queda casi negro. Es el mismo cálculo que en 1.21.1, no un cambio del port.
 - `./gradlew build`: OK, 912 tests unitarios (910 + 2). `./gradlew runGametest`: OK, 150 gametests. `./gradlew runClientGametest`: OK.
 
+### Fase 9 (empaquetado, 2026-11-01)
+
+- El jar de `./gradlew build` trae `fabric.mod.json`, los dos configs de mixins, assets (incluidas las definiciones `items/*.json`) y data. No trae clases de test ni de gametest, ni las integraciones desactivadas (solo `EmiShardRefresh`, que usa reflection).
+- Server de producción (no el de desarrollo): Fabric server launcher 26.3 / loader 0.20.1, con `fabric-api-0.165.0+26.3.jar` y el jar del mod en `mods/`. Arranca en ~1 s sin errores ni avisos de mixins y crea `config/tribulation.json`. Por consola: `config`, `reload`, `bloodmoon start`/status/`stop` OK. Un zombie invocado en (3000, 120, 3000) recibe los modificadores `tribulation:distance_*`, `height_*` y `moon_*` en vida, daño, armadura y dureza. Los archivos quedan en `dimensions/minecraft/overworld/data/tribulation/`.
+- Falta la prueba con el cliente real (Prism) y los ítems de la checklist §8 que necesitan un jugador.
+
 ### Desactivado temporalmente
 
 | Qué | Cómo | Motivo | Cómo restaurarlo |
