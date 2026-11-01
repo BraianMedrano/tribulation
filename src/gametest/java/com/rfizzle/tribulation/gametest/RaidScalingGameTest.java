@@ -16,6 +16,7 @@ import net.minecraft.nbt.NbtOps;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.Difficulty;
+import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.EquipmentSlot;
@@ -26,6 +27,7 @@ import net.minecraft.world.entity.raid.Raids;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
+import java.lang.reflect.Method;
 import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
@@ -188,6 +190,70 @@ public class RaidScalingGameTest {
             int disabled = createRaidAndReadWaves(helper, player, center);
             helper.assertValueEqual(disabled, vanilla, "waves for a tier-5 player with raid scaling off");
         } finally {
+            live.raidScaling.enabled = savedEnabled;
+            live.raidScaling.extraWaveTierThreshold = savedThreshold;
+            live.raidScaling.extraWaveCount = savedCount;
+            live.general.mobDetectionRange = savedRange;
+            state.setLevel(player.getUUID(), savedLevel, live.general.maxLevel);
+            MockPlayers.retire(player);
+        }
+        helper.succeed();
+    }
+
+    /**
+     * A raid restored from disk (server restart) has not captured its extra waves yet,
+     * and its first {@code getNumGroups} call happens inside {@code spawnGroup}. That call
+     * must still see the level, as it did through {@code Raid.level} on 1.21.1; otherwise
+     * the raid would memoize zero extra waves and disagree with its saved wave count.
+     */
+    @GameTest(structure = "tribulation:empty_3x3")
+    public void restoredRaidKeepsTierWavesWhenSpawningAGroup(GameTestHelper helper) throws ReflectiveOperationException {
+        ServerLevel world = helper.getLevel();
+        BlockPos center = helper.absolutePos(CAPTAIN_POS);
+        ServerPlayer player = MockPlayers.serverPlayerInLevel(helper);
+        player.teleportTo(center.getX() + 0.5, center.getY(), center.getZ() + 0.5);
+
+        TribulationConfig live = Tribulation.getConfig();
+        PlayerDifficultyState state = PlayerDifficultyState.getOrCreate(world.getServer());
+        boolean savedEnabled = live.raidScaling.enabled;
+        int savedThreshold = live.raidScaling.extraWaveTierThreshold;
+        int savedCount = live.raidScaling.extraWaveCount;
+        double savedRange = live.general.mobDetectionRange;
+        int savedLevel = state.getLevel(player.getUUID());
+        Raid restored = null;
+        try {
+            live.raidScaling.enabled = true;
+            live.raidScaling.extraWaveTierThreshold = 4;
+            live.raidScaling.extraWaveCount = EXTRA_WAVES;
+            live.general.mobDetectionRange = ISOLATED_DETECTION_RANGE;
+            state.setLevel(player.getUUID(), live.tiers.tier5, live.general.maxLevel);
+            int expected = vanillaWaves(world.getDifficulty()) + EXTRA_WAVES;
+
+            Raid raid = world.getRaids().createOrExtendRaid(player, center);
+            helper.assertTrue(raid != null, "createOrExtendRaid must start a raid in the test level");
+            CompoundTag saved;
+            try {
+                saved = (CompoundTag) Raid.MAP_CODEC.codec().encodeStart(NbtOps.INSTANCE, raid).getOrThrow();
+            } finally {
+                raid.stop();
+            }
+            helper.assertValueEqual(saved.getIntOr("group_count", -1), expected, "saved wave count");
+            // spawnGroup only calls getNumGroups for a ravager, and wave 3 always has one, so
+            // resume the raid after wave 2 the way a saved mid-raid world would.
+            saved.putInt("groups_spawned", 2);
+
+            restored = Raid.MAP_CODEC.codec().parse(NbtOps.INSTANCE, saved).getOrThrow();
+            Method spawnGroup = Raid.class.getDeclaredMethod("spawnGroup", ServerLevel.class, BlockPos.class);
+            spawnGroup.setAccessible(true);
+            spawnGroup.invoke(restored, world, center);
+
+            helper.assertValueEqual(restored.getNumGroups(world.getDifficulty()), expected,
+                    "wave count a restored raid sees after spawning a group");
+        } finally {
+            if (restored != null) {
+                restored.getAllRaiders().forEach(Entity::discard);
+                restored.stop();
+            }
             live.raidScaling.enabled = savedEnabled;
             live.raidScaling.extraWaveTierThreshold = savedThreshold;
             live.raidScaling.extraWaveCount = savedCount;

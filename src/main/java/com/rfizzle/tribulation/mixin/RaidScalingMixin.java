@@ -1,6 +1,8 @@
 package com.rfizzle.tribulation.mixin;
 
 import com.llamalad7.mixinextras.injector.ModifyReturnValue;
+import com.llamalad7.mixinextras.injector.wrapmethod.WrapMethod;
+import com.llamalad7.mixinextras.injector.wrapoperation.Operation;
 import com.rfizzle.tribulation.Tribulation;
 import com.rfizzle.tribulation.config.TribulationConfig;
 import com.rfizzle.tribulation.data.PlayerDifficultyState;
@@ -43,8 +45,11 @@ import java.util.List;
  * across the constructor, the bar, and every {@code spawnGroup} call.
  *
  * <p>Since 26.1 the raid no longer holds its level and the live constructor does
- * not receive it, so the level comes from {@link RaidCreationContext}, which
- * {@code RaidsMixin} fills while the constructor runs.
+ * not receive it, so the level comes from {@link RaidCreationContext}. It is
+ * published by {@code RaidsMixin} while the live constructor runs, and by this
+ * mixin while {@code spawnGroup} runs: a raid restored from disk has not captured
+ * its value yet, and its first call happens there, where 1.21.1 read
+ * {@code Raid.level}.
  */
 @Mixin(Raid.class)
 public abstract class RaidScalingMixin {
@@ -61,6 +66,11 @@ public abstract class RaidScalingMixin {
             tribulation$extraWaves = tribulation$computeExtraWaves();
         }
         return original + tribulation$extraWaves;
+    }
+
+    @WrapMethod(method = "spawnGroup")
+    private void tribulation$publishLevelWhileSpawning(ServerLevel level, BlockPos pos, Operation<Void> original) {
+        RaidCreationContext.withLevel(level, () -> original.call(level, pos));
     }
 
     @Unique
