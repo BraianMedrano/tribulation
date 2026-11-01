@@ -27,7 +27,7 @@ Branch: `mc/26.3` (from `master` @ 3ac1524). Delivery: `ask-on-risk`. Runners: `
 | T7 | 7 Client: HUD, payloads, peek keybind | S4 | inline | pending | |
 | T8 | 8 Visual effects (optional) | S5 | inline | pending | |
 | T9 | 9 Package and test in the real client | S3, S4 | inline | pending | |
-| T10 | Restore optional integrations with 26.3 builds | S6 | inline | pending | |
+| T10 | Restore optional integrations with 26.3 builds; add a test that every class named in `fabric.mod.json` entrypoints is compiled (review R3-001) | S6 | inline | pending | |
 
 ## Log
 
@@ -36,3 +36,4 @@ Branch: `mc/26.3` (from `master` @ 3ac1524). Delivery: `ask-on-risk`. Runners: `
 - L3 (2026-11-01) T0 done on JDK 21 (Gradle 8.12 does not run on Java 25). Two pre-existing mixin mapping warnings in the Blood Moon client mixins.
 - L4 (2026-11-01) T1: Meridian kept in the build because main code calls `compat/meridian` directly; decision moved to T2.
 - L5 (2026-11-01) T1: `compat/common/ShardViewerRefresh` calls `compat/emi/EmiShardRefresh` (reflection only, no EMI imports), so only `EmiShardPlugin` is excluded from EMI. `ClothGuardTest` (hub-owned guard) reads sources from disk and requires `cloth-config` in `suggests` while `TribulationConfigScreen` exists, so the `suggests` block was kept unchanged.
+- L6 (2026-11-01) T1 review (lineage review-da6de54ee464b058, reliability lens): approved and acknowledged. Advisory R3-001 (entrypoints and source excludes are kept in sync by hand; a mismatch crashes only when the optional mod is installed) deferred to T10 by user decision.
