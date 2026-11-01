@@ -69,42 +69,8 @@ dependencies {
     // Client source set
     "clientImplementation"("net.fabricmc.fabric-api:fabric-api:${project.fabric_version}")
 
-    // ModMenu 11.x — Config screen entry point for Fabric 1.21.1. Compile-only + dev runtime
-    // so end users get the integration only when they install ModMenu themselves.
-    modCompileOnly "maven.modrinth:modmenu:${project.modmenu_version}"
-    modLocalRuntime "maven.modrinth:modmenu:${project.modmenu_version}"
-
-    // Cloth Config 15.x — Config screen builder used by ModMenuIntegration. Compile-only for
-    // the api surface; full mod in dev runtime.
-    modCompileOnly "me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config_version}"
-    modLocalRuntime "me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config_version}"
-
-    // Jade 15.x — Probe-tooltip integration. No api split published; compile-only links the
-    // full mod but only the snownee.jade.api surface is referenced.
-    modCompileOnly "maven.modrinth:jade:${project.jade_version}"
-    modLocalRuntime "maven.modrinth:jade:${project.jade_version}"
-
-    // WTHIT 12.x — Alternative probe-tooltip integration (Jade fallback). Compile-only against
-    // the API split. Discovered via waila_plugins.json at runtime.
-    modCompileOnly "mcp.mobius.waila:wthit-api:${project.wthit_version}"
-
-    // EMI 1.x — Recipe viewer info panel for the Shatter Shard.
-    modCompileOnly "dev.emi:emi-fabric:${project.emi_version}:api"
-    modLocalRuntime "dev.emi:emi-fabric:${project.emi_version}"
-
-    // REI 16.x — Recipe viewer info panel (MC 1.21, runs on 1.21.1).
-    modCompileOnly "me.shedaniel:RoughlyEnoughItems-api-fabric:${project.rei_version}"
-    modCompileOnly "me.shedaniel:RoughlyEnoughItems-default-plugin-fabric:${project.rei_version}"
-    modLocalRuntime "me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}"
-    modLocalRuntime "dev.architectury:architectury-fabric:${project.architectury_version}"
-
-    // JEI 19.x — Recipe viewer info panel. The `fabric` runtime jar shades in all
-    // `common-api` classes, so `transitive = false` prevents Loom remap from seeing the
-    // same classes twice and emitting `duplicate input class` warnings.
-    modCompileOnly "mezz.jei:jei-1.21.1-fabric-api:${project.jei_version}"
-    modLocalRuntime("mezz.jei:jei-1.21.1-fabric:${project.jei_version}") {
-        transitive = false
-    }
+    // Port to 26.3: the Mod Menu, Cloth Config, Jade, WTHIT, EMI, REI and JEI integrations are
+    // temporarily disabled (dependencies dropped, sources excluded below). See PORTING.md.
 
     // Meridian — sibling Concord mod. Compile-only against its stable `api` package and the
     // `meridian:mob_equipment` enchantment tag; the whole integration lives behind an
@@ -127,6 +93,19 @@ dependencies {
 // tests so they can reach client-only classes and the client resource root. Only .output is
 // added, never client.compileClasspath/runtimeClasspath, so the unmapped fabric-api sibling the
 // shared testRuntimeClasspath exclusion guards against is never pulled in.
+// Port to 26.3: keep the disabled integrations' sources on disk but out of the build, so they
+// can be restored by deleting these excludes once 26.3 builds of each mod exist. See PORTING.md.
+sourceSets {
+    main {
+        java.exclude 'com/rfizzle/tribulation/compat/jade/**', 'com/rfizzle/tribulation/compat/wthit/**'
+        resources.exclude 'waila_plugins.json'
+    }
+    client {
+        java.exclude 'com/rfizzle/tribulation/compat/modmenu/**', 'com/rfizzle/tribulation/compat/emi/EmiShardPlugin.java',
+                'com/rfizzle/tribulation/compat/rei/**', 'com/rfizzle/tribulation/compat/jei/**'
+    }
+}
+
 sourceSets.test.compileClasspath += sourceSets.client.output
 sourceSets.test.runtimeClasspath += sourceSets.client.output
 
