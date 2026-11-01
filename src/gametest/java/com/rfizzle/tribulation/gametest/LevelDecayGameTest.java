@@ -7,8 +7,7 @@ import com.rfizzle.tribulation.api.TribulationLevelCallback;
 import com.rfizzle.tribulation.config.TribulationConfig;
 import com.rfizzle.tribulation.data.PlayerDifficultyState;
 import com.rfizzle.tribulation.event.LevelDecayHandler;
-import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
-import net.minecraft.gametest.framework.GameTest;
+import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
@@ -22,11 +21,11 @@ import java.util.concurrent.atomic.AtomicInteger;
  * tests exercise the handler shell: the config gate, the anchor consumption
  * and re-stamp, the floor, and the {@link TribulationLevelCallback} fire.
  */
-public class LevelDecayGameTest implements FabricGameTest {
+public class LevelDecayGameTest {
 
     private static final long DAY_MS = LevelDecayHandler.DAY_MS;
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void levelDecay_reducesLevelAfterGraceAndFiresCallback(GameTestHelper helper) {
         ServerPlayer player = MockPlayers.serverPlayerInLevel(helper);
         MinecraftServer server = helper.getLevel().getServer();
@@ -76,7 +75,7 @@ public class LevelDecayGameTest implements FabricGameTest {
         }
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void levelDecay_withinGraceLeavesLevelUntouched(GameTestHelper helper) {
         ServerPlayer player = MockPlayers.serverPlayerInLevel(helper);
         MinecraftServer server = helper.getLevel().getServer();
@@ -108,7 +107,7 @@ public class LevelDecayGameTest implements FabricGameTest {
         }
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void levelDecay_flooredAtConfiguredMinimum(GameTestHelper helper) {
         ServerPlayer player = MockPlayers.serverPlayerInLevel(helper);
         MinecraftServer server = helper.getLevel().getServer();
@@ -144,7 +143,7 @@ public class LevelDecayGameTest implements FabricGameTest {
         }
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void levelDecay_belowFloorIsNeverRaisedToIt(GameTestHelper helper) {
         ServerPlayer player = MockPlayers.serverPlayerInLevel(helper);
         MinecraftServer server = helper.getLevel().getServer();
@@ -181,7 +180,7 @@ public class LevelDecayGameTest implements FabricGameTest {
         }
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void levelDecay_disabledLeavesLevelAndAnchorUntouched(GameTestHelper helper) {
         ServerPlayer player = MockPlayers.serverPlayerInLevel(helper);
         MinecraftServer server = helper.getLevel().getServer();
@@ -210,7 +209,7 @@ public class LevelDecayGameTest implements FabricGameTest {
         }
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void levelDecay_firstLoginWithoutAnchorOnlyStamps(GameTestHelper helper) {
         ServerPlayer player = MockPlayers.serverPlayerInLevel(helper);
         MinecraftServer server = helper.getLevel().getServer();

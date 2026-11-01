@@ -3,10 +3,9 @@ package com.rfizzle.tribulation.gametest;
 
 import com.rfizzle.tribulation.Tribulation;
 import com.rfizzle.tribulation.particle.TribulationParticles;
-import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.core.particles.ParticleType;
 import net.minecraft.core.registries.BuiltInRegistries;
-import net.minecraft.gametest.framework.GameTest;
+import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.Identifier;
 
@@ -17,9 +16,9 @@ import net.minecraft.resources.Identifier;
  * sprites and the emitter) has no headless-server context and is verified
  * manually with {@code runClient}.
  */
-public class ParticleRegistrationGameTest implements FabricGameTest {
+public class ParticleRegistrationGameTest {
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void threatParticleTypesAreRegistered(GameTestHelper helper) {
         assertRegistered(helper, "threat_tier", TribulationParticles.THREAT_TIER);
         assertRegistered(helper, "threat_big", TribulationParticles.THREAT_BIG);

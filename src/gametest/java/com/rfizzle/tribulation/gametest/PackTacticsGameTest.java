@@ -5,13 +5,13 @@ import com.rfizzle.tribulation.config.TribulationConfig;
 import com.rfizzle.tribulation.data.PlayerDifficultyState;
 import com.rfizzle.tribulation.data.TribulationAttachments;
 import com.rfizzle.tribulation.event.PackTacticsHandler;
-import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.GameType;
 
@@ -25,7 +25,7 @@ import net.minecraft.world.level.GameType;
  * case that routes through a real {@code hurt()} call and the Fabric
  * AFTER_DAMAGE event.
  */
-public class PackTacticsGameTest implements FabricGameTest {
+public class PackTacticsGameTest {
 
     private static final BlockPos VICTIM_POS = new BlockPos(1, 2, 1);
     private static final BlockPos PACKMATE_POS = new BlockPos(2, 2, 1);
@@ -48,10 +48,10 @@ public class PackTacticsGameTest implements FabricGameTest {
         return helper.getLevel().damageSources().playerAttack(player);
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void packmateAcquiresTargetAboveThreshold(GameTestHelper helper) {
-        Mob victim = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, VICTIM_POS);
-        Mob packmate = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, PACKMATE_POS);
+        Mob victim = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, VICTIM_POS);
+        Mob packmate = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, PACKMATE_POS);
         ServerPlayer player = attacker(helper);
         victim.setAttached(TribulationAttachments.SCALED_TIER, 3);
 
@@ -64,10 +64,10 @@ public class PackTacticsGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void packmateStaysVanillaBelowThreshold(GameTestHelper helper) {
-        Mob victim = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, VICTIM_POS);
-        Mob packmate = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, PACKMATE_POS);
+        Mob victim = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, VICTIM_POS);
+        Mob packmate = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, PACKMATE_POS);
         ServerPlayer player = attacker(helper);
         victim.setAttached(TribulationAttachments.SCALED_TIER, 2);
 
@@ -80,10 +80,10 @@ public class PackTacticsGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void masterToggleDisablesSharedAggro(GameTestHelper helper) {
-        Mob victim = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, VICTIM_POS);
-        Mob packmate = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, PACKMATE_POS);
+        Mob victim = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, VICTIM_POS);
+        Mob packmate = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, PACKMATE_POS);
         ServerPlayer player = attacker(helper);
         victim.setAttached(TribulationAttachments.SCALED_TIER, 5);
         TribulationConfig cfg = cfg();
@@ -98,10 +98,10 @@ public class PackTacticsGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void crossTypeMobIsNotAlerted(GameTestHelper helper) {
-        Mob victim = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, VICTIM_POS);
-        Mob bystander = helper.spawnWithNoFreeWill(EntityType.SKELETON, PACKMATE_POS);
+        Mob victim = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, VICTIM_POS);
+        Mob bystander = helper.spawnWithNoFreeWill(EntityTypes.SKELETON, PACKMATE_POS);
         ServerPlayer player = attacker(helper);
         victim.setAttached(TribulationAttachments.SCALED_TIER, 5);
 
@@ -114,10 +114,10 @@ public class PackTacticsGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void ineligibleTypeIsNotAlerted(GameTestHelper helper) {
-        Mob victim = helper.spawnWithNoFreeWill(EntityType.CREEPER, VICTIM_POS);
-        Mob packmate = helper.spawnWithNoFreeWill(EntityType.CREEPER, PACKMATE_POS);
+        Mob victim = helper.spawnWithNoFreeWill(EntityTypes.CREEPER, VICTIM_POS);
+        Mob packmate = helper.spawnWithNoFreeWill(EntityTypes.CREEPER, PACKMATE_POS);
         ServerPlayer player = attacker(helper);
         victim.setAttached(TribulationAttachments.SCALED_TIER, 5);
 
@@ -130,10 +130,10 @@ public class PackTacticsGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void engagedPackmateKeepsItsTarget(GameTestHelper helper) {
-        Mob victim = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, VICTIM_POS);
-        Mob packmate = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, PACKMATE_POS);
+        Mob victim = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, VICTIM_POS);
+        Mob packmate = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, PACKMATE_POS);
         ServerPlayer player = attacker(helper);
         ServerPlayer other = attacker(helper);
         victim.setAttached(TribulationAttachments.SCALED_TIER, 5);
@@ -149,10 +149,10 @@ public class PackTacticsGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void realDamageEventAlertsPack(GameTestHelper helper) {
-        Mob victim = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, VICTIM_POS);
-        Mob packmate = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, PACKMATE_POS);
+        Mob victim = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, VICTIM_POS);
+        Mob packmate = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, PACKMATE_POS);
         ServerPlayer player = attacker(helper);
         victim.setAttached(TribulationAttachments.SCALED_TIER, 5);
 
@@ -177,7 +177,7 @@ public class PackTacticsGameTest implements FabricGameTest {
 
     // ---- spawn-group bonus (runtime coverage of the mixin's supplier path) ----
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void spawnGroupBonusFollowsTierAndEligibility(GameTestHelper helper) {
         ServerPlayer player = attacker(helper);
         TribulationConfig cfg = com.rfizzle.tribulation.Tribulation.getConfig();
@@ -187,16 +187,16 @@ public class PackTacticsGameTest implements FabricGameTest {
         BlockPos pos = helper.absolutePos(VICTIM_POS);
         try {
             state.setLevel(player.getUUID(), cfg.tiers.tier5, cfg.general.maxLevel);
-            if (PackTacticsHandler.spawnGroupBonus(EntityType.ZOMBIE, helper.getLevel(), pos)
+            if (PackTacticsHandler.spawnGroupBonus(EntityTypes.ZOMBIE, helper.getLevel(), pos)
                     != cfg.packTactics.groupSizeBonus) {
                 helper.fail("Eligible type at tier 5 should get the configured group bonus");
             }
-            if (PackTacticsHandler.spawnGroupBonus(EntityType.CREEPER, helper.getLevel(), pos) != 0) {
+            if (PackTacticsHandler.spawnGroupBonus(EntityTypes.CREEPER, helper.getLevel(), pos) != 0) {
                 helper.fail("Ineligible type must never get a group bonus");
             }
 
             state.setLevel(player.getUUID(), 0, cfg.general.maxLevel);
-            if (PackTacticsHandler.spawnGroupBonus(EntityType.ZOMBIE, helper.getLevel(),
+            if (PackTacticsHandler.spawnGroupBonus(EntityTypes.ZOMBIE, helper.getLevel(),
                     pos.above()) != 0) {
                 helper.fail("Below the tier threshold spawn groups must stay vanilla");
             }

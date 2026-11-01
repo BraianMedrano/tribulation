@@ -6,17 +6,24 @@ import com.rfizzle.tribulation.data.BloodMoonState;
 import com.rfizzle.tribulation.data.PlayerDifficultyState;
 import com.rfizzle.tribulation.data.TribulationAttachments;
 import com.rfizzle.tribulation.scaling.TierManager;
-import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.monster.zombie.Zombie;
-import net.minecraft.world.level.storage.DimensionDataStorage;
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.entity.EntitySpawnReason;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.dimension.DimensionType;
+import net.minecraft.world.level.storage.SavedDataStorage;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.TagValueOutput;
+import java.nio.file.Path;
 import net.minecraft.world.level.storage.LevelResource;
 
 import java.io.File;
@@ -45,17 +52,18 @@ import java.util.UUID;
  * clamping {@code xmap} coerces a corrupt tier into range on decode. The pure clamp
  * logic is unit-tested in {@code TierManagerTest}; this proves the codec is wired.
  */
-public class SavedDataPersistenceGameTest implements FabricGameTest {
+public class SavedDataPersistenceGameTest {
 
     private static final BlockPos SPAWN = new BlockPos(1, 2, 1);
 
     /** Fresh storage over the overworld's data folder — the real boot-time read path. */
-    private static DimensionDataStorage freshOverworldStorage(MinecraftServer server) {
-        File dataDir = server.getWorldPath(LevelResource.ROOT).resolve("data").toFile();
-        return new DimensionDataStorage(dataDir, server.getFixerUpper(), server.registryAccess());
+    private static SavedDataStorage freshOverworldStorage(MinecraftServer server) {
+        Path dataDir = DimensionType.getStorageFolder(Level.OVERWORLD, server.getWorldPath(LevelResource.ROOT))
+                .resolve("data");
+        return new SavedDataStorage(dataDir, server.getFixerUpper(), server.registryAccess());
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void playerDifficultyState_survivesStorageReload(GameTestHelper helper) {
         MinecraftServer server = helper.getLevel().getServer();
         // A throwaway UUID so we neither depend on nor disturb any real player.
@@ -70,10 +78,9 @@ public class SavedDataPersistenceGameTest implements FabricGameTest {
 
             // Flush the dirty state to disk, then re-read through a cold storage
             // instance — the datafixer + disk read a restarted server runs at boot.
-            server.overworld().getDataStorage().save();
+            server.overworld().getDataStorage().saveAndJoin();
             PlayerDifficultyState reloaded =
-                    freshOverworldStorage(server).computeIfAbsent(
-                            PlayerDifficultyState.FACTORY, PlayerDifficultyState.STORAGE_KEY);
+                    freshOverworldStorage(server).computeIfAbsent(PlayerDifficultyState.TYPE);
 
             helper.assertValueEqual(reloaded.getLevel(uuid), target,
                     "player level survives a disk round-trip");
@@ -84,7 +91,7 @@ public class SavedDataPersistenceGameTest implements FabricGameTest {
         }
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void bloodMoonState_survivesStorageReload(GameTestHelper helper) {
         MinecraftServer server = helper.getLevel().getServer();
 
@@ -95,10 +102,9 @@ public class SavedDataPersistenceGameTest implements FabricGameTest {
             live.setActive(true);
             live.markRolled(42L);
 
-            server.overworld().getDataStorage().save();
+            server.overworld().getDataStorage().saveAndJoin();
             BloodMoonState reloaded =
-                    freshOverworldStorage(server).computeIfAbsent(
-                            BloodMoonState.FACTORY, BloodMoonState.STORAGE_KEY);
+                    freshOverworldStorage(server).computeIfAbsent(BloodMoonState.TYPE);
 
             helper.assertTrue(reloaded.isActive(),
                     "active Blood Moon survives a disk round-trip");
@@ -121,10 +127,10 @@ public class SavedDataPersistenceGameTest implements FabricGameTest {
      * through NBT is what proves the xmap is wired and fires. Unit tests cover the
      * pure {@link TierManager#clampTier} logic; this proves the wiring.
      */
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void scaledTier_clampsOutOfRangeTierOnNbtDecode(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
-        Mob source = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, SPAWN);
+        Mob source = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, SPAWN);
 
         // Too-large tier clamps down to MAX_TIER on decode.
         source.setAttached(TribulationAttachments.SCALED_TIER, 999);
@@ -147,13 +153,15 @@ public class SavedDataPersistenceGameTest implements FabricGameTest {
      * runs — returning the clamped {@code SCALED_TIER}.
      */
     private static int decodeTierThroughNbt(ServerLevel level, Mob source) {
-        CompoundTag tag = source.saveWithoutId(new CompoundTag());
-        Zombie reloaded = EntityType.ZOMBIE.create(level);
+        TagValueOutput output = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, level.registryAccess());
+        source.saveWithoutId(output);
+        CompoundTag tag = output.buildResult();
+        Zombie reloaded = EntityTypes.ZOMBIE.create(level, EntitySpawnReason.LOAD);
         if (reloaded == null) {
             throw new IllegalStateException("could not create a zombie to decode into");
         }
         try {
-            reloaded.load(tag);
+            reloaded.load(TagValueInput.create(ProblemReporter.DISCARDING, level.registryAccess(), tag));
             return reloaded.getAttachedOrThrow(TribulationAttachments.SCALED_TIER);
         } finally {
             reloaded.discard();

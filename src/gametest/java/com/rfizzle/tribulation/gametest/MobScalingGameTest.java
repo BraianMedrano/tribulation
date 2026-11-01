@@ -8,18 +8,18 @@ import com.rfizzle.tribulation.data.PlayerDifficultyState;
 import com.rfizzle.tribulation.event.MobScalingHandler;
 import com.rfizzle.tribulation.scaling.ScalingEngine;
 import com.rfizzle.tribulation.scaling.StructureBoostManager;
-import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
 import net.minecraft.core.Registry;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.gametest.framework.GameTest;
+import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.monster.zombie.Zombie;
 import net.minecraft.world.level.chunk.LevelChunk;
 import net.minecraft.world.level.levelgen.structure.BoundingBox;
@@ -43,7 +43,7 @@ import java.util.List;
  * floor under 3 blocks of air — large enough for zombie AABB, small enough
  * that test setup/teardown is cheap.
  */
-public class MobScalingGameTest implements FabricGameTest {
+public class MobScalingGameTest {
 
     /**
      * Spawning a zombie fires {@code ServerEntityEvents.ENTITY_LOAD} which is
@@ -53,11 +53,11 @@ public class MobScalingGameTest implements FabricGameTest {
      * signal used to prevent re-processing on chunk reload, so asserting it
      * lands proves the whole spawn-hook pipeline wired up correctly.
      */
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void zombieSpawn_getsProcessedTag(GameTestHelper helper) {
-        Zombie zombie = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, new BlockPos(1, 2, 1));
+        Zombie zombie = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, new BlockPos(1, 2, 1));
         helper.succeedWhen(() -> helper.assertTrue(
-                zombie.getTags().contains(MobScalingHandler.PROCESSED_TAG),
+                zombie.entityTags().contains(MobScalingHandler.PROCESSED_TAG),
                 "zombie missing " + MobScalingHandler.PROCESSED_TAG + " tag after spawn"));
     }
 
@@ -66,27 +66,27 @@ public class MobScalingGameTest implements FabricGameTest {
     // end-to-end: PlayerDifficultyState → resolveNearestPlayerLevel → ScalingEngine.applyModifiers
     // → AttributeMap.getValue() → setHealth(getMaxHealth()).
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void zombieSpawn_atPlayerLevel50_reaches30Hp(GameTestHelper helper) {
         assertTimeAxisHp(helper, 50, 30.0f);
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void zombieSpawn_atPlayerLevel100_reaches40Hp(GameTestHelper helper) {
         assertTimeAxisHp(helper, 100, 40.0f);
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void zombieSpawn_atPlayerLevel150_reaches50Hp(GameTestHelper helper) {
         assertTimeAxisHp(helper, 150, 50.0f);
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void zombieSpawn_atPlayerLevel200_reaches60Hp(GameTestHelper helper) {
         assertTimeAxisHp(helper, 200, 60.0f);
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void zombieSpawn_atPlayerLevel250_reachesDesignMaxHp(GameTestHelper helper) {
         assertTimeAxisHp(helper, 250, 70.0f);
     }
@@ -106,12 +106,12 @@ public class MobScalingGameTest implements FabricGameTest {
     // can't be gametested here because the same mock hardcodes isSpectator()=false;
     // it relies on the shared, vanilla-tested NO_SPECTATORS predicate.)
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void multiplayerScaling_MAX_reachesHighestLevel(GameTestHelper helper) {
         assertMultiplayerHp(helper, TribulationConfig.ScalingMode.MAX, 60.0f, 50, 200);
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void multiplayerScaling_AVERAGE_reachesMeanLevel(GameTestHelper helper) {
         assertMultiplayerHp(helper, TribulationConfig.ScalingMode.AVERAGE, 45.0f, 50, 200);
     }
@@ -119,26 +119,26 @@ public class MobScalingGameTest implements FabricGameTest {
     // Group health bonus (issue #128): each player beyond the first within
     // detection range adds perPlayerBonus of base max health, capped.
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void groupHealthBonus_twoPlayers_addExtraHealth(GameTestHelper helper) {
         // 2 players → 1 extra × +20% → 20 * 1.2 = 24 HP.
         assertGroupBonusHp(helper, 2, 0.2, 1.0, 24.0f);
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void groupHealthBonus_fourPlayers_respectsCap(GameTestHelper helper) {
         // 4 players → 3 extras × +25% = +75% raw, capped at +40% → 28 HP.
         assertGroupBonusHp(helper, 4, 0.25, 0.4, 28.0f);
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void groupHealthBonus_singlePlayer_isUnaffected(GameTestHelper helper) {
         // A lone player sees base health even with the feature enabled —
         // the bonus only counts players beyond the first.
         assertGroupBonusHp(helper, 1, 0.2, 1.0, 20.0f);
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void zombieSpawn_fullMoon_reachesExtraHp(GameTestHelper helper) {
         TribulationConfig cfg = Tribulation.getConfig();
         boolean savedMoonEnabled = cfg.moonPhaseScaling.enabled;
@@ -154,8 +154,8 @@ public class MobScalingGameTest implements FabricGameTest {
         // by the per-tick world loop, which the GameTestServer hasn't run for this
         // synchronous spawn yet, so without the explicit updateSkyBrightness() the
         // world still reports day and the moon axis stays inactive.
-        long savedTime = helper.getLevel().getDayTime();
-        helper.getLevel().setDayTime(18000);
+        long savedTime = OverworldClock.get(helper.getLevel());
+        OverworldClock.set(helper.getLevel(), 18000);
         helper.getLevel().updateSkyBrightness();
 
         cfg.moonPhaseScaling.enabled = true;
@@ -179,7 +179,7 @@ public class MobScalingGameTest implements FabricGameTest {
 
         try {
             // Level-0 player: 20 HP. Full moon +0.5: 20 * (1 + 0.5) = 30 HP.
-            Zombie zombie = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, new BlockPos(1, 2, 1));
+            Zombie zombie = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, new BlockPos(1, 2, 1));
             helper.assertValueEqual(zombie.getMaxHealth(), 30.0f, "full moon health bonus");
         } finally {
             cfg.moonPhaseScaling.enabled = savedMoonEnabled;
@@ -189,7 +189,7 @@ public class MobScalingGameTest implements FabricGameTest {
             cfg.specialZombies.enabled = savedSpecial;
             cfg.champions.enabled = savedChampions;
             cfg.general.mobDetectionRange = savedRange;
-            helper.getLevel().setDayTime(savedTime);
+            OverworldClock.set(helper.getLevel(), savedTime);
             helper.getLevel().updateSkyBrightness();
             MockPlayers.retire(player);
         }
@@ -204,7 +204,7 @@ public class MobScalingGameTest implements FabricGameTest {
      * min(50 * 0.01, 2.5) = 0.5 → 20 * (1 + 0.5) = 30 HP. The other axes (and
      * special variants) are disabled so the assertion reflects the offset alone.
      */
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void zombieSpawn_dimensionOffset_scalesAsHigherLevel(GameTestHelper helper) {
         MinecraftServer server = helper.getLevel().getServer();
         PlayerDifficultyState state = PlayerDifficultyState.getOrCreate(server);
@@ -235,7 +235,7 @@ public class MobScalingGameTest implements FabricGameTest {
 
         Zombie zombie;
         try {
-            zombie = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, new BlockPos(1, 2, 1));
+            zombie = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, new BlockPos(1, 2, 1));
         } finally {
             cfg.distanceScaling.enabled = savedDist;
             cfg.heightScaling.enabled = savedHeight;
@@ -253,7 +253,7 @@ public class MobScalingGameTest implements FabricGameTest {
 
         Zombie z = zombie;
         helper.succeedWhen(() -> {
-            helper.assertTrue(z.getTags().contains(MobScalingHandler.PROCESSED_TAG),
+            helper.assertTrue(z.entityTags().contains(MobScalingHandler.PROCESSED_TAG),
                     "scaling handler must have tagged the zombie");
             helper.assertValueEqual(z.getMaxHealth(), 30.0f,
                     "maxHealth with +50 dimension offset at player level 0");
@@ -268,10 +268,10 @@ public class MobScalingGameTest implements FabricGameTest {
      * silently break the test): a level-0 player then scales mobs as if they
      * were level 50 → 30 HP.
      */
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void zombieSpawn_biomeOffset_scalesAsHigherLevel(GameTestHelper helper) {
         BlockPos abs = helper.absolutePos(new BlockPos(1, 2, 1));
-        String biomeKey = helper.getLevel().getBiome(abs).unwrapKey().orElseThrow().location().toString();
+        String biomeKey = helper.getLevel().getBiome(abs).unwrapKey().orElseThrow().identifier().toString();
         assertBiomeOffsetHp(helper, biomeKey);
     }
 
@@ -280,7 +280,7 @@ public class MobScalingGameTest implements FabricGameTest {
      * containing the test region's biome — proving tag entries resolve against
      * the live registry (the acceptance path modded biome packs rely on).
      */
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void zombieSpawn_biomeTagOffset_scalesAsHigherLevel(GameTestHelper helper) {
         BlockPos abs = helper.absolutePos(new BlockPos(1, 2, 1));
         String tagKey = helper.getLevel().getBiome(abs).tags().findFirst()
@@ -327,7 +327,7 @@ public class MobScalingGameTest implements FabricGameTest {
 
         Zombie zombie;
         try {
-            zombie = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, new BlockPos(1, 2, 1));
+            zombie = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, new BlockPos(1, 2, 1));
         } finally {
             cfg.distanceScaling.enabled = savedDist;
             cfg.heightScaling.enabled = savedHeight;
@@ -350,7 +350,7 @@ public class MobScalingGameTest implements FabricGameTest {
 
         Zombie z = zombie;
         helper.succeedWhen(() -> {
-            helper.assertTrue(z.getTags().contains(MobScalingHandler.PROCESSED_TAG),
+            helper.assertTrue(z.entityTags().contains(MobScalingHandler.PROCESSED_TAG),
                     "scaling handler must have tagged the zombie");
             helper.assertValueEqual(z.getMaxHealth(), 30.0f,
                     "maxHealth with +50 biome offset (" + offsetKey + ") at player level 0");
@@ -363,7 +363,7 @@ public class MobScalingGameTest implements FabricGameTest {
      * configured structure's bounds uses the boosted effective level, and the
      * same spawn outside the bounds does not.
      */
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void zombieSpawn_structureBoost_scalesAsHigherLevel(GameTestHelper helper) {
         assertStructureBoostHp(helper, false);
     }
@@ -373,7 +373,7 @@ public class MobScalingGameTest implements FabricGameTest {
      * keys resolve against the live registry (the path modded structure packs
      * rely on — acceptance criterion 2).
      */
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void zombieSpawn_structureTagBoost_scalesAsHigherLevel(GameTestHelper helper) {
         assertStructureBoostHp(helper, true);
     }
@@ -402,8 +402,8 @@ public class MobScalingGameTest implements FabricGameTest {
         PlayerDifficultyState state = PlayerDifficultyState.getOrCreate(server);
         TribulationConfig cfg = Tribulation.getConfig();
 
-        Registry<Structure> registry = world.registryAccess().registryOrThrow(Registries.STRUCTURE);
-        Structure mineshaft = registry.getOrThrow(BuiltinStructures.MINESHAFT);
+        Registry<Structure> registry = world.registryAccess().lookupOrThrow(Registries.STRUCTURE);
+        Structure mineshaft = registry.getOrThrow(BuiltinStructures.MINESHAFT).value();
         String boostKey = useTag
                 ? "#" + registry.wrapAsHolder(mineshaft).tags().findFirst()
                         .orElseThrow(() -> new IllegalStateException("mineshaft carries no structure tags"))
@@ -437,12 +437,12 @@ public class MobScalingGameTest implements FabricGameTest {
         BoundingBox box = new BoundingBox(
                 inside.getX(), inside.getY() - 2, inside.getZ(),
                 inside.getX(), inside.getY() + 3, inside.getZ());
-        StructureStart start = new StructureStart(mineshaft, new net.minecraft.world.level.ChunkPos(inside), 0,
+        StructureStart start = new StructureStart(mineshaft, net.minecraft.world.level.ChunkPos.containing(inside), 0,
                 new PiecesContainer(List.of(
                         new NetherFortressPieces.BridgeStraight(0, RandomSource.create(0), box, Direction.NORTH))));
         LevelChunk chunk = world.getChunkAt(inside);
         chunk.setStartForStructure(mineshaft, start);
-        chunk.addReferenceForStructure(mineshaft, chunk.getPos().toLong());
+        chunk.addReferenceForStructure(mineshaft, chunk.getPos().pack());
         StructureBoostManager.invalidate(world);
 
         ServerPlayer player = MockPlayers.serverPlayerInLevel(helper);
@@ -452,10 +452,10 @@ public class MobScalingGameTest implements FabricGameTest {
         try {
             // Level-0 player + 50 structure boost → timeFactor min(50*0.01, 2.5)
             // = 0.5 → 20 * 1.5 = 30 HP inside the zone; base 20 HP outside it.
-            Zombie insideZombie = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, new BlockPos(1, 2, 1));
+            Zombie insideZombie = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, new BlockPos(1, 2, 1));
             helper.assertValueEqual(insideZombie.getMaxHealth(), 30.0f,
                     "maxHealth inside structure zone (" + boostKey + ")");
-            Zombie outsideZombie = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, new BlockPos(0, 2, 0));
+            Zombie outsideZombie = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, new BlockPos(0, 2, 0));
             helper.assertValueEqual(outsideZombie.getMaxHealth(), 20.0f,
                     "maxHealth outside structure zone (" + boostKey + ")");
         } finally {
@@ -529,7 +529,7 @@ public class MobScalingGameTest implements FabricGameTest {
             // MobScalingHandler.onEntityLoad fires synchronously during addFreshEntity,
             // so all modifiers are frozen on the returned entity by the time we restore
             // config below.
-            zombie = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, new BlockPos(1, 2, 1));
+            zombie = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, new BlockPos(1, 2, 1));
         } finally {
             cfg.distanceScaling.enabled = savedDist;
             cfg.heightScaling.enabled = savedHeight;
@@ -539,7 +539,7 @@ public class MobScalingGameTest implements FabricGameTest {
 
         Zombie z = zombie;
         helper.succeedWhen(() -> {
-            helper.assertTrue(z.getTags().contains(MobScalingHandler.PROCESSED_TAG),
+            helper.assertTrue(z.entityTags().contains(MobScalingHandler.PROCESSED_TAG),
                     "scaling handler must have tagged the zombie");
             helper.assertValueEqual(z.getMaxHealth(), expectedMaxHp,
                     "maxHealth @ level " + playerLevel);
@@ -592,7 +592,7 @@ public class MobScalingGameTest implements FabricGameTest {
                 state.setLevel(p.getUUID(), level, cfg.general.maxLevel);
                 players.add(p);
             }
-            Zombie zombie = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, new BlockPos(1, 2, 1));
+            Zombie zombie = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, new BlockPos(1, 2, 1));
             helper.assertValueEqual(zombie.getMaxHealth(), expectedMaxHp, mode + " mode health");
         } finally {
             cfg.general.scalingMode = savedMode;
@@ -655,7 +655,7 @@ public class MobScalingGameTest implements FabricGameTest {
                 state.setLevel(p.getUUID(), 0, cfg.general.maxLevel);
                 players.add(p);
             }
-            Zombie zombie = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, new BlockPos(1, 2, 1));
+            Zombie zombie = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, new BlockPos(1, 2, 1));
             helper.assertValueEqual(zombie.getMaxHealth(), expectedMaxHp,
                     playerCount + "-player group health bonus");
             helper.assertTrue(ScalingEngine.readHealthScalingFactor(zombie) == 0.0,

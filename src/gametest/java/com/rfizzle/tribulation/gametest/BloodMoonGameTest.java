@@ -8,18 +8,20 @@ import com.rfizzle.tribulation.data.BloodMoonState;
 import com.rfizzle.tribulation.data.PlayerDifficultyState;
 import com.rfizzle.tribulation.event.BloodMoonHandler;
 import net.fabricmc.fabric.api.entity.event.v1.EntitySleepEvents;
-import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Direction;
-import net.minecraft.gametest.framework.GameTest;
+import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.monster.zombie.Zombie;
 import net.minecraft.world.entity.player.Player;
+import net.minecraft.world.level.block.AbstractBedBlock;
 import net.minecraft.world.level.block.BedBlock;
 import net.minecraft.world.level.block.Blocks;
+import net.minecraft.world.level.block.state.BlockState;
 import net.minecraft.world.level.block.state.properties.BedPart;
 
 /**
@@ -30,7 +32,7 @@ import net.minecraft.world.level.block.state.properties.BedPart;
  * Pure trigger/cap math is covered by {@code BloodMoonHandlerTest}; SavedData
  * round-trips by {@code BloodMoonStateTest}.
  */
-public class BloodMoonGameTest implements FabricGameTest {
+public class BloodMoonGameTest {
 
     /**
      * Full moon (day 0, midnight) with maxBonus 0.2 gives +20% health; with an
@@ -39,7 +41,7 @@ public class BloodMoonGameTest implements FabricGameTest {
      * to this test's level-0 player, mirroring the full-moon test in
      * {@code MobScalingGameTest} — the only delta is the multiplier.
      */
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void bloodMoon_amplifiesMoonBonusOnSpawn(GameTestHelper helper) {
         MinecraftServer server = helper.getLevel().getServer();
         TribulationConfig cfg = Tribulation.getConfig();
@@ -54,11 +56,11 @@ public class BloodMoonGameTest implements FabricGameTest {
         double savedRange = cfg.general.mobDetectionRange;
         boolean savedBmEnabled = cfg.bloodMoon.enabled;
         double savedBmMult = cfg.bloodMoon.moonBonusMultiplier;
-        long savedTime = helper.getLevel().getDayTime();
+        long savedTime = OverworldClock.get(helper.getLevel());
 
         // setDayTime alone only moves the clock — isDay() reads skyDarken,
         // which needs the explicit updateSkyBrightness() in a gametest.
-        helper.getLevel().setDayTime(18000);
+        OverworldClock.set(helper.getLevel(), 18000);
         helper.getLevel().updateSkyBrightness();
 
         cfg.moonPhaseScaling.enabled = true;
@@ -79,7 +81,7 @@ public class BloodMoonGameTest implements FabricGameTest {
 
         BloodMoonHandler.start(server, state, cfg);
         try {
-            Zombie zombie = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, new BlockPos(1, 2, 1));
+            Zombie zombie = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, new BlockPos(1, 2, 1));
             helper.assertValueEqual(zombie.getMaxHealth(), 32.0f,
                     "blood moon amplified moon bonus (0.2 × 3)");
         } finally {
@@ -93,7 +95,7 @@ public class BloodMoonGameTest implements FabricGameTest {
             cfg.general.mobDetectionRange = savedRange;
             cfg.bloodMoon.enabled = savedBmEnabled;
             cfg.bloodMoon.moonBonusMultiplier = savedBmMult;
-            helper.getLevel().setDayTime(savedTime);
+            OverworldClock.set(helper.getLevel(), savedTime);
             helper.getLevel().updateSkyBrightness();
             MockPlayers.retire(player);
         }
@@ -105,7 +107,7 @@ public class BloodMoonGameTest implements FabricGameTest {
      * exact hook vanilla fires from {@code ServerPlayer.startSleepInBed} — so
      * the handler's registered listener is exercised, not a reimplementation.
      */
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void bloodMoon_blocksSleepWhileActive(GameTestHelper helper) {
         MinecraftServer server = helper.getLevel().getServer();
         TribulationConfig cfg = Tribulation.getConfig();
@@ -149,17 +151,19 @@ public class BloodMoonGameTest implements FabricGameTest {
      */
     private ServerPlayer putPlayerToSleep(GameTestHelper helper) {
         BlockPos footRel = BED_HEAD_REL.north();
-        helper.setBlock(footRel, Blocks.RED_BED.defaultBlockState()
+        helper.setBlock(footRel, Blocks.BED.red().defaultBlockState()
                 .setValue(BedBlock.FACING, Direction.SOUTH)
                 .setValue(BedBlock.PART, BedPart.FOOT));
-        helper.setBlock(BED_HEAD_REL, Blocks.RED_BED.defaultBlockState()
+        helper.setBlock(BED_HEAD_REL, Blocks.BED.red().defaultBlockState()
                 .setValue(BedBlock.FACING, Direction.SOUTH)
                 .setValue(BedBlock.PART, BedPart.HEAD));
 
         ServerPlayer player = MockPlayers.serverPlayerInLevel(helper);
         BlockPos headAbs = helper.absolutePos(BED_HEAD_REL);
         player.teleportTo(headAbs.getX() + 0.5, headAbs.getY(), headAbs.getZ() + 0.5);
-        player.startSleepInBed(headAbs).ifLeft(problem ->
+        BlockState headState = helper.getLevel().getBlockState(headAbs);
+        AbstractBedBlock bed = (AbstractBedBlock) headState.getBlock();
+        player.startSleepInBed(bed, headState, bed.getBedRule(helper.getLevel(), headAbs), headAbs).ifLeft(problem ->
                 helper.fail("mock player could not enter the bed: " + problem));
         helper.assertTrue(player.isSleeping(), "mock player must be asleep before the event transition");
         return player;
@@ -180,7 +184,7 @@ public class BloodMoonGameTest implements FabricGameTest {
      * {@code ALLOW_SLEEPING} hook can never catch — and the bed then refuses
      * re-entry like any other blood-moon bed attempt.
      */
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void bloodMoon_wakesSleepersOnStart(GameTestHelper helper) {
         MinecraftServer server = helper.getLevel().getServer();
         TribulationConfig cfg = Tribulation.getConfig();
@@ -189,7 +193,7 @@ public class BloodMoonGameTest implements FabricGameTest {
         boolean savedEnabled = cfg.bloodMoon.enabled;
         double savedChance = cfg.bloodMoon.chance;
         boolean savedBlockSleep = cfg.bloodMoon.blockSleep;
-        long savedTime = helper.getLevel().getDayTime();
+        long savedTime = OverworldClock.get(helper.getLevel());
         long savedRolledDay = state.getLastRolledDay();
 
         ServerPlayer player = null;
@@ -199,7 +203,7 @@ public class BloodMoonGameTest implements FabricGameTest {
             cfg.bloodMoon.blockSleep = true;
 
             // Day 0 midnight — full moon night, roll not yet spent.
-            helper.getLevel().setDayTime(18000);
+            OverworldClock.set(helper.getLevel(), 18000);
             helper.getLevel().updateSkyBrightness();
             state.setActive(false);
             state.markRolled(BloodMoonState.NEVER_ROLLED);
@@ -220,7 +224,7 @@ public class BloodMoonGameTest implements FabricGameTest {
             cfg.bloodMoon.enabled = savedEnabled;
             cfg.bloodMoon.chance = savedChance;
             cfg.bloodMoon.blockSleep = savedBlockSleep;
-            helper.getLevel().setDayTime(savedTime);
+            OverworldClock.set(helper.getLevel(), savedTime);
             helper.getLevel().updateSkyBrightness();
             discardSleeper(player);
         }
@@ -228,7 +232,7 @@ public class BloodMoonGameTest implements FabricGameTest {
     }
 
     /** With {@code blockSleep} off, an event start leaves sleepers untouched. */
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void bloodMoon_leavesSleepersWhenBlockSleepOff(GameTestHelper helper) {
         MinecraftServer server = helper.getLevel().getServer();
         TribulationConfig cfg = Tribulation.getConfig();
@@ -236,7 +240,7 @@ public class BloodMoonGameTest implements FabricGameTest {
 
         boolean savedEnabled = cfg.bloodMoon.enabled;
         boolean savedBlockSleep = cfg.bloodMoon.blockSleep;
-        long savedTime = helper.getLevel().getDayTime();
+        long savedTime = OverworldClock.get(helper.getLevel());
         long savedRolledDay = state.getLastRolledDay();
 
         ServerPlayer player = null;
@@ -244,7 +248,7 @@ public class BloodMoonGameTest implements FabricGameTest {
             cfg.bloodMoon.enabled = true;
             cfg.bloodMoon.blockSleep = false;
 
-            helper.getLevel().setDayTime(18000);
+            OverworldClock.set(helper.getLevel(), 18000);
             helper.getLevel().updateSkyBrightness();
 
             player = putPlayerToSleep(helper);
@@ -256,7 +260,7 @@ public class BloodMoonGameTest implements FabricGameTest {
             state.markRolled(savedRolledDay);
             cfg.bloodMoon.enabled = savedEnabled;
             cfg.bloodMoon.blockSleep = savedBlockSleep;
-            helper.getLevel().setDayTime(savedTime);
+            OverworldClock.set(helper.getLevel(), savedTime);
             helper.getLevel().updateSkyBrightness();
             discardSleeper(player);
         }
@@ -271,7 +275,7 @@ public class BloodMoonGameTest implements FabricGameTest {
      * a sleeper already deep into vanilla's 100-tick skip countdown is woken
      * before the skip's next top-of-tick read.
      */
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void bloodMoon_wakesMidEventSleeper(GameTestHelper helper) {
         MinecraftServer server = helper.getLevel().getServer();
         TribulationConfig cfg = Tribulation.getConfig();
@@ -279,7 +283,7 @@ public class BloodMoonGameTest implements FabricGameTest {
 
         boolean savedEnabled = cfg.bloodMoon.enabled;
         boolean savedBlockSleep = cfg.bloodMoon.blockSleep;
-        long savedTime = helper.getLevel().getDayTime();
+        long savedTime = OverworldClock.get(helper.getLevel());
         long savedRolledDay = state.getLastRolledDay();
 
         ServerPlayer player = null;
@@ -287,7 +291,7 @@ public class BloodMoonGameTest implements FabricGameTest {
             cfg.bloodMoon.enabled = true;
             cfg.bloodMoon.blockSleep = false;
 
-            helper.getLevel().setDayTime(18000);
+            OverworldClock.set(helper.getLevel(), 18000);
             helper.getLevel().updateSkyBrightness();
 
             BloodMoonHandler.start(server, state, cfg);
@@ -302,7 +306,7 @@ public class BloodMoonGameTest implements FabricGameTest {
             state.markRolled(savedRolledDay);
             cfg.bloodMoon.enabled = savedEnabled;
             cfg.bloodMoon.blockSleep = savedBlockSleep;
-            helper.getLevel().setDayTime(savedTime);
+            OverworldClock.set(helper.getLevel(), savedTime);
             helper.getLevel().updateSkyBrightness();
             discardSleeper(player);
         }
@@ -314,7 +318,7 @@ public class BloodMoonGameTest implements FabricGameTest {
      * the scheduler pass, and the same pass ends it once day breaks — the
      * whole nightfall→dawn lifecycle without waiting out a real night.
      */
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void bloodMoon_startsAtNightfallAndEndsAtDawn(GameTestHelper helper) {
         MinecraftServer server = helper.getLevel().getServer();
         TribulationConfig cfg = Tribulation.getConfig();
@@ -322,7 +326,7 @@ public class BloodMoonGameTest implements FabricGameTest {
 
         boolean savedEnabled = cfg.bloodMoon.enabled;
         double savedChance = cfg.bloodMoon.chance;
-        long savedTime = helper.getLevel().getDayTime();
+        long savedTime = OverworldClock.get(helper.getLevel());
         long savedRolledDay = state.getLastRolledDay();
 
         cfg.bloodMoon.enabled = true;
@@ -330,7 +334,7 @@ public class BloodMoonGameTest implements FabricGameTest {
 
         try {
             // Day 0 midnight — full moon night, roll not yet spent.
-            helper.getLevel().setDayTime(18000);
+            OverworldClock.set(helper.getLevel(), 18000);
             helper.getLevel().updateSkyBrightness();
             state.setActive(false);
             state.markRolled(BloodMoonState.NEVER_ROLLED);
@@ -340,7 +344,7 @@ public class BloodMoonGameTest implements FabricGameTest {
             helper.assertTrue(state.getLastRolledDay() == 0, "the night's roll must be recorded");
 
             // Dawn of the next day ends it.
-            helper.getLevel().setDayTime(24000 + 1000);
+            OverworldClock.set(helper.getLevel(), 24000 + 1000);
             helper.getLevel().updateSkyBrightness();
             BloodMoonHandler.tick(server, cfg);
             helper.assertFalse(state.isActive(), "the event must end at dawn");
@@ -349,7 +353,7 @@ public class BloodMoonGameTest implements FabricGameTest {
             state.markRolled(savedRolledDay);
             cfg.bloodMoon.enabled = savedEnabled;
             cfg.bloodMoon.chance = savedChance;
-            helper.getLevel().setDayTime(savedTime);
+            OverworldClock.set(helper.getLevel(), savedTime);
             helper.getLevel().updateSkyBrightness();
         }
         helper.succeed();

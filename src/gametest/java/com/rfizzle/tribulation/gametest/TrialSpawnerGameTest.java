@@ -8,9 +8,8 @@ import com.rfizzle.tribulation.data.PlayerDifficultyState;
 import com.rfizzle.tribulation.data.TribulationAttachments;
 import com.rfizzle.tribulation.event.MobScalingHandler;
 import com.rfizzle.tribulation.mixin.TrialSpawnerDataAccessor;
-import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.DoubleTag;
@@ -25,7 +24,7 @@ import net.minecraft.world.level.SpawnData;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.level.block.entity.TrialSpawnerBlockEntity;
 import net.minecraft.world.level.block.entity.trialspawner.TrialSpawner;
-import net.minecraft.world.level.block.entity.trialspawner.TrialSpawnerData;
+import net.minecraft.world.level.block.entity.trialspawner.TrialSpawnerStateData;
 
 import java.util.Optional;
 import java.util.UUID;
@@ -38,10 +37,10 @@ import java.util.UUID;
  * assertions never depend on the spawner's RNG placement or tick cadence: the
  * scaling test seeds a deterministic spawn (explicit entity + position) and
  * drives {@link TrialSpawner#spawnMob}; the ominous test seeds detected players
- * and drives {@link TrialSpawnerData#tryDetectPlayers}, which is exactly where
+ * and drives {@link TrialSpawnerStateData#tryDetectPlayers}, which is exactly where
  * the mixin rolls the upgrade.
  */
-public class TrialSpawnerGameTest implements FabricGameTest {
+public class TrialSpawnerGameTest {
 
     // Both rest on the structure's stone floor (local y=0). The spawn block is
     // adjacent to the spawner with clear line of sight and stone directly beneath,
@@ -49,7 +48,7 @@ public class TrialSpawnerGameTest implements FabricGameTest {
     private static final BlockPos SPAWNER_POS = new BlockPos(1, 0, 1);
     private static final BlockPos SPAWN_POS = new BlockPos(0, 0, 1);
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void trialSpawner_scalesSpawnedMob(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         MinecraftServer server = level.getServer();
@@ -59,9 +58,9 @@ public class TrialSpawnerGameTest implements FabricGameTest {
         server.setDifficulty(Difficulty.NORMAL, true);
 
         helper.setBlock(SPAWNER_POS, Blocks.TRIAL_SPAWNER);
-        TrialSpawnerBlockEntity be = helper.getBlockEntity(SPAWNER_POS);
+        TrialSpawnerBlockEntity be = helper.getBlockEntity(SPAWNER_POS, TrialSpawnerBlockEntity.class);
         TrialSpawner spawner = be.getTrialSpawner();
-        TrialSpawnerDataAccessor dataAccessor = (TrialSpawnerDataAccessor) spawner.getData();
+        TrialSpawnerDataAccessor dataAccessor = (TrialSpawnerDataAccessor) spawner.getStateData();
 
         // Seed a deterministic spawn: a zombie at a known in-template air block.
         BlockPos absSpawn = helper.absolutePos(SPAWN_POS);
@@ -104,7 +103,7 @@ public class TrialSpawnerGameTest implements FabricGameTest {
             helper.assertTrue(entity instanceof Mob, "Spawned entity missing or not a mob");
             Mob mob = (Mob) entity;
 
-            helper.assertTrue(mob.getTags().contains(MobScalingHandler.PROCESSED_TAG),
+            helper.assertTrue(mob.entityTags().contains(MobScalingHandler.PROCESSED_TAG),
                     "Trial-spawned mob missing PROCESSED_TAG");
             helper.assertTrue(mob.hasAttached(TribulationAttachments.SCALED_TIER),
                     "Trial-spawned mob missing tier attachment");
@@ -119,7 +118,7 @@ public class TrialSpawnerGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void trialSpawner_nearestMode_picksClosestDetectedPlayer(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         MinecraftServer server = level.getServer();
@@ -127,9 +126,9 @@ public class TrialSpawnerGameTest implements FabricGameTest {
         server.setDifficulty(Difficulty.NORMAL, true);
 
         helper.setBlock(SPAWNER_POS, Blocks.TRIAL_SPAWNER);
-        TrialSpawnerBlockEntity be = helper.getBlockEntity(SPAWNER_POS);
+        TrialSpawnerBlockEntity be = helper.getBlockEntity(SPAWNER_POS, TrialSpawnerBlockEntity.class);
         TrialSpawner spawner = be.getTrialSpawner();
-        TrialSpawnerDataAccessor dataAccessor = (TrialSpawnerDataAccessor) spawner.getData();
+        TrialSpawnerDataAccessor dataAccessor = (TrialSpawnerDataAccessor) spawner.getStateData();
 
         BlockPos absSpawn = helper.absolutePos(SPAWN_POS);
         CompoundTag entityTag = new CompoundTag();
@@ -177,15 +176,15 @@ public class TrialSpawnerGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void trialSpawner_ominousUpgrade_triggersAtHighTier(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         MinecraftServer server = level.getServer();
 
         helper.setBlock(SPAWNER_POS, Blocks.TRIAL_SPAWNER);
-        TrialSpawnerBlockEntity be = helper.getBlockEntity(SPAWNER_POS);
+        TrialSpawnerBlockEntity be = helper.getBlockEntity(SPAWNER_POS, TrialSpawnerBlockEntity.class);
         TrialSpawner spawner = be.getTrialSpawner();
-        TrialSpawnerDataAccessor dataAccessor = (TrialSpawnerDataAccessor) spawner.getData();
+        TrialSpawnerDataAccessor dataAccessor = (TrialSpawnerDataAccessor) spawner.getStateData();
 
         TribulationConfig cfg = Tribulation.getConfig();
         boolean savedEnabled = cfg.trialSpawner.enabled;
@@ -207,7 +206,7 @@ public class TrialSpawnerGameTest implements FabricGameTest {
             helper.assertFalse(spawner.isOminous(), "Spawner should start non-ominous");
             // Drives the same detection step the tick loop calls; the mixin rolls
             // the ominous upgrade at its tail when players are tracked.
-            spawner.getData().tryDetectPlayers(level, helper.absolutePos(SPAWNER_POS), spawner);
+            spawner.getStateData().tryDetectPlayers(level, helper.absolutePos(SPAWNER_POS), spawner);
             helper.assertTrue(spawner.isOminous(),
                     "Trial spawner should have become ominous at tier 3 with chance 1.0");
         } finally {
@@ -220,15 +219,15 @@ public class TrialSpawnerGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void trialSpawner_ominousUpgrade_skipsBelowMinimumTier(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         MinecraftServer server = level.getServer();
 
         helper.setBlock(SPAWNER_POS, Blocks.TRIAL_SPAWNER);
-        TrialSpawnerBlockEntity be = helper.getBlockEntity(SPAWNER_POS);
+        TrialSpawnerBlockEntity be = helper.getBlockEntity(SPAWNER_POS, TrialSpawnerBlockEntity.class);
         TrialSpawner spawner = be.getTrialSpawner();
-        TrialSpawnerDataAccessor dataAccessor = (TrialSpawnerDataAccessor) spawner.getData();
+        TrialSpawnerDataAccessor dataAccessor = (TrialSpawnerDataAccessor) spawner.getStateData();
 
         TribulationConfig cfg = Tribulation.getConfig();
         boolean savedEnabled = cfg.trialSpawner.enabled;
@@ -247,7 +246,7 @@ public class TrialSpawnerGameTest implements FabricGameTest {
         dataAccessor.getDetectedPlayers().add(player.getUUID());
 
         try {
-            spawner.getData().tryDetectPlayers(level, helper.absolutePos(SPAWNER_POS), spawner);
+            spawner.getStateData().tryDetectPlayers(level, helper.absolutePos(SPAWNER_POS), spawner);
             helper.assertFalse(spawner.isOminous(),
                     "Trial spawner should stay non-ominous below the minimum tier even with chance 1.0");
         } finally {
@@ -260,15 +259,15 @@ public class TrialSpawnerGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void trialSpawner_ominousUpgrade_respectsMasterToggle(GameTestHelper helper) {
         ServerLevel level = helper.getLevel();
         MinecraftServer server = level.getServer();
 
         helper.setBlock(SPAWNER_POS, Blocks.TRIAL_SPAWNER);
-        TrialSpawnerBlockEntity be = helper.getBlockEntity(SPAWNER_POS);
+        TrialSpawnerBlockEntity be = helper.getBlockEntity(SPAWNER_POS, TrialSpawnerBlockEntity.class);
         TrialSpawner spawner = be.getTrialSpawner();
-        TrialSpawnerDataAccessor dataAccessor = (TrialSpawnerDataAccessor) spawner.getData();
+        TrialSpawnerDataAccessor dataAccessor = (TrialSpawnerDataAccessor) spawner.getStateData();
 
         TribulationConfig cfg = Tribulation.getConfig();
         boolean savedEnabled = cfg.trialSpawner.enabled;
@@ -289,7 +288,7 @@ public class TrialSpawnerGameTest implements FabricGameTest {
         dataAccessor.getDetectedPlayers().add(player.getUUID());
 
         try {
-            spawner.getData().tryDetectPlayers(level, helper.absolutePos(SPAWNER_POS), spawner);
+            spawner.getStateData().tryDetectPlayers(level, helper.absolutePos(SPAWNER_POS), spawner);
             helper.assertFalse(spawner.isOminous(),
                     "Trial spawner should stay non-ominous when trialSpawner.enabled is false");
         } finally {

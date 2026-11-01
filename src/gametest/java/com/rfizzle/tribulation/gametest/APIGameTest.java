@@ -9,13 +9,13 @@ import com.rfizzle.tribulation.command.TribulationCommand;
 import com.rfizzle.tribulation.config.TribulationConfig;
 import com.rfizzle.tribulation.data.PlayerDifficultyState;
 import com.rfizzle.tribulation.scaling.BossScalingEngine;
-import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.animal.pig.Pig;
 import net.minecraft.world.entity.monster.zombie.Zombie;
 
@@ -23,9 +23,9 @@ import java.util.Optional;
 import java.util.concurrent.atomic.AtomicBoolean;
 import java.util.concurrent.atomic.AtomicInteger;
 
-public class APIGameTest implements FabricGameTest {
+public class APIGameTest {
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void api_levelChangeEventFiresOnSet(GameTestHelper helper) {
         ServerPlayer player = MockPlayers.serverPlayerInLevel(helper);
         MinecraftServer server = helper.getLevel().getServer();
@@ -62,7 +62,7 @@ public class APIGameTest implements FabricGameTest {
         }
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void api_levelChangeEventFiresOnIncrementTick(GameTestHelper helper) {
         ServerPlayer player = MockPlayers.serverPlayerInLevel(helper);
         MinecraftServer server = helper.getLevel().getServer();
@@ -100,7 +100,7 @@ public class APIGameTest implements FabricGameTest {
         }
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void api_getTierThresholds_matchesConfiguredTiers(GameTestHelper helper) {
         TribulationConfig cfg = Tribulation.getConfig();
         int[] thresholds = TribulationAPI.getTierThresholds();
@@ -122,7 +122,7 @@ public class APIGameTest implements FabricGameTest {
      * spawn so the assertion reflects the time axis alone, same recipe as
      * {@link MobScalingGameTest}.
      */
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void api_mobScalingSummary_describesScaledZombie(GameTestHelper helper) {
         ServerPlayer player = MockPlayers.serverPlayerInLevel(helper);
         BlockPos playerAbs = helper.absolutePos(new BlockPos(0, 2, 1));
@@ -142,7 +142,7 @@ public class APIGameTest implements FabricGameTest {
 
         Zombie zombie;
         try {
-            zombie = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, new BlockPos(1, 2, 1));
+            zombie = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, new BlockPos(1, 2, 1));
         } finally {
             cfg.distanceScaling.enabled = savedDist;
             cfg.heightScaling.enabled = savedHeight;
@@ -164,9 +164,9 @@ public class APIGameTest implements FabricGameTest {
     }
 
     /** An entity that never went through scaling reports no summary. */
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void api_mobScalingSummary_emptyForUnscaledMob(GameTestHelper helper) {
-        Pig pig = helper.spawnWithNoFreeWill(EntityType.PIG, new BlockPos(1, 2, 1));
+        Pig pig = helper.spawnWithNoFreeWill(EntityTypes.PIG, new BlockPos(1, 2, 1));
         helper.succeedWhen(() -> {
             helper.assertTrue(TribulationAPI.getMobScalingSummary(pig).isEmpty(),
                     "unscaled pig must have no scaling summary");
@@ -183,7 +183,7 @@ public class APIGameTest implements FabricGameTest {
      * scaling is applied directly at level 100 (bossTimeFactor 0.3 -> capped
      * at bossMaxFactor, comfortably non-zero).
      */
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void api_isBossScaled_distinguishesBossFormulaScaling(GameTestHelper helper) {
         TribulationConfig cfg = Tribulation.getConfig();
 
@@ -196,7 +196,7 @@ public class APIGameTest implements FabricGameTest {
 
         Zombie zombie;
         try {
-            zombie = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, new BlockPos(1, 2, 1));
+            zombie = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, new BlockPos(1, 2, 1));
         } finally {
             cfg.distanceScaling.enabled = savedDist;
             cfg.heightScaling.enabled = savedHeight;
@@ -218,7 +218,7 @@ public class APIGameTest implements FabricGameTest {
      * SERVER), so calling them here must return the safe sentinels —
      * false / 0 — without touching client classes or crashing.
      */
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void api_hudAccessors_returnSafeSentinelsOnServer(GameTestHelper helper) {
         helper.assertFalse(TribulationAPI.isHudVisible(),
                 "isHudVisible() must be false on the server");

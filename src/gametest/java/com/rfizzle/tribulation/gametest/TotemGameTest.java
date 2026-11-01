@@ -7,24 +7,24 @@ import com.rfizzle.tribulation.config.TribulationConfig;
 import com.rfizzle.tribulation.data.PlayerDifficultyState;
 import com.rfizzle.tribulation.event.HardcoreHeartsHandler;
 import com.rfizzle.tribulation.event.TotemPenaltyHandler;
-import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.zombie.Zombie;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 
-public class TotemGameTest implements FabricGameTest {
+public class TotemGameTest {
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void defaultBehavior_noDeathReliefOnTotemPop(GameTestHelper helper) {
         ServerPlayer player = MockPlayers.serverPlayerInLevel(helper);
         MinecraftServer server = helper.getLevel().getServer();
@@ -42,7 +42,7 @@ public class TotemGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void countsAsDeathRelief_true_reducesLevel(GameTestHelper helper) {
         ServerPlayer player = MockPlayers.serverPlayerInLevel(helper);
         MinecraftServer server = helper.getLevel().getServer();
@@ -70,7 +70,7 @@ public class TotemGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void countsAsDeathRelief_cooldown_honored(GameTestHelper helper) {
         ServerPlayer player = MockPlayers.serverPlayerInLevel(helper);
         MinecraftServer server = helper.getLevel().getServer();
@@ -103,7 +103,7 @@ public class TotemGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void countsAsDeathRelief_parentDisabled_noLevelChange(GameTestHelper helper) {
         ServerPlayer player = MockPlayers.serverPlayerInLevel(helper);
         MinecraftServer server = helper.getLevel().getServer();
@@ -132,7 +132,7 @@ public class TotemGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void protectsHearts_parentDisabled_noHeartsLost(GameTestHelper helper) {
         ServerPlayer player = MockPlayers.serverPlayerInLevel(helper);
         MinecraftServer server = helper.getLevel().getServer();
@@ -163,7 +163,7 @@ public class TotemGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void defaultBehavior_protectsHearts_true_noHeartsLost(GameTestHelper helper) {
         ServerPlayer player = MockPlayers.serverPlayerInLevel(helper);
         MinecraftServer server = helper.getLevel().getServer();
@@ -189,7 +189,7 @@ public class TotemGameTest implements FabricGameTest {
         }
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void protectsHearts_false_deductsHearts(GameTestHelper helper) {
         ServerPlayer player = MockPlayers.serverPlayerInLevel(helper);
         MinecraftServer server = helper.getLevel().getServer();
@@ -225,14 +225,14 @@ public class TotemGameTest implements FabricGameTest {
      * net.minecraft.world.entity.LivingEntity}, not just players. A non-player mob popping a totem
      * must route through the mixin's {@code RETURN} injection without crashing.
      */
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void totemPop_onNonPlayerEntity_doesNotCrash(GameTestHelper helper) {
-        Zombie zombie = helper.spawn(EntityType.ZOMBIE, BlockPos.ZERO);
+        Zombie zombie = helper.spawn(EntityTypes.ZOMBIE, BlockPos.ZERO);
         zombie.setItemInHand(InteractionHand.OFF_HAND, new ItemStack(Items.TOTEM_OF_UNDYING));
 
         DamageSource lethal = zombie.damageSources().generic();
         // Enough to be lethal; the totem should intercept and the mixin RETURN handler must not throw.
-        boolean survived = zombie.hurt(lethal, 1000.0f);
+        boolean survived = zombie.hurtServer(helper.getLevel(), lethal, 1000.0f);
 
         helper.assertTrue(survived, "Lethal hit should register as damage taken");
         helper.assertTrue(zombie.isAlive(), "Zombie should survive via totem pop");
@@ -243,7 +243,7 @@ public class TotemGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void soulInventory_neverTriggeredByTotemPop(GameTestHelper helper) {
         ServerPlayer player = MockPlayers.serverPlayerInLevel(helper);
         TribulationConfig cfg = Tribulation.getConfig();

@@ -8,12 +8,12 @@ import com.rfizzle.tribulation.config.TribulationConfig;
 import com.rfizzle.tribulation.data.PlayerDifficultyState;
 import com.rfizzle.tribulation.data.TribulationAttachments;
 import com.rfizzle.tribulation.event.MobScalingHandler;
-import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.monster.zombie.Zombie;
 
@@ -25,7 +25,7 @@ import java.util.List;
  * gating) so the assertions don't depend on RNG; the roll/selection math
  * itself is covered by {@code ChampionManagerTest}.
  */
-public class ChampionGameTest implements FabricGameTest {
+public class ChampionGameTest {
 
     /**
      * Above the threshold with chance 1.0 every hostile spawn becomes a
@@ -33,7 +33,7 @@ public class ChampionGameTest implements FabricGameTest {
      * name visible. Zombie at player level 50 scales to 30 HP; the champion
      * default ×1.5 lifts it to 45 HP.
      */
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void aboveThreshold_chanceOne_rollsChampion(GameTestHelper helper) {
         TribulationConfig cfg = Tribulation.getConfig();
         boolean savedEnabled = cfg.champions.enabled;
@@ -64,7 +64,7 @@ public class ChampionGameTest implements FabricGameTest {
 
         Zombie zombie;
         try {
-            zombie = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, new BlockPos(1, 2, 1));
+            zombie = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, new BlockPos(1, 2, 1));
         } finally {
             cfg.champions.enabled = savedEnabled;
             cfg.champions.levelThreshold = savedThreshold;
@@ -80,7 +80,7 @@ public class ChampionGameTest implements FabricGameTest {
 
         Zombie z = zombie;
         helper.succeedWhen(() -> {
-            helper.assertTrue(z.getTags().contains(MobScalingHandler.PROCESSED_TAG),
+            helper.assertTrue(z.entityTags().contains(MobScalingHandler.PROCESSED_TAG),
                     "scaling handler must have tagged the zombie");
             helper.assertTrue(ChampionManager.isChampion(z),
                     "zombie above threshold with chance 1.0 must be a champion");
@@ -101,7 +101,7 @@ public class ChampionGameTest implements FabricGameTest {
      * Below the threshold no spawn ever rolls champion, even at chance 1.0 —
      * the acceptance-criteria "below it, never" guarantee.
      */
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void belowThreshold_neverRollsChampion(GameTestHelper helper) {
         TribulationConfig cfg = Tribulation.getConfig();
         boolean savedEnabled = cfg.champions.enabled;
@@ -122,7 +122,7 @@ public class ChampionGameTest implements FabricGameTest {
 
         Zombie zombie;
         try {
-            zombie = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, new BlockPos(1, 2, 1));
+            zombie = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, new BlockPos(1, 2, 1));
         } finally {
             cfg.champions.enabled = savedEnabled;
             cfg.champions.levelThreshold = savedThreshold;
@@ -133,7 +133,7 @@ public class ChampionGameTest implements FabricGameTest {
 
         Zombie z = zombie;
         helper.succeedWhen(() -> {
-            helper.assertTrue(z.getTags().contains(MobScalingHandler.PROCESSED_TAG),
+            helper.assertTrue(z.entityTags().contains(MobScalingHandler.PROCESSED_TAG),
                     "scaling handler must have tagged the zombie");
             helper.assertFalse(ChampionManager.isChampion(z),
                     "zombie below the level threshold must never roll champion");
@@ -143,7 +143,7 @@ public class ChampionGameTest implements FabricGameTest {
     /**
      * Feature disabled: no champion, whatever the threshold/chance.
      */
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void featureDisabled_neverRollsChampion(GameTestHelper helper) {
         TribulationConfig cfg = Tribulation.getConfig();
         boolean savedEnabled = cfg.champions.enabled;
@@ -164,7 +164,7 @@ public class ChampionGameTest implements FabricGameTest {
 
         Zombie zombie;
         try {
-            zombie = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, new BlockPos(1, 2, 1));
+            zombie = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, new BlockPos(1, 2, 1));
         } finally {
             cfg.champions.enabled = savedEnabled;
             cfg.champions.levelThreshold = savedThreshold;

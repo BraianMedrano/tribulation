@@ -5,12 +5,12 @@ import com.rfizzle.tribulation.config.TribulationConfig;
 import com.rfizzle.tribulation.event.RaidScalingHandler;
 import com.rfizzle.tribulation.event.WeaponEquipmentHandler;
 import com.rfizzle.tribulation.scaling.TierManager;
-import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.monster.illager.Pillager;
@@ -36,7 +36,7 @@ import java.util.Set;
  * extras inherit — and counts only pillagers carrying that target, isolating
  * its own spawns from any concurrent test.
  */
-public class RaidScalingGameTest implements FabricGameTest {
+public class RaidScalingGameTest {
 
     private static final BlockPos CAPTAIN_POS = new BlockPos(1, 2, 1);
 
@@ -51,7 +51,7 @@ public class RaidScalingGameTest implements FabricGameTest {
         return extras;
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void patrolSizeScalesWithTier(GameTestHelper helper) {
         ServerLevel world = helper.getLevel();
 
@@ -64,7 +64,7 @@ public class RaidScalingGameTest implements FabricGameTest {
         int expectedExtra = cfg.raidScaling.extraPatrolMembers(tier);
         helper.assertTrue(expectedExtra > 0, "Test setup must yield at least one extra member");
 
-        Pillager captain = helper.spawnWithNoFreeWill(EntityType.PILLAGER, CAPTAIN_POS);
+        Pillager captain = helper.spawnWithNoFreeWill(EntityTypes.PILLAGER, CAPTAIN_POS);
         captain.setPatrolLeader(true);
         // Unique target so the extras (which inherit it) can be told apart from
         // any concurrent test's patrol members.
@@ -81,7 +81,7 @@ public class RaidScalingGameTest implements FabricGameTest {
         });
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void patrolSizeUnchangedWhenDisabled(GameTestHelper helper) {
         ServerLevel world = helper.getLevel();
 
@@ -89,7 +89,7 @@ public class RaidScalingGameTest implements FabricGameTest {
         cfg.raidScaling.enabled = false;
         cfg.raidScaling.patrolBonusRate = 1;
 
-        Pillager captain = helper.spawnWithNoFreeWill(EntityType.PILLAGER, CAPTAIN_POS);
+        Pillager captain = helper.spawnWithNoFreeWill(EntityTypes.PILLAGER, CAPTAIN_POS);
         captain.setPatrolLeader(true);
         BlockPos target = captain.blockPosition();
         captain.setPatrolTarget(target);
@@ -106,12 +106,12 @@ public class RaidScalingGameTest implements FabricGameTest {
         });
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void raiderEquipmentApplied(GameTestHelper helper) {
         // Raiders (pillager/vindicator are AbstractIllager) flow through the same
         // weapon-equipment path as every other scaled mob; validate it end-to-end.
-        Mob mob = helper.spawnWithNoFreeWill(EntityType.PILLAGER, CAPTAIN_POS);
-        mob.getTags().remove(WeaponEquipmentHandler.PROCESSED_TAG);
+        Mob mob = helper.spawnWithNoFreeWill(EntityTypes.PILLAGER, CAPTAIN_POS);
+        mob.entityTags().remove(WeaponEquipmentHandler.PROCESSED_TAG);
         mob.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
 
         TribulationConfig cfg = new TribulationConfig();

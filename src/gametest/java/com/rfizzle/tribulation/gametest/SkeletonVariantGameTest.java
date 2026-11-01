@@ -6,14 +6,14 @@ import com.rfizzle.tribulation.config.TribulationConfig;
 import com.rfizzle.tribulation.config.TribulationConfig.SpecialSkeletons;
 import com.rfizzle.tribulation.event.SkeletonVariantHandler;
 import com.rfizzle.tribulation.mixin.AbstractSkeletonAccessor;
-import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
-import net.minecraft.gametest.framework.GameTest;
+import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.resources.Identifier;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.Attribute;
@@ -38,11 +38,11 @@ import java.lang.reflect.Field;
  * test forces values on {@link Tribulation#getConfig()} and restores them in a
  * {@code finally} block.
  */
-public class SkeletonVariantGameTest implements FabricGameTest {
+public class SkeletonVariantGameTest {
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void deadeye_appliesTagModifierAndFasterInterval(GameTestHelper helper) {
-        AbstractSkeleton sk = spawnBowSkeleton(helper, EntityType.SKELETON);
+        AbstractSkeleton sk = spawnBowSkeleton(helper, EntityTypes.SKELETON);
         TribulationConfig cfg = Tribulation.getConfig();
         SpecialSkeletons sky = cfg.specialSkeletons;
         Snapshot saved = Snapshot.capture(sky);
@@ -59,11 +59,11 @@ public class SkeletonVariantGameTest implements FabricGameTest {
 
             helper.assertTrue(chosen == SkeletonVariantHandler.Variant.DEADEYE,
                     "deadeye should win at 100% chance, got " + chosen);
-            helper.assertTrue(sk.getTags().contains(SkeletonVariantHandler.DEADEYE_TAG),
+            helper.assertTrue(sk.entityTags().contains(SkeletonVariantHandler.DEADEYE_TAG),
                     "deadeye tag must be applied");
             helper.assertTrue(hasMod(sk, Attributes.MAX_HEALTH, SkeletonVariantHandler.DEADEYE_HEALTH_ID),
                     "deadeye health malus modifier must be present");
-            helper.assertFalse(sk.getTags().contains(SkeletonVariantHandler.BRUTE_TAG),
+            helper.assertFalse(sk.entityTags().contains(SkeletonVariantHandler.BRUTE_TAG),
                     "brute tag must not be applied");
             helper.assertFalse(hasMod(sk, Attributes.MAX_HEALTH, SkeletonVariantHandler.BRUTE_HEALTH_ID),
                     "brute modifiers must be absent");
@@ -75,9 +75,9 @@ public class SkeletonVariantGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void brute_appliesTagsModifiersAndSlowerInterval(GameTestHelper helper) {
-        AbstractSkeleton sk = spawnBowSkeleton(helper, EntityType.SKELETON);
+        AbstractSkeleton sk = spawnBowSkeleton(helper, EntityTypes.SKELETON);
         TribulationConfig cfg = Tribulation.getConfig();
         SpecialSkeletons sky = cfg.specialSkeletons;
         Snapshot saved = Snapshot.capture(sky);
@@ -97,7 +97,7 @@ public class SkeletonVariantGameTest implements FabricGameTest {
 
             helper.assertTrue(chosen == SkeletonVariantHandler.Variant.BRUTE,
                     "brute should win at 100% chance, got " + chosen);
-            helper.assertTrue(sk.getTags().contains(SkeletonVariantHandler.BRUTE_TAG),
+            helper.assertTrue(sk.entityTags().contains(SkeletonVariantHandler.BRUTE_TAG),
                     "brute tag must be applied");
             helper.assertTrue(hasMod(sk, Attributes.MAX_HEALTH, SkeletonVariantHandler.BRUTE_HEALTH_ID),
                     "brute health modifier must be present");
@@ -105,7 +105,7 @@ public class SkeletonVariantGameTest implements FabricGameTest {
                     "brute knockback resistance modifier must be present");
             helper.assertTrue(hasMod(sk, Attributes.SCALE, SkeletonVariantHandler.BRUTE_SIZE_ID),
                     "brute size modifier must be present");
-            helper.assertFalse(sk.getTags().contains(SkeletonVariantHandler.DEADEYE_TAG),
+            helper.assertFalse(sk.entityTags().contains(SkeletonVariantHandler.DEADEYE_TAG),
                     "deadeye tag must not be applied");
             assertBowInterval(helper, sk, 70,
                     "brute bow interval should match bruteSkeletonAttackInterval");
@@ -115,9 +115,9 @@ public class SkeletonVariantGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void rolls_areMutuallyExclusive_deadeyeWins(GameTestHelper helper) {
-        AbstractSkeleton sk = spawnBowSkeleton(helper, EntityType.SKELETON);
+        AbstractSkeleton sk = spawnBowSkeleton(helper, EntityTypes.SKELETON);
         TribulationConfig cfg = Tribulation.getConfig();
         SpecialSkeletons sky = cfg.specialSkeletons;
         Snapshot saved = Snapshot.capture(sky);
@@ -133,9 +133,9 @@ public class SkeletonVariantGameTest implements FabricGameTest {
 
             helper.assertTrue(chosen == SkeletonVariantHandler.Variant.DEADEYE,
                     "deadeye must win when both roll at 100%, got " + chosen);
-            helper.assertTrue(sk.getTags().contains(SkeletonVariantHandler.DEADEYE_TAG),
+            helper.assertTrue(sk.entityTags().contains(SkeletonVariantHandler.DEADEYE_TAG),
                     "deadeye tag must be applied");
-            helper.assertFalse(sk.getTags().contains(SkeletonVariantHandler.BRUTE_TAG),
+            helper.assertFalse(sk.entityTags().contains(SkeletonVariantHandler.BRUTE_TAG),
                     "brute tag must not be applied when deadeye wins");
         } finally {
             saved.restore(sky);
@@ -143,7 +143,7 @@ public class SkeletonVariantGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void strayAndBogged_areProcessed(GameTestHelper helper) {
         TribulationConfig cfg = Tribulation.getConfig();
         SpecialSkeletons sky = cfg.specialSkeletons;
@@ -154,20 +154,20 @@ public class SkeletonVariantGameTest implements FabricGameTest {
             sky.deadeyeSkeletonChance = 100;
             sky.bruteSkeletonChance = 0;
 
-            AbstractSkeleton stray = spawnBowSkeleton(helper, EntityType.STRAY);
+            AbstractSkeleton stray = spawnBowSkeleton(helper, EntityTypes.STRAY);
             reset(stray);
             SkeletonVariantHandler.apply(stray, "stray", sky, helper.getLevel().getRandom());
-            helper.assertTrue(stray.getTags().contains(SkeletonVariantHandler.PROCESSED_TAG),
+            helper.assertTrue(stray.entityTags().contains(SkeletonVariantHandler.PROCESSED_TAG),
                     "stray must be stamped processed");
-            helper.assertTrue(stray.getTags().contains(SkeletonVariantHandler.DEADEYE_TAG),
+            helper.assertTrue(stray.entityTags().contains(SkeletonVariantHandler.DEADEYE_TAG),
                     "stray must roll deadeye at 100%");
 
-            AbstractSkeleton bogged = spawnBowSkeleton(helper, EntityType.BOGGED);
+            AbstractSkeleton bogged = spawnBowSkeleton(helper, EntityTypes.BOGGED);
             reset(bogged);
             SkeletonVariantHandler.apply(bogged, "bogged", sky, helper.getLevel().getRandom());
-            helper.assertTrue(bogged.getTags().contains(SkeletonVariantHandler.PROCESSED_TAG),
+            helper.assertTrue(bogged.entityTags().contains(SkeletonVariantHandler.PROCESSED_TAG),
                     "bogged must be stamped processed");
-            helper.assertTrue(bogged.getTags().contains(SkeletonVariantHandler.DEADEYE_TAG),
+            helper.assertTrue(bogged.entityTags().contains(SkeletonVariantHandler.DEADEYE_TAG),
                     "bogged must roll deadeye at 100%");
         } finally {
             saved.restore(sky);
@@ -175,9 +175,9 @@ public class SkeletonVariantGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void deadeye_withZeroMalus_stillDetectedByTag(GameTestHelper helper) {
-        AbstractSkeleton sk = spawnBowSkeleton(helper, EntityType.SKELETON);
+        AbstractSkeleton sk = spawnBowSkeleton(helper, EntityTypes.SKELETON);
         TribulationConfig cfg = Tribulation.getConfig();
         SpecialSkeletons sky = cfg.specialSkeletons;
         Snapshot saved = Snapshot.capture(sky);
@@ -195,7 +195,7 @@ public class SkeletonVariantGameTest implements FabricGameTest {
             // the only detection signal, and the data collector must still report it.
             helper.assertFalse(hasMod(sk, Attributes.MAX_HEALTH, SkeletonVariantHandler.DEADEYE_HEALTH_ID),
                     "no health modifier should exist when the malus is 0");
-            helper.assertTrue(sk.getTags().contains(SkeletonVariantHandler.DEADEYE_TAG),
+            helper.assertTrue(sk.entityTags().contains(SkeletonVariantHandler.DEADEYE_TAG),
                     "deadeye tag must be present even with a 0 malus");
 
             CompoundTag data = new CompoundTag();
@@ -222,9 +222,9 @@ public class SkeletonVariantGameTest implements FabricGameTest {
      * test starts from a clean skeleton regardless of the default-config roll.
      */
     private static void reset(Mob mob) {
-        mob.getTags().remove(SkeletonVariantHandler.PROCESSED_TAG);
-        mob.getTags().remove(SkeletonVariantHandler.DEADEYE_TAG);
-        mob.getTags().remove(SkeletonVariantHandler.BRUTE_TAG);
+        mob.entityTags().remove(SkeletonVariantHandler.PROCESSED_TAG);
+        mob.entityTags().remove(SkeletonVariantHandler.DEADEYE_TAG);
+        mob.entityTags().remove(SkeletonVariantHandler.BRUTE_TAG);
         removeMod(mob, Attributes.MAX_HEALTH, SkeletonVariantHandler.DEADEYE_HEALTH_ID);
         removeMod(mob, Attributes.MAX_HEALTH, SkeletonVariantHandler.BRUTE_HEALTH_ID);
         removeMod(mob, Attributes.KNOCKBACK_RESISTANCE, SkeletonVariantHandler.BRUTE_KNOCKBACK_ID);

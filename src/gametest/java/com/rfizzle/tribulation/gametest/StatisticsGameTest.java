@@ -9,20 +9,20 @@ import com.rfizzle.tribulation.data.TribulationAttachments;
 import com.rfizzle.tribulation.item.TribulationItems;
 import com.rfizzle.tribulation.stat.TribulationStats;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
-import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.stats.Stats;
 import net.minecraft.world.InteractionHand;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.item.ItemStack;
 
-public class StatisticsGameTest implements FabricGameTest {
+public class StatisticsGameTest {
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void highestLevelReached_isMonotonic(GameTestHelper helper) {
         ServerPlayer player = MockPlayers.serverPlayerInLevel(helper);
 
@@ -39,7 +39,7 @@ public class StatisticsGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void levelsLostToDeathRelief_incrementsByDelta(GameTestHelper helper) {
         ServerPlayer player = MockPlayers.serverPlayerInLevel(helper);
         PlayerDifficultyState state = PlayerDifficultyState.getOrCreate(helper.getLevel().getServer());
@@ -60,7 +60,7 @@ public class StatisticsGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void shardsUsed_incrementsOnConsume(GameTestHelper helper) {
         ServerPlayer player = MockPlayers.serverPlayerInLevel(helper);
         player.setItemInHand(InteractionHand.MAIN_HAND, new ItemStack(TribulationItems.SHATTER_SHARD));
@@ -74,19 +74,19 @@ public class StatisticsGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void tier5MobsKilled_countsTierFiveOnly(GameTestHelper helper) {
         ServerPlayer player = MockPlayers.serverPlayerInLevel(helper);
         BlockPos pos = new BlockPos(1, 2, 1);
 
-        Mob tier4Mob = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, pos);
+        Mob tier4Mob = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, pos);
         tier4Mob.setAttached(TribulationAttachments.SCALED_TIER, 4);
         ServerLivingEntityEvents.AFTER_DEATH.invoker().afterDeath(tier4Mob, player.damageSources().playerAttack(player));
 
         int statVal1 = player.getStats().getValue(Stats.CUSTOM.get(TribulationStats.TIER_5_MOBS_KILLED));
         helper.assertTrue(statVal1 == 0, "tier 4 kill should not count, stat was " + statVal1);
 
-        Mob tier5Mob = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, pos);
+        Mob tier5Mob = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, pos);
         tier5Mob.setAttached(TribulationAttachments.SCALED_TIER, 5);
         ServerLivingEntityEvents.AFTER_DEATH.invoker().afterDeath(tier5Mob, player.damageSources().playerAttack(player));
 

@@ -27,20 +27,20 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  * entrypoints in the companion manifest stay in lockstep (mc-mod-testing).
  *
  * <p>Registration fails silently in both directions: an unregistered
- * {@code FabricGameTest} never runs and never warns, so a suite can rot for
+ * {@code @GameTest} suite never runs and never warns, so a suite can rot for
  * months while CI stays green; a stale entrypoint naming a deleted class crashes
  * the run at startup. Both are checked here rather than discovered later.
  *
  * <p>The gametest source set is not on the test classpath, so its classes cannot
  * be enumerated reflectively — the guard reads the source tree instead, walking
  * it recursively so suites in subpackages are not missed. A suite is identified
- * by the interface it implements rather than a filename suffix: the source set
+ * by its import of Fabric's {@code @GameTest} annotation rather than a filename suffix: the source set
  * also holds helpers ({@code MockPlayers} and the fixture helpers),
  * and a suffix-only match would flag those as unregistered while letting a
  * mis-named suite slip past both sides of the comparison at once.
  *
- * <p>A suite that picks the interface up from an abstract base rather than
- * declaring it is rejected by design: it reads as a non-suite while still being
+ * <p>A suite that inherits its test methods from an abstract base rather than
+ * declaring them is rejected by design: it reads as a non-suite while still being
  * named {@code *GameTest}, so the naming check fails it loudly instead of
  * letting it register implicitly.
  */
@@ -49,9 +49,13 @@ class GametestRegistrationTest {
     private static final Path GAMETEST_MANIFEST = Path.of("src/gametest/resources/fabric.mod.json");
     private static final Path SHIPPED_MANIFEST = Path.of("src/main/resources/fabric.mod.json");
 
-    /** Matches a class's {@code implements} clause naming FabricGameTest. */
-    private static final Pattern IMPLEMENTS_FABRIC_GAMETEST =
-            Pattern.compile("implements\\s+[^{]*\\bFabricGameTest\\b");
+    /**
+     * Matches a class that declares Fabric test methods. 26.x dropped the {@code FabricGameTest}
+     * marker interface: a suite is now any {@code fabric-gametest} entrypoint class whose methods
+     * carry Fabric's {@code @GameTest}, so the import of that annotation identifies one.
+     */
+    private static final Pattern DECLARES_FABRIC_GAMETEST =
+            Pattern.compile("^import\\s+net\\.fabricmc\\.fabric\\.api\\.gametest\\.v1\\.GameTest\\s*;", Pattern.MULTILINE);
 
     /** Fully-qualified names of every class under the gametest tree, mapped to its source text. */
     private static TreeMap<String, String> gametestSources() {
@@ -76,7 +80,7 @@ class GametestRegistrationTest {
     }
 
     private static boolean isSuite(String source) {
-        return IMPLEMENTS_FABRIC_GAMETEST.matcher(source).find();
+        return DECLARES_FABRIC_GAMETEST.matcher(source).find();
     }
 
     private static Set<String> suitesOnDisk() {
@@ -122,7 +126,7 @@ class GametestRegistrationTest {
         TreeSet<String> dangling = new TreeSet<>(declaredEntrypoints());
         dangling.removeAll(suitesOnDisk());
         assertTrue(dangling.isEmpty(),
-                GAMETEST_MANIFEST + " declares entrypoints that are not FabricGameTest classes on"
+                GAMETEST_MANIFEST + " declares entrypoints that are not @GameTest suites on"
                         + " disk — the gametest run will fail to load them: " + dangling);
     }
 
@@ -143,9 +147,9 @@ class GametestRegistrationTest {
             }
         });
         assertTrue(misnamedSuites.isEmpty(),
-                "FabricGameTest implementors must be named *GameTest: " + misnamedSuites);
+                "@GameTest suites must be named *GameTest: " + misnamedSuites);
         assertTrue(impostors.isEmpty(),
-                "classes named *GameTest must implement FabricGameTest: " + impostors);
+                "classes named *GameTest must declare @GameTest methods: " + impostors);
     }
 
     /** The mod ids the given manifest declares in its {@code depends} block. */

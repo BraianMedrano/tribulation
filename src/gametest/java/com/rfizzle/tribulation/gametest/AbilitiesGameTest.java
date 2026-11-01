@@ -2,16 +2,16 @@ package com.rfizzle.tribulation.gametest;
 
 import com.rfizzle.tribulation.ability.AbilityManager;
 import com.rfizzle.tribulation.config.TribulationConfig;
-import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
-import net.minecraft.gametest.framework.GameTest;
+import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
@@ -40,15 +40,15 @@ import java.lang.reflect.Method;
  * config toggle is proven to gate it. Projectile flight and door-pathfinding
  * timing are avoided in favor of inspecting the produced arrow / goal directly.
  */
-public class AbilitiesGameTest implements FabricGameTest {
+public class AbilitiesGameTest {
 
     private static final BlockPos SPAWN = new BlockPos(1, 2, 1);
 
     // ---- Zombie: reinforcements attribute modifier (registry-driven apply) ----
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void zombie_reinforcementsModifierAtTier1(GameTestHelper helper) {
-        Mob zombie = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, SPAWN);
+        Mob zombie = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, SPAWN);
         TribulationConfig cfg = new TribulationConfig();
         AbilityManager.applyAbilities(zombie, 1, "zombie", cfg);
 
@@ -59,9 +59,9 @@ public class AbilitiesGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void zombie_reinforcementsAbsentWhenDisabled(GameTestHelper helper) {
-        Mob zombie = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, SPAWN);
+        Mob zombie = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, SPAWN);
         TribulationConfig cfg = new TribulationConfig();
         cfg.abilities.zombieReinforcements = false;
         AbilityManager.applyAbilities(zombie, 1, "zombie", cfg);
@@ -75,27 +75,27 @@ public class AbilitiesGameTest implements FabricGameTest {
 
     // ---- Stray: Slowness II arrows ----
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void stray_slownessArrowsUpgradedAtTier2(GameTestHelper helper) {
-        Stray stray = (Stray) helper.spawnWithNoFreeWill(EntityType.STRAY, SPAWN);
+        Stray stray = (Stray) helper.spawnWithNoFreeWill(EntityTypes.STRAY, SPAWN);
         TribulationConfig cfg = new TribulationConfig();
         AbilityManager.applyAbilities(stray, 2, "stray", cfg);
 
-        int amplifier = maxArrowEffectAmplifier(helper, stray, MobEffects.MOVEMENT_SLOWDOWN.value());
+        int amplifier = maxArrowEffectAmplifier(helper, stray, MobEffects.SLOWNESS.value());
         if (amplifier != 1) {
             helper.fail("Tier-2 stray arrow should carry Slowness II (amp 1), got amp " + amplifier);
         }
         helper.succeed();
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void stray_slownessArrowsVanillaWhenDisabled(GameTestHelper helper) {
-        Stray stray = (Stray) helper.spawnWithNoFreeWill(EntityType.STRAY, SPAWN);
+        Stray stray = (Stray) helper.spawnWithNoFreeWill(EntityTypes.STRAY, SPAWN);
         TribulationConfig cfg = new TribulationConfig();
         cfg.abilities.straySlownessUpgrade = false;
         AbilityManager.applyAbilities(stray, 2, "stray", cfg);
 
-        int amplifier = maxArrowEffectAmplifier(helper, stray, MobEffects.MOVEMENT_SLOWDOWN.value());
+        int amplifier = maxArrowEffectAmplifier(helper, stray, MobEffects.SLOWNESS.value());
         if (amplifier != 0) {
             helper.fail("Disabled toggle should leave vanilla Slowness I (amp 0), got amp " + amplifier);
         }
@@ -104,9 +104,9 @@ public class AbilitiesGameTest implements FabricGameTest {
 
     // ---- Bogged: Poison II arrows ----
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void bogged_poisonArrowsUpgradedAtTier2(GameTestHelper helper) {
-        Bogged bogged = (Bogged) helper.spawnWithNoFreeWill(EntityType.BOGGED, SPAWN);
+        Bogged bogged = (Bogged) helper.spawnWithNoFreeWill(EntityTypes.BOGGED, SPAWN);
         TribulationConfig cfg = new TribulationConfig();
         AbilityManager.applyAbilities(bogged, 2, "bogged", cfg);
 
@@ -117,9 +117,9 @@ public class AbilitiesGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void bogged_poisonArrowsVanillaWhenDisabled(GameTestHelper helper) {
-        Bogged bogged = (Bogged) helper.spawnWithNoFreeWill(EntityType.BOGGED, SPAWN);
+        Bogged bogged = (Bogged) helper.spawnWithNoFreeWill(EntityTypes.BOGGED, SPAWN);
         TribulationConfig cfg = new TribulationConfig();
         cfg.abilities.boggedPoisonUpgrade = false;
         AbilityManager.applyAbilities(bogged, 2, "bogged", cfg);
@@ -133,17 +133,17 @@ public class AbilitiesGameTest implements FabricGameTest {
 
     // ---- Endermite: call sleepers when hurt ----
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void endermite_callsSleepersWhenHurt(GameTestHelper helper) {
         helper.getLevel().getGameRules()
-                .getRule(GameRules.RULE_MOBGRIEFING).set(true, helper.getLevel().getServer());
+                .set(GameRules.MOB_GRIEFING, true, helper.getLevel().getServer());
 
         // An infested block one tile below the endermite reverts to its host
         // (stone) when the ability summons a silverfish from it.
         BlockPos infested = new BlockPos(1, 1, 1);
         helper.setBlock(infested, Blocks.INFESTED_STONE);
 
-        Endermite mite = (Endermite) helper.spawnWithNoFreeWill(EntityType.ENDERMITE, new BlockPos(1, 2, 1));
+        Endermite mite = (Endermite) helper.spawnWithNoFreeWill(EntityTypes.ENDERMITE, new BlockPos(1, 2, 1));
         TribulationConfig cfg = new TribulationConfig();
         AbilityManager.applyAbilities(mite, 2, "endermite", cfg);
 
@@ -155,9 +155,9 @@ public class AbilitiesGameTest implements FabricGameTest {
 
     // ---- Pillager: Quick Charge (T2) / Multishot (T4) ----
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void pillager_quickChargeAtTier2(GameTestHelper helper) {
-        Mob pillager = helper.spawnWithNoFreeWill(EntityType.PILLAGER, SPAWN);
+        Mob pillager = helper.spawnWithNoFreeWill(EntityTypes.PILLAGER, SPAWN);
         pillager.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.CROSSBOW));
         TribulationConfig cfg = new TribulationConfig();
         AbilityManager.applyAbilities(pillager, 2, "pillager", cfg);
@@ -172,9 +172,9 @@ public class AbilitiesGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void pillager_multishotAtTier4(GameTestHelper helper) {
-        Mob pillager = helper.spawnWithNoFreeWill(EntityType.PILLAGER, SPAWN);
+        Mob pillager = helper.spawnWithNoFreeWill(EntityTypes.PILLAGER, SPAWN);
         pillager.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.CROSSBOW));
         TribulationConfig cfg = new TribulationConfig();
         AbilityManager.applyAbilities(pillager, 4, "pillager", cfg);
@@ -185,9 +185,9 @@ public class AbilitiesGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void pillager_crossbowUnenchantedWhenDisabled(GameTestHelper helper) {
-        Mob pillager = helper.spawnWithNoFreeWill(EntityType.PILLAGER, SPAWN);
+        Mob pillager = helper.spawnWithNoFreeWill(EntityTypes.PILLAGER, SPAWN);
         pillager.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.CROSSBOW));
         TribulationConfig cfg = new TribulationConfig();
         cfg.abilities.pillagerQuickCharge = false;
@@ -204,44 +204,44 @@ public class AbilitiesGameTest implements FabricGameTest {
     // ---- Witch / Ravager / Guardian: tier tags (also forces the mixins on
     //      these classes to apply, validating their injection points) ----
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void witch_abilityTagsByTier(GameTestHelper helper) {
-        Mob witch = helper.spawnWithNoFreeWill(EntityType.WITCH, SPAWN);
+        Mob witch = helper.spawnWithNoFreeWill(EntityTypes.WITCH, SPAWN);
         TribulationConfig cfg = new TribulationConfig();
         AbilityManager.applyAbilities(witch, 5, "witch", cfg);
-        if (!witch.getTags().contains(AbilityManager.TAG_LINGERING_POTIONS)) {
+        if (!witch.entityTags().contains(AbilityManager.TAG_LINGERING_POTIONS)) {
             helper.fail("Tier-5 witch should have lingering potions (tier-3 ability)");
         }
-        if (!witch.getTags().contains(AbilityManager.TAG_AGGRESSIVE_HEALING)) {
+        if (!witch.entityTags().contains(AbilityManager.TAG_AGGRESSIVE_HEALING)) {
             helper.fail("Tier-5 witch should have aggressive healing");
         }
 
-        Mob lowWitch = helper.spawnWithNoFreeWill(EntityType.WITCH, new BlockPos(2, 2, 2));
+        Mob lowWitch = helper.spawnWithNoFreeWill(EntityTypes.WITCH, new BlockPos(2, 2, 2));
         AbilityManager.applyAbilities(lowWitch, 2, "witch", cfg);
-        if (lowWitch.getTags().contains(AbilityManager.TAG_LINGERING_POTIONS)
-                || lowWitch.getTags().contains(AbilityManager.TAG_AGGRESSIVE_HEALING)) {
+        if (lowWitch.entityTags().contains(AbilityManager.TAG_LINGERING_POTIONS)
+                || lowWitch.entityTags().contains(AbilityManager.TAG_AGGRESSIVE_HEALING)) {
             helper.fail("Tier-2 witch should have no tier-3/5 witch abilities");
         }
         helper.succeed();
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void ravager_roarTaggedAtTier3(GameTestHelper helper) {
-        Mob ravager = helper.spawnWithNoFreeWill(EntityType.RAVAGER, SPAWN);
+        Mob ravager = helper.spawnWithNoFreeWill(EntityTypes.RAVAGER, SPAWN);
         TribulationConfig cfg = new TribulationConfig();
         AbilityManager.applyAbilities(ravager, 3, "ravager", cfg);
-        if (!ravager.getTags().contains(AbilityManager.TAG_RAVAGER_ROAR)) {
+        if (!ravager.entityTags().contains(AbilityManager.TAG_RAVAGER_ROAR)) {
             helper.fail("Tier-3 ravager should have expanded roar");
         }
         helper.succeed();
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void guardian_beamTaggedAtTier3(GameTestHelper helper) {
-        Mob guardian = helper.spawnWithNoFreeWill(EntityType.GUARDIAN, SPAWN);
+        Mob guardian = helper.spawnWithNoFreeWill(EntityTypes.GUARDIAN, SPAWN);
         TribulationConfig cfg = new TribulationConfig();
         AbilityManager.applyAbilities(guardian, 3, "guardian", cfg);
-        if (!guardian.getTags().contains(AbilityManager.TAG_GUARDIAN_BEAM)) {
+        if (!guardian.entityTags().contains(AbilityManager.TAG_GUARDIAN_BEAM)) {
             helper.fail("Tier-3 guardian should have faster beam");
         }
         helper.succeed();
@@ -249,9 +249,9 @@ public class AbilitiesGameTest implements FabricGameTest {
 
     // ---- Vindicator: door breaking on any difficulty ----
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void vindicator_breaksDoorsOnAnyDifficultyAtTier3(GameTestHelper helper) {
-        Vindicator vindicator = (Vindicator) helper.spawnWithNoFreeWill(EntityType.VINDICATOR, SPAWN);
+        Vindicator vindicator = (Vindicator) helper.spawnWithNoFreeWill(EntityTypes.VINDICATOR, SPAWN);
         TribulationConfig cfg = new TribulationConfig();
         AbilityManager.applyAbilities(vindicator, 3, "vindicator", cfg);
 
@@ -264,9 +264,9 @@ public class AbilitiesGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void vindicator_doorBreakingGatedBelowTier3(GameTestHelper helper) {
-        Vindicator vindicator = (Vindicator) helper.spawnWithNoFreeWill(EntityType.VINDICATOR, SPAWN);
+        Vindicator vindicator = (Vindicator) helper.spawnWithNoFreeWill(EntityTypes.VINDICATOR, SPAWN);
         TribulationConfig cfg = new TribulationConfig();
         AbilityManager.applyAbilities(vindicator, 1, "vindicator", cfg);
 

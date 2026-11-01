@@ -95,7 +95,7 @@ public final class MockPlayers {
             return;
         }
         wake(player);
-        MinecraftServer server = player.getServer();
+        MinecraftServer server = player.level().getServer();
         if (server != null) {
             server.getPlayerList().remove(player);
         }
@@ -118,7 +118,7 @@ public final class MockPlayers {
             // Matched against the constant, never a bare literal: the name is
             // mod-scoped precisely so this sweep cannot retire a sibling mod's
             // live mock when two members are tested into the same level.
-            if (MOCK_NAME.equals(player.getGameProfile().getName())) {
+            if (MOCK_NAME.equals(player.getGameProfile().name())) {
                 retire(player);
             }
         }

@@ -7,12 +7,14 @@ import com.rfizzle.tribulation.api.TribulationLevelCallback;
 import com.rfizzle.tribulation.config.TribulationConfig;
 import com.rfizzle.tribulation.data.PlayerDifficultyState;
 import com.rfizzle.tribulation.event.DeathReliefHandler;
-import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
-import net.minecraft.gametest.framework.GameTest;
+import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerPlayer;
-import net.minecraft.world.level.storage.DimensionDataStorage;
+import net.minecraft.world.level.Level;
+import net.minecraft.world.level.dimension.DimensionType;
+import net.minecraft.world.level.storage.SavedDataStorage;
+import java.nio.file.Path;
 import net.minecraft.world.level.storage.LevelResource;
 import net.minecraft.world.level.storage.ServerLevelData;
 
@@ -27,9 +29,9 @@ import java.util.concurrent.atomic.AtomicInteger;
  * the handler shell: the config gate, the level write, the cooldown suppression,
  * the minimum-level floor, and the {@link TribulationLevelCallback} fire.
  */
-public class DeathReliefGameTest implements FabricGameTest {
+public class DeathReliefGameTest {
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void deathRelief_reducesLevelAndFiresCallback(GameTestHelper helper) {
         ServerPlayer player = MockPlayers.serverPlayerInLevel(helper);
         MinecraftServer server = helper.getLevel().getServer();
@@ -73,7 +75,7 @@ public class DeathReliefGameTest implements FabricGameTest {
         }
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void deathRelief_secondDeathWithinCooldownIsNoOp(GameTestHelper helper) {
         ServerPlayer player = MockPlayers.serverPlayerInLevel(helper);
         MinecraftServer server = helper.getLevel().getServer();
@@ -108,7 +110,7 @@ public class DeathReliefGameTest implements FabricGameTest {
         }
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void deathRelief_flooredAtMinimumLevel(GameTestHelper helper) {
         ServerPlayer player = MockPlayers.serverPlayerInLevel(helper);
         MinecraftServer server = helper.getLevel().getServer();
@@ -141,7 +143,7 @@ public class DeathReliefGameTest implements FabricGameTest {
         }
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void deathRelief_disabledLeavesLevelUntouched(GameTestHelper helper) {
         ServerPlayer player = MockPlayers.serverPlayerInLevel(helper);
         MinecraftServer server = helper.getLevel().getServer();
@@ -196,7 +198,7 @@ public class DeathReliefGameTest implements FabricGameTest {
         }
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void deathRelief_appliesAfterRestartWhenCooldownElapsedInGameTime(GameTestHelper helper) {
         ServerPlayer player = MockPlayers.serverPlayerInLevel(helper);
         MinecraftServer server = helper.getLevel().getServer();
@@ -208,11 +210,12 @@ public class DeathReliefGameTest implements FabricGameTest {
             state.reduceLevel(player.getUUID(), 0, 6000, 0, GAME_TIME - 7000);
 
             // Cold read of the saved stamp, as a restarted server would see it.
-            server.overworld().getDataStorage().save();
-            File dataDir = server.getWorldPath(LevelResource.ROOT).resolve("data").toFile();
-            PlayerDifficultyState reloaded = new DimensionDataStorage(
+            server.overworld().getDataStorage().saveAndJoin();
+            Path dataDir = DimensionType.getStorageFolder(Level.OVERWORLD, server.getWorldPath(LevelResource.ROOT))
+                    .resolve("data");
+            PlayerDifficultyState reloaded = new SavedDataStorage(
                     dataDir, server.getFixerUpper(), server.registryAccess())
-                    .computeIfAbsent(PlayerDifficultyState.FACTORY, PlayerDifficultyState.STORAGE_KEY);
+                    .computeIfAbsent(PlayerDifficultyState.TYPE);
             helper.assertValueEqual(reloaded.getLastDeathTick(player.getUUID()), GAME_TIME - 7000,
                     "death stamp survives a storage reload");
 
@@ -227,7 +230,7 @@ public class DeathReliefGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void deathRelief_secondDeathInsideWindowBlockedAtGameTime(GameTestHelper helper) {
         ServerPlayer player = MockPlayers.serverPlayerInLevel(helper);
         MinecraftServer server = helper.getLevel().getServer();
@@ -247,7 +250,7 @@ public class DeathReliefGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void deathRelief_legacyStampAboveGameTimeDoesNotBlock(GameTestHelper helper) {
         ServerPlayer player = MockPlayers.serverPlayerInLevel(helper);
         MinecraftServer server = helper.getLevel().getServer();

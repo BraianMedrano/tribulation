@@ -5,12 +5,12 @@ import com.rfizzle.tribulation.compat.meridian.MeridianEquipmentCompat;
 import com.rfizzle.tribulation.config.TribulationConfig;
 import com.rfizzle.tribulation.event.WeaponEquipmentHandler;
 import com.rfizzle.tribulation.scaling.ScalingEngine;
-import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.core.Holder;
 import net.minecraft.core.component.DataComponents;
-import net.minecraft.gametest.framework.GameTest;
+import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.AttributeInstance;
@@ -26,12 +26,12 @@ import java.util.HashSet;
 import java.util.List;
 import java.util.Set;
 
-public class WeaponEquipmentGameTest implements FabricGameTest {
+public class WeaponEquipmentGameTest {
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void weapon_equippedAtTier5(GameTestHelper helper) {
-        Mob mob = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, new net.minecraft.core.BlockPos(1, 2, 1));
-        mob.getTags().remove(WeaponEquipmentHandler.PROCESSED_TAG);
+        Mob mob = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, new net.minecraft.core.BlockPos(1, 2, 1));
+        mob.entityTags().remove(WeaponEquipmentHandler.PROCESSED_TAG);
         mob.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
 
         TribulationConfig cfg = new TribulationConfig();
@@ -48,13 +48,13 @@ public class WeaponEquipmentGameTest implements FabricGameTest {
         });
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void weapon_skippedForIncapableMob(GameTestHelper helper) {
         // A creeper can't wield a weapon: the capability guard must leave its hand
         // empty even with a guaranteed wear roll, and mark it processed so the
         // check isn't retried on reload.
-        Mob mob = helper.spawnWithNoFreeWill(EntityType.CREEPER, new net.minecraft.core.BlockPos(1, 2, 1));
-        mob.getTags().remove(WeaponEquipmentHandler.PROCESSED_TAG);
+        Mob mob = helper.spawnWithNoFreeWill(EntityTypes.CREEPER, new net.minecraft.core.BlockPos(1, 2, 1));
+        mob.entityTags().remove(WeaponEquipmentHandler.PROCESSED_TAG);
         mob.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
 
         TribulationConfig cfg = new TribulationConfig();
@@ -67,19 +67,19 @@ public class WeaponEquipmentGameTest implements FabricGameTest {
             if (!mob.getMainHandItem().isEmpty()) {
                 helper.fail("Creeper should never be given a weapon");
             }
-            if (!mob.getTags().contains(WeaponEquipmentHandler.PROCESSED_TAG)) {
+            if (!mob.entityTags().contains(WeaponEquipmentHandler.PROCESSED_TAG)) {
                 helper.fail("Skipped mob should still be tagged processed");
             }
         });
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void weapon_keptOnFailedWearRoll(GameTestHelper helper) {
         // A failed wear roll must not disarm a mob that came armed. Vindicators are
         // weapon-capable (pass supportsWeapons) and spawn with an iron axe in vanilla;
         // a 0% wear chance guarantees the roll fails, and the axe must survive.
-        Mob mob = helper.spawnWithNoFreeWill(EntityType.VINDICATOR, new net.minecraft.core.BlockPos(1, 2, 1));
-        mob.getTags().remove(WeaponEquipmentHandler.PROCESSED_TAG);
+        Mob mob = helper.spawnWithNoFreeWill(EntityTypes.VINDICATOR, new net.minecraft.core.BlockPos(1, 2, 1));
+        mob.entityTags().remove(WeaponEquipmentHandler.PROCESSED_TAG);
         mob.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.IRON_AXE));
 
         TribulationConfig cfg = new TribulationConfig();
@@ -96,10 +96,10 @@ public class WeaponEquipmentGameTest implements FabricGameTest {
         });
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void weapon_materialStaysWithinTierPool(GameTestHelper helper) {
-        Mob mob = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, new net.minecraft.core.BlockPos(1, 2, 1));
-        mob.getTags().remove(WeaponEquipmentHandler.PROCESSED_TAG);
+        Mob mob = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, new net.minecraft.core.BlockPos(1, 2, 1));
+        mob.entityTags().remove(WeaponEquipmentHandler.PROCESSED_TAG);
         mob.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
 
         TribulationConfig cfg = new TribulationConfig();
@@ -130,9 +130,9 @@ public class WeaponEquipmentGameTest implements FabricGameTest {
         });
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void weapon_damageCeilingClamping(GameTestHelper helper) {
-        Mob mob = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, new net.minecraft.core.BlockPos(1, 2, 1));
+        Mob mob = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, new net.minecraft.core.BlockPos(1, 2, 1));
 
         // Clear any damage modifiers
         AttributeInstance damageInst = mob.getAttribute(Attributes.ATTACK_DAMAGE);
@@ -180,7 +180,7 @@ public class WeaponEquipmentGameTest implements FabricGameTest {
         });
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void weapon_meridianBonusInertWhenModAbsent(GameTestHelper helper) {
         // Meridian is not on the gametest runtime, so the tier-4/5 bonus branch must stay inert:
         // the vanilla enchant still applies, no meridian:* enchant leaks in, and nothing throws.
@@ -188,8 +188,8 @@ public class WeaponEquipmentGameTest implements FabricGameTest {
             helper.fail("Meridian must be absent from the gametest runtime for this fallback test");
         }
 
-        Mob mob = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, new net.minecraft.core.BlockPos(1, 2, 1));
-        mob.getTags().remove(WeaponEquipmentHandler.PROCESSED_TAG);
+        Mob mob = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, new net.minecraft.core.BlockPos(1, 2, 1));
+        mob.entityTags().remove(WeaponEquipmentHandler.PROCESSED_TAG);
         mob.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
 
         TribulationConfig cfg = new TribulationConfig();
@@ -212,7 +212,7 @@ public class WeaponEquipmentGameTest implements FabricGameTest {
             }
             for (Holder<Enchantment> holder : enchants.keySet()) {
                 boolean isMeridian = holder.unwrapKey()
-                        .map(key -> key.location().getNamespace().equals("meridian"))
+                        .map(key -> key.identifier().getNamespace().equals("meridian"))
                         .orElse(false);
                 if (isMeridian) {
                     helper.fail("No meridian:* enchant should appear when Meridian is absent");
@@ -221,9 +221,9 @@ public class WeaponEquipmentGameTest implements FabricGameTest {
         });
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void api_weaponDropChanceProvider(GameTestHelper helper) {
-        Mob mob = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, new net.minecraft.core.BlockPos(1, 2, 1));
+        Mob mob = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, new net.minecraft.core.BlockPos(1, 2, 1));
         ItemStack stack = new ItemStack(Items.IRON_SWORD);
 
         TribulationAPI.setWeaponDropChanceProvider((m, tier, s, def) -> 0.5f);

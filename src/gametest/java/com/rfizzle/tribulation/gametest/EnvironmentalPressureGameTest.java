@@ -6,15 +6,15 @@ import com.rfizzle.tribulation.config.TribulationConfig;
 import com.rfizzle.tribulation.data.PlayerDifficultyState;
 import com.rfizzle.tribulation.data.TribulationAttachments;
 import com.rfizzle.tribulation.event.EnvironmentalPressureHandler;
-import net.fabricmc.fabric.api.gametest.v1.FabricGameTest;
 import net.minecraft.core.BlockPos;
-import net.minecraft.gametest.framework.GameTest;
+import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.projectile.arrow.Arrow;
@@ -33,7 +33,7 @@ import net.minecraft.world.level.GameType;
  * {@link EnvironmentalPressureHandler#syncNightPressure}, including the
  * initial-zero suppression and per-player gating.
  */
-public class EnvironmentalPressureGameTest implements FabricGameTest {
+public class EnvironmentalPressureGameTest {
 
     private static final BlockPos MOB_POS = new BlockPos(1, 2, 1);
 
@@ -52,7 +52,7 @@ public class EnvironmentalPressureGameTest implements FabricGameTest {
     }
 
     private static Mob scaledZombie(GameTestHelper helper) {
-        Mob zombie = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, MOB_POS);
+        Mob zombie = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, MOB_POS);
         zombie.setAttached(TribulationAttachments.SCALED_TIER, 3);
         return zombie;
     }
@@ -61,7 +61,7 @@ public class EnvironmentalPressureGameTest implements FabricGameTest {
         return helper.getLevel().damageSources().mobAttack(attacker);
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void strikeAppliesWeaknessAboveThreshold(GameTestHelper helper) {
         ServerPlayer player = victim(helper);
         Mob zombie = scaledZombie(helper);
@@ -75,14 +75,14 @@ public class EnvironmentalPressureGameTest implements FabricGameTest {
             helper.fail("Weakness must use the configured duration/amplifier, got "
                     + effect.getDuration() + "/" + effect.getAmplifier());
         }
-        if (player.hasEffect(MobEffects.MOVEMENT_SLOWDOWN)) {
+        if (player.hasEffect(MobEffects.SLOWNESS)) {
             helper.fail("Slowness is off by default and must not be applied");
         }
         MockPlayers.retire(player);
         helper.succeed();
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void strikeBelowThresholdAppliesNothing(GameTestHelper helper) {
         ServerPlayer player = victim(helper);
         Mob zombie = scaledZombie(helper);
@@ -96,7 +96,7 @@ public class EnvironmentalPressureGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void masterToggleDisablesStrikes(GameTestHelper helper) {
         ServerPlayer player = victim(helper);
         Mob zombie = scaledZombie(helper);
@@ -112,11 +112,11 @@ public class EnvironmentalPressureGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void projectileHitAppliesNothing(GameTestHelper helper) {
         ServerPlayer player = victim(helper);
         Mob zombie = scaledZombie(helper);
-        Arrow arrow = helper.spawn(EntityType.ARROW, MOB_POS);
+        Arrow arrow = helper.spawn(EntityTypes.ARROW, MOB_POS);
         DamageSource ranged = helper.getLevel().damageSources().arrow(arrow, zombie);
 
         EnvironmentalPressureHandler.handleStrike(player, ranged, 5, cfg());
@@ -128,7 +128,7 @@ public class EnvironmentalPressureGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void explosionAppliesNothing(GameTestHelper helper) {
         ServerPlayer player = victim(helper);
         Mob zombie = scaledZombie(helper);
@@ -146,7 +146,7 @@ public class EnvironmentalPressureGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void thornsReflectionAppliesNothing(GameTestHelper helper) {
         ServerPlayer player = victim(helper);
         Mob zombie = scaledZombie(helper);
@@ -161,10 +161,10 @@ public class EnvironmentalPressureGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void unscaledAttackerAppliesNothing(GameTestHelper helper) {
         ServerPlayer player = victim(helper);
-        Mob zombie = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, MOB_POS);
+        Mob zombie = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, MOB_POS);
         // The live MobScalingHandler scales the zombie on spawn; strip the
         // attachment so this models a mob Tribulation never touched.
         zombie.removeAttached(TribulationAttachments.SCALED_TIER);
@@ -178,7 +178,7 @@ public class EnvironmentalPressureGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void slownessToggleAppliesConfiguredEffect(GameTestHelper helper) {
         ServerPlayer player = victim(helper);
         Mob zombie = scaledZombie(helper);
@@ -190,7 +190,7 @@ public class EnvironmentalPressureGameTest implements FabricGameTest {
 
         EnvironmentalPressureHandler.handleStrike(player, meleeFrom(helper, zombie), 5, cfg);
 
-        MobEffectInstance effect = player.getEffect(MobEffects.MOVEMENT_SLOWDOWN);
+        MobEffectInstance effect = player.getEffect(MobEffects.SLOWNESS);
         if (effect == null) {
             helper.fail("applySlowness must apply Slowness on hit");
         } else if (effect.getDuration() != 60 || effect.getAmplifier() != 1) {
@@ -204,7 +204,7 @@ public class EnvironmentalPressureGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void pressureGatesPerPlayer(GameTestHelper helper) {
         ServerPlayer veteran = victim(helper);
         ServerPlayer novice = victim(helper);
@@ -225,7 +225,7 @@ public class EnvironmentalPressureGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void realDamageEventAppliesWeakness(GameTestHelper helper) {
         ServerPlayer player = victim(helper);
         Mob zombie = scaledZombie(helper);
@@ -267,7 +267,7 @@ public class EnvironmentalPressureGameTest implements FabricGameTest {
 
     // ---- oppressive-nights sync (dedup contract of syncNightPressure) ----
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void nightPressureSyncSendsOnlyOnChange(GameTestHelper helper) {
         ServerPlayer player = victim(helper);
         TribulationConfig cfg = cfg();
@@ -289,7 +289,7 @@ public class EnvironmentalPressureGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void nightPressureSyncGatesPerPlayer(GameTestHelper helper) {
         ServerPlayer veteran = victim(helper);
         ServerPlayer novice = victim(helper);
@@ -306,7 +306,7 @@ public class EnvironmentalPressureGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void nightPressureSyncSuppressedWhenDisabled(GameTestHelper helper) {
         ServerPlayer player = victim(helper);
         TribulationConfig cfg = new TribulationConfig();
@@ -321,9 +321,9 @@ public class EnvironmentalPressureGameTest implements FabricGameTest {
 
     // ---- oppressive-nights senses (follow-range boost at spawn) ----
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void nightSensesBoostFollowRangeAboveThreshold(GameTestHelper helper) {
-        Mob zombie = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, MOB_POS);
+        Mob zombie = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, MOB_POS);
         double base = zombie.getAttributeValue(Attributes.FOLLOW_RANGE);
 
         EnvironmentalPressureHandler.applyNightSenses(zombie, true, 4, cfg());
@@ -336,9 +336,9 @@ public class EnvironmentalPressureGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void nightSensesIdempotentOnReapply(GameTestHelper helper) {
-        Mob zombie = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, MOB_POS);
+        Mob zombie = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, MOB_POS);
         double base = zombie.getAttributeValue(Attributes.FOLLOW_RANGE);
 
         EnvironmentalPressureHandler.applyNightSenses(zombie, true, 4, cfg());
@@ -352,9 +352,9 @@ public class EnvironmentalPressureGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void nightSensesInertBelowThresholdAtDayAndWhenDisabled(GameTestHelper helper) {
-        Mob zombie = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, MOB_POS);
+        Mob zombie = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, MOB_POS);
         double base = zombie.getAttributeValue(Attributes.FOLLOW_RANGE);
         TribulationConfig disabled = cfg();
         disabled.environmentalPressure.oppressiveNights.enabled = false;
@@ -369,34 +369,34 @@ public class EnvironmentalPressureGameTest implements FabricGameTest {
         helper.succeed();
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void isOppressiveNightTracksWorldTime(GameTestHelper helper) {
-        long savedTime = helper.getLevel().getDayTime();
+        long savedTime = OverworldClock.get(helper.getLevel());
         try {
-            helper.getLevel().setDayTime(18000);
+            OverworldClock.set(helper.getLevel(), 18000);
             if (!EnvironmentalPressureHandler.isOppressiveNight(helper.getLevel())) {
                 helper.fail("Midnight in the overworld must count as an oppressive night");
             }
-            helper.getLevel().setDayTime(6000);
+            OverworldClock.set(helper.getLevel(), 6000);
             if (EnvironmentalPressureHandler.isOppressiveNight(helper.getLevel())) {
                 helper.fail("Noon in the overworld must not count as an oppressive night");
             }
         } finally {
-            helper.getLevel().setDayTime(savedTime);
+            OverworldClock.set(helper.getLevel(), savedTime);
         }
         helper.succeed();
     }
 
-    @GameTest(template = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3")
     public void nightSensesWorldWrapperAppliesAtMidnight(GameTestHelper helper) {
-        Mob zombie = helper.spawnWithNoFreeWill(EntityType.ZOMBIE, MOB_POS);
+        Mob zombie = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, MOB_POS);
         double base = zombie.getAttributeValue(Attributes.FOLLOW_RANGE);
-        long savedTime = helper.getLevel().getDayTime();
+        long savedTime = OverworldClock.get(helper.getLevel());
         try {
-            helper.getLevel().setDayTime(18000);
+            OverworldClock.set(helper.getLevel(), 18000);
             EnvironmentalPressureHandler.applyNightSenses(zombie, helper.getLevel(), 4, cfg());
         } finally {
-            helper.getLevel().setDayTime(savedTime);
+            OverworldClock.set(helper.getLevel(), savedTime);
         }
         double boosted = zombie.getAttributeValue(Attributes.FOLLOW_RANGE);
         if (Math.abs(boosted - base * 1.5) > 1e-6) {

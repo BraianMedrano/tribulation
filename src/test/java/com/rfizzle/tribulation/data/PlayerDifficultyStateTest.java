@@ -2,6 +2,7 @@
 package com.rfizzle.tribulation.data;
 
 import com.rfizzle.tribulation.config.TribulationConfig;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
 import org.junit.jupiter.api.Test;
@@ -836,7 +837,7 @@ class PlayerDifficultyStateTest {
         state.getPlayerData(uuid).level = 42;
 
         CompoundTag tag = state.save(new CompoundTag(), null);
-        CompoundTag playerTag = tag.getList("Players", 10).getCompound(0);
+        CompoundTag playerTag = tag.getListOrEmpty("Players").getCompoundOrEmpty(0);
 
         assertFalse(playerTag.contains("SeenLevelUpIntro"),
                 "unshown intro must not grow the save file");
@@ -861,7 +862,7 @@ class PlayerDifficultyStateTest {
         ListTag list = new ListTag();
         CompoundTag playerTag = new CompoundTag();
         UUID uuid = UUID.randomUUID();
-        playerTag.putUUID("UUID", uuid);
+        playerTag.store("UUID", UUIDUtil.CODEC, uuid);
         playerTag.putInt("Level", 10);
         list.add(playerTag);
         tag.put("Players", list);
@@ -898,7 +899,7 @@ class PlayerDifficultyStateTest {
         state.getPlayerData(uuid).level = 42;
 
         CompoundTag tag = state.save(new CompoundTag(), null);
-        CompoundTag playerTag = tag.getList("Players", 10).getCompound(0);
+        CompoundTag playerTag = tag.getListOrEmpty("Players").getCompoundOrEmpty(0);
 
         assertFalse(playerTag.contains("SeenTierDiscoveryHint"),
                 "unshown discovery hint must not grow the save file");
@@ -922,7 +923,7 @@ class PlayerDifficultyStateTest {
         ListTag list = new ListTag();
         CompoundTag playerTag = new CompoundTag();
         UUID uuid = UUID.randomUUID();
-        playerTag.putUUID("UUID", uuid);
+        playerTag.store("UUID", UUIDUtil.CODEC, uuid);
         playerTag.putInt("Level", 10);
         list.add(playerTag);
         tag.put("Players", list);
@@ -981,10 +982,10 @@ class PlayerDifficultyStateTest {
         state.getPlayerData(real).level = 5;
 
         CompoundTag tag = state.save(new CompoundTag(), null);
-        ListTag list = tag.getList("Players", 10);
+        ListTag list = tag.getListOrEmpty("Players");
 
         assertEquals(1, list.size(), "only the real entry is serialized");
-        assertEquals(real, list.getCompound(0).getUUID("UUID"));
+        assertEquals(real, list.getCompoundOrEmpty(0).read("UUID", UUIDUtil.CODEC).orElseThrow());
         assertFalse(state.trackedPlayers().contains(phantom),
                 "phantom is evicted from the live map on save");
         assertTrue(state.trackedPlayers().contains(real),
@@ -1002,7 +1003,7 @@ class PlayerDifficultyStateTest {
 
         CompoundTag tag = state.save(new CompoundTag(), null);
 
-        assertEquals(1, tag.getList("Players", 10).size());
+        assertEquals(1, tag.getListOrEmpty("Players").size());
         assertTrue(state.trackedPlayers().contains(uuid));
     }
 
@@ -1017,7 +1018,7 @@ class PlayerDifficultyStateTest {
         CompoundTag tag = state.save(new CompoundTag(), null);
         PlayerDifficultyState loaded = PlayerDifficultyState.load(tag, null);
 
-        assertEquals(1, tag.getList("Players", 10).size());
+        assertEquals(1, tag.getListOrEmpty("Players").size());
         assertTrue(loaded.hasSeenLevelUpIntro(uuid));
     }
 
@@ -1066,7 +1067,7 @@ class PlayerDifficultyStateTest {
         state.getPlayerData(uuid).level = 42;
 
         CompoundTag tag = state.save(new CompoundTag(), null);
-        CompoundTag playerTag = tag.getList("Players", 10).getCompound(0);
+        CompoundTag playerTag = tag.getListOrEmpty("Players").getCompoundOrEmpty(0);
 
         assertFalse(playerTag.contains("LastSeenEpochMs"),
                 "unstamped anchor must not grow the save file");
@@ -1102,11 +1103,11 @@ class PlayerDifficultyStateTest {
         expectedOrder.sort(java.util.Comparator.comparing(UUID::toString));
 
         CompoundTag tag = state.save(new CompoundTag(), null);
-        ListTag list = tag.getList("Players", 10); // 10 is TAG_COMPOUND
+        ListTag list = tag.getListOrEmpty("Players"); // 10 is TAG_COMPOUND
 
         assertEquals(expectedOrder.size(), list.size());
         for (int i = 0; i < expectedOrder.size(); i++) {
-            assertEquals(expectedOrder.get(i), list.getCompound(i).getUUID("UUID"));
+            assertEquals(expectedOrder.get(i), list.getCompoundOrEmpty(i).read("UUID", UUIDUtil.CODEC).orElseThrow());
         }
     }
 
@@ -1117,7 +1118,7 @@ class PlayerDifficultyStateTest {
         net.minecraft.nbt.ListTag list = new net.minecraft.nbt.ListTag();
         CompoundTag playerTag = new CompoundTag();
         UUID uuid = UUID.randomUUID();
-        playerTag.putUUID("UUID", uuid);
+        playerTag.store("UUID", UUIDUtil.CODEC, uuid);
         playerTag.putInt("Level", 10);
         playerTag.putInt("Tick", 500);
         playerTag.putLong("LastDeathTick", 12345L);
@@ -1226,7 +1227,7 @@ class PlayerDifficultyStateTest {
         CompoundTag tag = new CompoundTag();
         ListTag list = new ListTag();
         CompoundTag playerTag = new CompoundTag();
-        playerTag.putUUID("UUID", uuid);
+        playerTag.store("UUID", UUIDUtil.CODEC, uuid);
         playerTag.putInt("Level", level);
         playerTag.putInt("HeartsLost", heartsLost);
         list.add(playerTag);
