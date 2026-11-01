@@ -156,8 +156,8 @@ Comandos del mod (el original los tiene todos):
 - [ ] `/tribulation info`: ver nivel, tier y progreso.
 - [ ] `/tribulation set <jugador> 250`: llevar a tier 5 para ver todas las habilidades.
 - [ ] `/tribulation inspect` y `/tribulation debug <jugador>`: ver el desglose de escalado de un mob.
-- [ ] `/tribulation reload`: recargar `config/tribulation.json`.
-- [ ] `/tribulation bloodmoon start` y `stop`.
+- [x] `/tribulation reload`: recargar `config/tribulation.json`.
+- [x] `/tribulation bloodmoon start` y `stop`.
 
 Comportamiento:
 - [ ] Spawnear zombie, esqueleto, araña y creeper: verificar vida/daño y habilidades por tier.
@@ -239,7 +239,7 @@ Si el port se alarga, **BuffMobs** ya soporta 26.3 en Fabric (escalado por días
 ### Fase 3 (compilación, 2026-11-01)
 
 - Los cuatro source sets (`main`, `client`, `test`, `gametest`) compilan en 26.3 con JDK 25. Detalle de cada reemplazo de API en `odd/tasks/port-26-3.md` (L11).
-- Pendiente de verificar en fases siguientes: los `SavedData` ahora se guardan en `dimensions/minecraft/overworld/data/tribulation/` (ruta de 26.x), así que un mundo actualizado desde 1.21.1 arrancaría sin el estado de Tribulation (Fase 6); faltan las definiciones `assets/tribulation/items/*.json` que pide 26.x para el modelo de cada ítem (Fase 7); hay que regenerar datagen por el cambio de id del fondo de advancements (Fase 4).
+- Pendiente de verificar en fases siguientes: los `SavedData` ahora se guardan en `dimensions/minecraft/overworld/data/tribulation/` (ruta de 26.x), así que un mundo actualizado desde 1.21.1 arrancaría sin el estado de Tribulation (resuelto en la Fase 6 con una migración); faltan las definiciones `assets/tribulation/items/*.json` que pide 26.x para el modelo de cada ítem (Fase 7); hay que regenerar datagen por el cambio de id del fondo de advancements (Fase 4).
 
 ### Fase 4 (tests unitarios, 2026-11-01)
 
@@ -262,6 +262,15 @@ Si el port se alarga, **BuffMobs** ya soporta 26.3 en Fabric (escalado por días
   - `ServerPlayer.spawnInvulnerableTime` ya no existe: un jugador es invulnerable hasta que su cliente avisa que cargó (`connection.hasClientLoaded()`). El test manda el mismo paquete que un cliente real (`ServerboundPlayerLoadedPacket`).
   - `Mob.setTarget` y `getTarget` ahora descartan jugadores en creativo, y `MockPlayers` forzaba `isCreative() == true` aunque el test pusiera supervivencia. Se quitó ese override: el server de tests ya pone a los jugadores en creativo por defecto, así que solo cambia algo para los tests que piden supervivencia a propósito. `MockPlayers` es un archivo de Concord: este cambio hay que llevarlo al hub (igual que el de `level().getServer()` de la Fase 3).
 - Nuevo gametest `raidWaveCountFollowsTargetedPlayerTier`: crea raids reales con `Raids.createOrExtendRaid` y lee el `group_count` guardado en el raid. Con tier 0 da las olas de vanilla, con tier 5 suma las extra, y con el escalado apagado vuelve a vanilla. Se comprobó que falla sin `RaidsMixin` (da 5 en vez de 7).
+
+### Fase 6 (servidor dedicado, 2026-11-01)
+
+- `./gradlew runServer` con un mundo nuevo: arranca en ~1 s, sin warnings ni errores de mixins.
+- Desde la consola funcionan `/tribulation config`, `reload`, `bloodmoon` y `bloodmoon start`/`stop` (de noche), y la Blood Moon termina sola al amanecer. Una Blood Moon iniciada de día se corta en el tick siguiente: es la misma lógica que en `master` (`shouldEnd`), no un cambio del port. Una Blood Moon activa sobrevive al reinicio del server.
+- `info`, `set`, `inspect`, `debug`, `hearts` e `inventory` piden un jugador conectado ("A player is required"): quedan para la Fase 9 con el cliente real.
+- **Migración de datos guardados.** En 26.x el almacenamiento del overworld guarda cada `SavedData` en `dimensions/minecraft/overworld/data/<namespace>/<nombre>.dat`. La actualización de mundos de vanilla (`DimensionStorageFileFix`) solo mueve los archivos de vanilla que nombra, así que `data/tribulation_players.dat` y `data/tribulation_blood_moon.dat` quedaban donde el mod ya no los lee: en un mundo actualizado todos los jugadores volvían a nivel 0. `data/LegacySavedDataMigration` mueve cada archivo a la ruta nueva en `SERVER_STARTING` (antes de que se carguen los mundos), sin convertir nada porque el NBT no cambió. Nunca pisa un archivo que ya exista en la ruta nueva (avisa en el log y deja el viejo intacto) y, si el movimiento falla, deja el archivo viejo en su lugar y explica cómo moverlo a mano.
+- Probado de punta a punta con un mundo creado en 1.21.1 (`master`, JDK 21) con una Blood Moon activa: sin la migración, 26.3 lo abre con la Blood Moon `inactive`; con la migración, el log dice `Moved legacy Tribulation data ...` y sigue `ACTIVE`. Si el mundo ya se había abierto una vez sin migración (existen los dos archivos), avisa y no toca nada.
+- `./gradlew build`: OK, 904 tests unitarios (898 + 6 de la migración). `./gradlew runGametest`: OK, 149 gametests.
 
 ### Desactivado temporalmente
 

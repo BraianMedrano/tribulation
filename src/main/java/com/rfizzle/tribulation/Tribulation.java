@@ -53,6 +53,7 @@ public class Tribulation implements ModInitializer {
         // registration below, and writes config/tribulation.json on a fresh install.
         TribulationConfig.get();
         com.rfizzle.tribulation.data.TribulationAttachments.register();
+        com.rfizzle.tribulation.data.LegacySavedDataMigration.register();
         TribulationNetworking.register();
         TribulationItems.register();
         TribulationSounds.register();
