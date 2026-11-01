@@ -236,6 +236,11 @@ Si el port se alarga, **BuffMobs** ya soporta 26.3 en Fabric (escalado por días
 - `./gradlew runGametest`: OK. 147 gametests obligatorios.
 - Warnings de mixin: `BloodMoonFogMixin.java:27` (`RenderSystem.clearColor`) y `BloodMoonMoonTintMixin.java:25` (`RenderSystem.setShaderColor`) no encuentran mapping. Ya existían en el original.
 
+### Fase 3 (compilación, 2026-11-01)
+
+- Los cuatro source sets (`main`, `client`, `test`, `gametest`) compilan en 26.3 con JDK 25. Detalle de cada reemplazo de API en `odd/tasks/port-26-3.md` (L11).
+- Pendiente de verificar en fases siguientes: los `SavedData` ahora se guardan en `dimensions/minecraft/overworld/data/tribulation/` (ruta de 26.x), así que un mundo actualizado desde 1.21.1 arrancaría sin el estado de Tribulation (Fase 6); faltan las definiciones `assets/tribulation/items/*.json` que pide 26.x para el modelo de cada ítem (Fase 7); hay que regenerar datagen por el cambio de id del fondo de advancements (Fase 4).
+
 ### Desactivado temporalmente
 
 | Qué | Cómo | Motivo | Cómo restaurarlo |
