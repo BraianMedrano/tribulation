@@ -1,0 +1,17 @@
+{
+    "schemaVersion": 1,
+    "id": "tribulation-client-gametest",
+    "version": "1.0.0",
+    "name": "Tribulation Client Gametests",
+    "description": "Fabric client gametests for Tribulation. Lives only on the client gametest run classpath and is never bundled in the shipped jar.",
+    "license": "MIT",
+    "environment": "client",
+    "entrypoints": {
+        "fabric-client-gametest": [
+            "com.rfizzle.tribulation.clientgametest.TribulationClientGameTest"
+        ]
+    },
+    "depends": {
+        "tribulation": "*"
+    }
+}

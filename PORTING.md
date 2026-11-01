@@ -154,7 +154,7 @@ La línea base es importante: si el proyecto original no compila en tu Mac, el p
 
 Comandos del mod (el original los tiene todos):
 - [ ] `/tribulation info`: ver nivel, tier y progreso.
-- [ ] `/tribulation set <jugador> 250`: llevar a tier 5 para ver todas las habilidades.
+- [x] `/tribulation set <jugador> 250`: llevar a tier 5 para ver todas las habilidades.
 - [ ] `/tribulation inspect` y `/tribulation debug <jugador>`: ver el desglose de escalado de un mob.
 - [x] `/tribulation reload`: recargar `config/tribulation.json`.
 - [x] `/tribulation bloodmoon start` y `stop`.
@@ -164,7 +164,7 @@ Comportamiento:
 - [ ] Equipamiento de mobs por tier.
 - [ ] Muerte → Death Relief (pierde 2 niveles).
 - [ ] Craftear y usar Shatter Shard y Ascendant Shard.
-- [ ] Heart Fragment (si activás Hardcore Hearts).
+- [x] Heart Fragment (si activás Hardcore Hearts).
 - [ ] Élites (nivel 50+): afijos y drops.
 - [ ] Pack Tactics (tier 3+).
 - [ ] Jefes (Dragon/Wither): escalado más suave.
@@ -172,8 +172,8 @@ Comportamiento:
 - [ ] Con 2 jugadores: modos de multijugador (nearest / average / max).
 
 Cliente:
-- [ ] HUD visible y correcto; panel de detalle con Left Alt.
-- [ ] Config sincronizada desde el server al conectarse.
+- [x] HUD visible y correcto; panel de detalle con Left Alt.
+- [x] Config sincronizada desde el server al conectarse.
 
 ---
 
@@ -277,6 +277,18 @@ Si el port se alarga, **BuffMobs** ya soporta 26.3 en Fabric (escalado por días
   - **UUIDs de 1.21.1**: dos tests nuevos prueban que un jugador guardado con `putUUID` (array de 4 ints) se carga con todos sus campos y que las entradas rotas se saltean.
   - **Mensajes de la migración**: si falla, o si ya existe el archivo nuevo, el log ahora dice que hay que reemplazar el archivo nuevo con el viejo.
 - `./gradlew build`: OK, 907 tests unitarios. `./gradlew runGametest`: OK, 150 gametests.
+
+### Fase 7 (cliente, 2026-11-01)
+
+- Faltaban las definiciones de modelo de los tres ítems (`assets/tribulation/items/*.json`, obligatorias desde 1.21.4): sin ellas, el ítem se dibuja con la textura de "falta textura" (cuadros violeta y negro). Las protege `ItemModelResourceContractTest`, que revisa la cadena completa: definición, modelo y textura.
+- Nuevo client gametest (`src/clientGametest`), que se corre con `./gradlew runClientGametest`. Abre una ventana del juego, así que no forma parte de `build` ni de CI. Levanta un server dedicado real, conecta un cliente y verifica:
+  - Payloads: la config llega sincronizada, el nivel llega al subirlo con `/tribulation set` y la Blood Moon llega al empezar y al terminar.
+  - HUD: el ícono de tier se dibuja en su esquina y desaparece con `enableTierHud=false`.
+  - Keybind: mantener Left Alt muestra el panel de detalle centrado.
+  - Ítems: el Heart Fragment se ve con su textura en la hotbar y, con Hardcore Hearts activo, el click derecho del cliente devuelve corazones en el server.
+- El chequeo de la textura falla si se quitan las definiciones de ítems (352 píxeles violetas en la casilla). Las capturas quedan en `build/clientGametest/screenshots/`.
+- La primera vez, el server de test necesita `eula=true` en `build/clientGametest/eula.txt`. La tarea lo escribe sola, igual que el `eula = true` de Loom.
+- `./gradlew build`: OK, 910 tests unitarios (907 + 3). `./gradlew runGametest`: OK, 150 gametests.
 
 ### Desactivado temporalmente
 

@@ -55,6 +55,40 @@ sourceSets {
 sourceSets.test.compileClasspath += sourceSets.client.output
 sourceSets.test.runtimeClasspath += sourceSets.client.output
 
+// Port to 26.3 (phase 7): a client gametest drives a real client connected to a real dedicated
+// server, to prove the payloads, the HUD, the peek keybind and item use end to end. It runs only
+// through `runClientGametest` (it opens a game window), never as part of `build` or CI, and its
+// source set is not packaged.
+sourceSets {
+    clientGametest {
+        compileClasspath += sourceSets.client.compileClasspath + sourceSets.client.output + sourceSets.main.output
+        runtimeClasspath += sourceSets.client.runtimeClasspath + sourceSets.client.output + sourceSets.main.output
+    }
+}
+
+loom {
+    runs {
+        clientGametest {
+            client()
+            name "Client Game Test"
+            source sourceSets.clientGametest
+            vmArg "-Dfabric.client.gametest"
+            vmArg "-Dfabric.client.gametest.modid=tribulation-client-gametest"
+            runDir "build/clientGametest"
+        }
+    }
+}
+
+// The test's in-process dedicated server refuses to start without an accepted EULA in its run
+// directory (what Loom's `fabricApi.configureTests { eula = true }` writes for its own runs).
+def clientGametestEula = layout.projectDirectory.file('build/clientGametest/eula.txt').asFile
+tasks.matching { it.name == 'runClientGametest' }.configureEach {
+    doFirst {
+        clientGametestEula.parentFile.mkdirs()
+        clientGametestEula.text = 'eula=true\n'
+    }
+}
+
 test {
     // SpriteMarginTest reads the glyph specs off disk to learn which shipped textures are
     // sprites and owe a transparent margin. art/ is not on the test classpath, so declare it
