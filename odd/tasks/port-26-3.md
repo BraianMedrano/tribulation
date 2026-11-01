@@ -19,7 +19,7 @@ Branch: `mc/26.3` (from `master` @ 3ac1524). Delivery: `ask-on-risk`. Runners: `
 |---|---|---|---|---|---|
 | T0 | 0 Baseline on 1.21.1 | S1, S2 | inline | done | build OK, 896 unit tests, 147 gametests (JDK 21) |
 | T1 | 1 Disable optional integrations | S6 | inline | done | build OK, 896 unit tests, 147 gametests on 1.21.1; disabled classes absent from the jar; commit 7259df0 |
-| T2 | 2 Build files to 26.3 (+ Meridian decision, minimal Concord decoupling) | S1, S6, S7 | inline | pending | |
+| T2 | 2 Build files to 26.3 (+ Meridian decision, minimal Concord decoupling) | S1, S6, S7 | inline | done | Gradle 9.8.2 + Loom 1.19.3 configure, MC 26.3 resolves, `compileJava` reaches javac (API errors expected for T3) |
 | T3 | 3 Compile fixes, common logic first | S1, S6 | inline | pending | |
 | T4 | 4 Unit tests green | S1, S6 | inline | pending | |
 | T5 | 5 Gametests green | S2, S6 | inline | pending | |
@@ -37,3 +37,4 @@ Branch: `mc/26.3` (from `master` @ 3ac1524). Delivery: `ask-on-risk`. Runners: `
 - L4 (2026-11-01) T1: Meridian kept in the build because main code calls `compat/meridian` directly; decision moved to T2.
 - L5 (2026-11-01) T1: `compat/common/ShardViewerRefresh` calls `compat/emi/EmiShardRefresh` (reflection only, no EMI imports), so only `EmiShardPlugin` is excluded from EMI. `ClothGuardTest` (hub-owned guard) reads sources from disk and requires `cloth-config` in `suggests` while `TribulationConfigScreen` exists, so the `suggests` block was kept unchanged.
 - L6 (2026-11-01) T1 review (lineage review-da6de54ee464b058, reliability lens): approved and acknowledged. Advisory R3-001 (entrypoints and source excludes are kept in sync by hand; a mismatch crashes only when the optional mod is installed) deferred to T10 by user decision.
+- L7 (2026-11-01) T2: Meridian dropped from the build (official 26.1 porting guide: "No existing mods for 1.21.11 or older versions of Minecraft will work on 26.1, even as a compile-only dependency."); its nested `Api` now uses reflection, names verified with javap against meridian-1.0.0.jar. Build is red by design until T3: first `compileJava` hits javac's 100-error cap (top symbols: `ResourceLocation` x52, `net.minecraft.advancements.critereon` package, `InteractionResultHolder`, `TrialSpawnerData`, `AbstractArrow`).

@@ -1,5 +1,5 @@
 plugins {
-    id 'fabric-loom' version "${loom_version}"
+    id 'net.fabricmc.fabric-loom' version "${loom_version}"
     id 'jacoco'
 }
 
@@ -7,77 +7,20 @@ plugins {
 // idempotence, and packaging excludes: hub-owned, synced verbatim (see mc-gradle-builds).
 apply from: 'gradle/concord-common.gradle'
 
-repositories {
-    maven {
-        name = 'TerraformersMC'
-        url = 'https://maven.terraformersmc.com/'
-        content {
-            includeGroup 'dev.emi'
-        }
-    }
-    // The shared Shedaniel repo is scoped to Cloth Config only; REI and its Architectury
-    // dependency resolve from here.
-    maven {
-        name = 'ShedanielRei'
-        url = 'https://maven.shedaniel.me/'
-        content {
-            includeGroup 'me.shedaniel'
-            includeGroup 'dev.architectury'
-        }
-    }
-    maven {
-        name = 'Architectury'
-        url = 'https://maven.architectury.dev/'
-        content {
-            includeGroup 'dev.architectury'
-        }
-    }
-    maven {
-        name = 'BlameJared'
-        url = 'https://maven.blamejared.com/'
-        content {
-            includeGroup 'mezz.jei'
-        }
-    }
-    // GitHub Releases — resolves sibling Concord mods straight from their release jars while
-    // their Modrinth projects are not publicly resolvable. Artifact-only (no metadata), scoped
-    // to the rfizzle org so it never shadows a real Maven group.
-    ivy {
-        name = 'GitHubReleases'
-        url = 'https://github.com'
-        patternLayout {
-            artifact '/[organisation]/[module]/releases/download/v[revision]/[module]-[revision].jar'
-        }
-        metadataSources {
-            artifact()
-        }
-        content {
-            includeGroup 'rfizzle'
-        }
-    }
-}
-
 dependencies {
     // Minecraft
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
-    mappings loom.officialMojangMappings()
 
     // Fabric
-    modImplementation "net.fabricmc:fabric-loader:${project.loader_version}"
-    modImplementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
+    implementation "net.fabricmc:fabric-loader:${project.loader_version}"
+    implementation "net.fabricmc.fabric-api:fabric-api:${project.fabric_version}"
 
     // Client source set
     "clientImplementation"("net.fabricmc.fabric-api:fabric-api:${project.fabric_version}")
 
     // Port to 26.3: the Mod Menu, Cloth Config, Jade, WTHIT, EMI, REI and JEI integrations are
-    // temporarily disabled (dependencies dropped, sources excluded below). See PORTING.md.
-
-    // Meridian — sibling Concord mod. Compile-only against its stable `api` package and the
-    // `meridian:mob_equipment` enchantment tag; the whole integration lives behind an
-    // isModLoaded("meridian") guard and falls back to vanilla enchants when absent. No
-    // modLocalRuntime: keeping Meridian out of the dev/gametest runtime means every existing
-    // gametest keeps isModLoaded("meridian") == false and exercises the fallback path.
-    modCompileOnly "rfizzle:meridian:${project.meridian_version}"
+    // temporarily disabled (dependencies dropped, sources excluded below), and Meridian is reached
+    // by reflection only, since no mod built for 1.21.x compiles against 26.x. See PORTING.md.
 
     // Tests
     testImplementation platform("org.junit:junit-bom:5.10.2")

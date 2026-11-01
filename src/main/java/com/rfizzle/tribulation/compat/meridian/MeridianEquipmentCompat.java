@@ -1,6 +1,9 @@
 package com.rfizzle.tribulation.compat.meridian;
 
 import com.rfizzle.tribulation.Tribulation;
+import java.lang.invoke.MethodHandle;
+import java.lang.invoke.MethodHandles;
+import java.lang.invoke.MethodType;
 import java.util.ArrayList;
 import java.util.List;
 import java.util.concurrent.atomic.AtomicBoolean;
@@ -142,11 +145,31 @@ public final class MeridianEquipmentCompat {
     }
 
     /**
-     * The only holder of {@code com.rfizzle.meridian.api} references. Nested so the JVM resolves
-     * Meridian's classes only when {@link #augment} first calls in — after the caller's
-     * {@code isModLoaded} guard has passed.
+     * The only holder of {@code com.rfizzle.meridian.api} references, reached by reflection so the
+     * build carries no Meridian dependency (no mod built for 1.21.x compiles against 26.x). Nested
+     * so the handles are resolved only when {@link #augment} first calls in — after the caller's
+     * {@code isModLoaded} guard has passed. A missing class or method fails the static initializer,
+     * which {@link #augment}'s {@code catch (Throwable)} degrades to the vanilla-enchanted item.
      */
     private static final class Api {
+        private static final MethodHandle GET_ENCHANTMENT_INFO;
+        private static final MethodHandle ENABLED;
+        private static final MethodHandle GET_MAX_LEVEL;
+
+        static {
+            try {
+                MethodHandles.Lookup lookup = MethodHandles.publicLookup();
+                Class<?> api = Class.forName("com.rfizzle.meridian.api.MeridianAPI");
+                Class<?> info = Class.forName("com.rfizzle.meridian.api.EnchantmentInfo");
+                GET_ENCHANTMENT_INFO = lookup.findStatic(api, "getEnchantmentInfo",
+                        MethodType.methodType(info, Holder.class));
+                ENABLED = lookup.findVirtual(info, "enabled", MethodType.methodType(boolean.class));
+                GET_MAX_LEVEL = lookup.findVirtual(info, "getMaxLevel", MethodType.methodType(int.class));
+            } catch (ReflectiveOperationException e) {
+                throw new ExceptionInInitializerError(e);
+            }
+        }
+
         private Api() {
         }
 
@@ -154,10 +177,9 @@ public final class MeridianEquipmentCompat {
          * Meridian's configured effective max level for {@code holder}, or {@code 0} when Meridian
          * has the enchant disabled by config.
          */
-        static int enabledMaxLevel(Holder<Enchantment> holder) {
-            com.rfizzle.meridian.api.EnchantmentInfo info =
-                    com.rfizzle.meridian.api.MeridianAPI.getEnchantmentInfo(holder);
-            return info.enabled() ? info.getMaxLevel() : 0;
+        static int enabledMaxLevel(Holder<Enchantment> holder) throws Throwable {
+            Object info = GET_ENCHANTMENT_INFO.invoke(holder);
+            return (boolean) ENABLED.invoke(info) ? (int) GET_MAX_LEVEL.invoke(info) : 0;
         }
     }
 }

@@ -6,7 +6,7 @@
 // A member applies it from its build.gradle, after `plugins {}` and before `dependencies {}`:
 //
 //     plugins {
-//         id 'fabric-loom' version "${loom_version}"
+//         id 'net.fabricmc.fabric-loom' version "${loom_version}"
 //         id 'jacoco'
 //     }
 //     apply from: 'gradle/concord-common.gradle'
@@ -29,8 +29,8 @@
 
 import java.util.concurrent.TimeUnit
 
-if (!project.plugins.hasPlugin('fabric-loom') || !project.plugins.hasPlugin('jacoco')) {
-    throw new GradleException("gradle/concord-common.gradle needs the 'fabric-loom' and 'jacoco' " +
+if (!project.plugins.hasPlugin('net.fabricmc.fabric-loom') || !project.plugins.hasPlugin('jacoco')) {
+    throw new GradleException("gradle/concord-common.gradle needs the 'net.fabricmc.fabric-loom' and 'jacoco' " +
             "plugins applied first: declare them in plugins {} before `apply from:`.")
 }
 
@@ -44,7 +44,7 @@ def modPackage = "com.rfizzle.${modId}"
 // ---------------------------------------------------------------------------------------------
 
 jacoco {
-    toolVersion = '0.8.12'
+    toolVersion = '0.8.14'
 }
 
 version = computeModVersion()

@@ -249,6 +249,26 @@ Si el port se alarga, **BuffMobs** ya soporta 26.3 en Fabric (escalado por días
 
 El código de esas integraciones sigue en el repo, solo está fuera de la compilación. El bloque `suggests` de `fabric.mod.json` se dejó como estaba: es solo informativo, y `ClothGuardTest` (guard de Concord que lee los fuentes del disco) exige `cloth-config` mientras `TribulationConfigScreen` exista.
 
-### Pendiente de decidir
+### Meridian (resuelto en la Fase 2)
 
-- **Meridian** sigue en el build (`modCompileOnly`): `ArmorEquipmentHandler` y `WeaponEquipmentHandler` llaman a `compat/meridian/MeridianEquipmentCompat`, y su clase anidada `Api` compila contra `com.rfizzle.meridian.api`. Sacarlo exige tocar código, así que se decide en la Fase 2, cuando se vea si `meridian:1.0.0` resuelve contra 26.3.
+La guía oficial de porting a 26.1 dice: "No existing mods for 1.21.11 or older versions of Minecraft will work on 26.1, even as a compile-only dependency." Meridian solo publicó versiones para 1.21.1, así que salió del build (`modCompileOnly`, el repo ivy de GitHub Releases y `meridian_version`).
+
+Para no cambiar comportamiento, la clase anidada `Api` de `compat/meridian/MeridianEquipmentCompat` ahora llega a `com.rfizzle.meridian.api` por reflection (`MethodHandles`), con el mismo patrón que `EmiShardRefresh`. Si Meridian no está instalado, la clase nunca se carga. Si está pero la API no coincide, el `catch (Throwable)` existente deja el ítem con sus encantamientos vanilla. Los nombres (`getEnchantmentInfo`, `enabled()`, `getMaxLevel()`) se verificaron con `javap` contra `meridian-1.0.0.jar`.
+
+### Versiones de 26.3 (verificadas el 2026-11-01)
+
+Fuentes: rama `26.3` de [FabricMC/fabric-example-mod](https://github.com/FabricMC/fabric-example-mod/tree/26.3), meta.fabricmc.net y la guía [Porting to 26.1](https://docs.fabricmc.net/develop/porting/).
+
+| Pieza | Antes | Ahora |
+|---|---|---|
+| Minecraft | 1.21.1 | 26.3 |
+| Fabric Loader | 0.16.10 | 0.20.1 (la última estable; la sección 3 decía 0.19.5) |
+| Fabric API | 0.116.1+1.21.1 | 0.165.0+26.3 |
+| Loom | 1.9-SNAPSHOT, plugin `fabric-loom` | 1.19-SNAPSHOT, plugin `net.fabricmc.fabric-loom` |
+| Gradle | 8.12 | 9.8.2 |
+| Java | 21 | 25 (también `compatibilityLevel` de los mixins) |
+| JaCoCo | 0.8.12 | 0.8.14 (la primera con soporte oficial de Java 25) |
+
+Otros cambios de build: sin línea `mappings` (26.x viene sin ofuscar), `modImplementation` pasa a ser `implementation`, y se quitaron los repos Maven de las integraciones desactivadas.
+
+`versions-common.properties` y `gradle/concord-common.gradle` son archivos de Concord que se editaron a mano en esta rama. Por eso no hay que correr `make sync`.
