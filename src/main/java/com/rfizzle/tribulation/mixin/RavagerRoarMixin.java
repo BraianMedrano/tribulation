@@ -21,7 +21,7 @@ public abstract class RavagerRoarMixin {
     @ModifyConstant(method = "roar", constant = @Constant(doubleValue = 4.0))
     private double tribulation$expandRoar(double original) {
         Mob self = (Mob) (Object) this;
-        return self.getTags().contains(AbilityManager.TAG_RAVAGER_ROAR)
+        return self.entityTags().contains(AbilityManager.TAG_RAVAGER_ROAR)
                 ? original + ROAR_RADIUS_BONUS
                 : original;
     }

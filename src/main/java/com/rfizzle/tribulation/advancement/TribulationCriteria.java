@@ -1,7 +1,8 @@
 package com.rfizzle.tribulation.advancement;
 
 import com.rfizzle.tribulation.Tribulation;
-import net.minecraft.advancements.triggers.CriteriaTriggers;
+import net.minecraft.core.Registry;
+import net.minecraft.core.registries.BuiltInRegistries;
 
 /**
  * Registry for Tribulation's custom advancement criterion triggers. Each
@@ -21,11 +22,11 @@ public final class TribulationCriteria {
     private TribulationCriteria() {}
 
     public static void register() {
-        CriteriaTriggers.register(Tribulation.id("tier_reached").toString(), TIER_REACHED);
-        CriteriaTriggers.register(Tribulation.id("soulbound_survived").toString(), SOULBOUND_SURVIVED);
-        CriteriaTriggers.register(Tribulation.id("shatter_shard_used").toString(), SHATTER_SHARD_USED);
-        CriteriaTriggers.register(Tribulation.id("ascendant_shard_used").toString(), ASCENDANT_SHARD_USED);
-        CriteriaTriggers.register(Tribulation.id("heart_fragment_used").toString(), HEART_FRAGMENT_USED);
-        CriteriaTriggers.register(Tribulation.id("tier_five_mob_killed").toString(), TIER_FIVE_MOB_KILLED);
+        Registry.register(BuiltInRegistries.TRIGGER_TYPES, Tribulation.id("tier_reached"), TIER_REACHED);
+        Registry.register(BuiltInRegistries.TRIGGER_TYPES, Tribulation.id("soulbound_survived"), SOULBOUND_SURVIVED);
+        Registry.register(BuiltInRegistries.TRIGGER_TYPES, Tribulation.id("shatter_shard_used"), SHATTER_SHARD_USED);
+        Registry.register(BuiltInRegistries.TRIGGER_TYPES, Tribulation.id("ascendant_shard_used"), ASCENDANT_SHARD_USED);
+        Registry.register(BuiltInRegistries.TRIGGER_TYPES, Tribulation.id("heart_fragment_used"), HEART_FRAGMENT_USED);
+        Registry.register(BuiltInRegistries.TRIGGER_TYPES, Tribulation.id("tier_five_mob_killed"), TIER_FIVE_MOB_KILLED);
     }
 }

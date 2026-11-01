@@ -16,7 +16,7 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.level.block.entity.trialspawner.TrialSpawner;
-import net.minecraft.world.level.block.entity.trialspawner.TrialSpawnerData;
+import net.minecraft.world.level.block.entity.trialspawner.TrialSpawnerStateData;
 import net.minecraft.world.phys.Vec3;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.injection.At;
@@ -55,10 +55,10 @@ public abstract class TrialSpawnerMixin {
         TribulationConfig cfg = Tribulation.getConfig();
         if (cfg != null && cfg.trialSpawner.enabled
                 && entity instanceof Mob mob
-                && !mob.getTags().contains(MobScalingHandler.PROCESSED_TAG)) {
+                && !mob.entityTags().contains(MobScalingHandler.PROCESSED_TAG)) {
             Identifier typeId = BuiltInRegistries.ENTITY_TYPE.getKey(mob.getType());
             if (!MobScalingHandler.isExcluded(typeId, cfg.general.excludedEntities)) {
-                TrialSpawnerData data = ((TrialSpawner) (Object) this).getData();
+                TrialSpawnerStateData data = ((TrialSpawner) (Object) this).getStateData();
                 int playerLevel = tribulation$detectedPlayerLevel(world, data, cfg, mob.position());
                 MobScalingHandler.applyScaling(mob, world, mob.getType(), typeId, playerLevel, cfg);
             }
@@ -80,7 +80,7 @@ public abstract class TrialSpawnerMixin {
      * dimension carry no position here, so they're skipped for the distance pick;
      * if none resolve we fall back to the level fold instead of scaling to 0.
      */
-    private static int tribulation$detectedPlayerLevel(ServerLevel world, TrialSpawnerData data,
+    private static int tribulation$detectedPlayerLevel(ServerLevel world, TrialSpawnerStateData data,
                                                        TribulationConfig cfg, Vec3 origin) {
         Set<UUID> detectedPlayers = ((TrialSpawnerDataAccessor) data).getDetectedPlayers();
         if (detectedPlayers.isEmpty()) return 0;

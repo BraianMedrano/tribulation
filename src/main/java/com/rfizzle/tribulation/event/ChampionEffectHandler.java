@@ -140,8 +140,8 @@ public final class ChampionEffectHandler {
      */
     private static void dropBonusLoot(Mob mob, ServerLevel world, DamageSource source, int rolls) {
         if (rolls <= 0) return;
-        if (!world.getGameRules().getBoolean(GameRules.RULE_DOMOBLOOT)) return;
-        ResourceKey<LootTable> tableKey = mob.getLootTable();
+        if (!world.getGameRules().get(GameRules.MOB_DROPS)) return;
+        ResourceKey<LootTable> tableKey = mob.getLootTable().orElse(null);
         if (tableKey == null) return;
         LootTable table = world.getServer().reloadableRegistries().getLootTable(tableKey);
         if (table == LootTable.EMPTY) return;
@@ -159,7 +159,7 @@ public final class ChampionEffectHandler {
         LootParams params = builder.create(LootContextParamSets.ENTITY);
 
         for (int i = 0; i < rolls; i++) {
-            table.getRandomItems(params, mob::spawnAtLocation);
+            table.getRandomItems(params, stack -> mob.spawnAtLocation(world, stack));
         }
     }
 
@@ -201,11 +201,12 @@ public final class ChampionEffectHandler {
             for (ServerPlayer player : level.getEntitiesOfClass(ServerPlayer.class, auraBox,
                     p -> !p.isSpectator() && !p.isCreative() && p.distanceToSqr(mob) <= radius * radius)) {
                 // knockback() pushes the target away from the given direction
-                // (attacker minus target, as in vanilla melee). hurtMarked makes
+                // (attacker minus target, as in vanilla melee). syncVelocity makes
                 // the server sync the new motion to the player's client.
                 player.knockback(affixes.knockbackAuraStrength,
-                        mob.getX() - player.getX(), mob.getZ() - player.getZ());
-                player.hurtMarked = true;
+                        mob.getX() - player.getX(), mob.getZ() - player.getZ(),
+                        mob.damageSources().mobAttack(mob), 0.0f);
+                player.syncVelocity = true;
             }
         }
     }

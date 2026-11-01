@@ -51,7 +51,7 @@ public final class SoulInventoryHandler {
         if (cfg == null || !cfg.soulInventory.enabled) return;
 
         if (cfg.soulInventory.respectKeepInventory
-                && player.level().getGameRules().getBoolean(net.minecraft.world.level.GameRules.RULE_KEEPINVENTORY)) {
+                && player.level().getGameRules().get(net.minecraft.world.level.gamerules.GameRules.KEEP_INVENTORY)) {
             return;
         }
 
@@ -114,10 +114,10 @@ public final class SoulInventoryHandler {
             return Optional.empty();
         }
 
-        Registry<Enchantment> registry = player.server.registryAccess()
-                .registryOrThrow(Registries.ENCHANTMENT);
+        Registry<Enchantment> registry = player.level().getServer().registryAccess()
+                .lookupOrThrow(Registries.ENCHANTMENT);
         ResourceKey<Enchantment> key = ResourceKey.create(Registries.ENCHANTMENT, rl);
-        Optional<Holder.Reference<Enchantment>> holder = registry.getHolder(key);
+        Optional<Holder.Reference<Enchantment>> holder = registry.get(key);
 
         if (holder.isEmpty()) {
             Tribulation.LOGGER.warn("Soulbound enchantment '{}' not found in registry; only #c:soulbound enchants will be kept", enchantId);

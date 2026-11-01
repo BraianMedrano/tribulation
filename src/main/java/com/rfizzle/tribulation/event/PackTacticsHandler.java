@@ -166,7 +166,7 @@ public final class PackTacticsHandler {
                     Tribulation.LOGGER.warn("packTactics.eligibleMobs entry '{}' is not a known entity type; ignoring", id);
                     continue;
                 }
-                resolved.add(BuiltInRegistries.ENTITY_TYPE.get(key));
+                resolved.add(BuiltInRegistries.ENTITY_TYPE.getValue(key));
             }
             cache = new EligibleCache(source, Set.copyOf(resolved));
             eligibleCache = cache;

@@ -35,10 +35,10 @@ public abstract class MobAbilityMixin {
         Mob self = (Mob) (Object) this;
 
         try {
-            if (self.getTags().contains("tribulation_web")) {
+            if (self.entityTags().contains("tribulation_web")) {
                 placeWeb(self, target);
             }
-            if (self.getTags().contains("tribulation_crop_trample")) {
+            if (self.entityTags().contains("tribulation_crop_trample")) {
                 trampleCrops(self, target);
             }
         } catch (Exception e) {
@@ -48,7 +48,7 @@ public abstract class MobAbilityMixin {
 
     private static void placeWeb(Mob mob, Entity target) {
         if (!(mob.level() instanceof ServerLevel level)) return;
-        if (!level.getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING)) return;
+        if (!level.getGameRules().get(GameRules.MOB_GRIEFING)) return;
         BlockPos pos = target.blockPosition();
         if (level.getBlockState(pos).isAir()) {
             level.setBlock(pos, Blocks.COBWEB.defaultBlockState(), 3);
@@ -57,7 +57,7 @@ public abstract class MobAbilityMixin {
 
     private static void trampleCrops(Mob mob, Entity target) {
         if (!(mob.level() instanceof ServerLevel level)) return;
-        if (!level.getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING)) return;
+        if (!level.getGameRules().get(GameRules.MOB_GRIEFING)) return;
         BlockPos center = target.blockPosition();
         for (BlockPos pos : BlockPos.betweenClosed(center.offset(-1, -1, -1), center.offset(1, 0, 1))) {
             BlockState state = level.getBlockState(pos);

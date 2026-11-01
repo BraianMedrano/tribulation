@@ -9,6 +9,7 @@ import net.fabricmc.fabric.api.entity.event.v1.EntitySleepEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLifecycleEvents;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerTickEvents;
 import net.minecraft.ChatFormatting;
+import net.minecraft.world.attribute.EnvironmentAttributes;
 import net.minecraft.network.chat.Component;
 import net.minecraft.network.protocol.game.ClientboundSoundPacket;
 import net.minecraft.server.MinecraftServer;
@@ -61,7 +62,7 @@ public final class BloodMoonHandler {
             TribulationConfig cfg = Tribulation.getConfig();
             if (cfg == null || !cfg.bloodMoon.blockSleep) return null;
             if (!(player.level() instanceof ServerLevel level) || !isActive(level)) return null;
-            player.displayClientMessage(noSleepMessage(), true);
+            player.sendOverlayMessage(noSleepMessage());
             return Player.BedSleepingProblem.OTHER_PROBLEM;
         });
     }
@@ -98,7 +99,7 @@ public final class BloodMoonHandler {
         for (ServerPlayer player : server.overworld().players()) {
             if (!player.isSleeping()) continue;
             player.stopSleepInBed(true, true);
-            player.displayClientMessage(noSleepMessage(), true);
+            player.sendOverlayMessage(noSleepMessage());
         }
     }
 
@@ -171,15 +172,15 @@ public final class BloodMoonHandler {
             return;
         }
 
-        boolean isNight = !overworld.isDay();
-        long day = overworld.getDayTime() / 24000L;
+        boolean isNight = !overworld.isBrightOutside();
+        long day = overworld.getOverworldClockTime() / 24000L;
 
         if (shouldEnd(state.isActive(), isNight)) {
             end(server, state, cfg);
             return;
         }
 
-        if (rollDue(state.isActive(), isNight, overworld.getMoonPhase(), day, state.getLastRolledDay())) {
+        if (rollDue(state.isActive(), isNight, overworld.environmentAttributes().getDimensionValue(EnvironmentAttributes.MOON_PHASE).index(), day, state.getLastRolledDay())) {
             state.markRolled(day);
             if (overworld.getRandom().nextDouble() < cfg.bloodMoon.chance) {
                 start(server, state, cfg);
@@ -193,7 +194,7 @@ public final class BloodMoonHandler {
         // Spend tonight's roll no matter how the event began, so an admin
         // stopping a command-started event on a full-moon night isn't
         // immediately re-rolled back into one by the scheduler.
-        state.markRolled(server.overworld().getDayTime() / 24000L);
+        state.markRolled(server.overworld().getOverworldClockTime() / 24000L);
         active = true;
         broadcast(server, cfg);
         wakeSleepers(server, cfg);

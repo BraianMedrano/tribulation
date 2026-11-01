@@ -50,7 +50,7 @@ public final class LevelDecayHandler {
         TribulationConfig cfg = Tribulation.getConfig();
         if (cfg == null || !cfg.levelDecay.enabled) return;
 
-        MinecraftServer server = player.getServer();
+        MinecraftServer server = player.level().getServer();
         if (server == null) return;
 
         try {
@@ -70,7 +70,7 @@ public final class LevelDecayHandler {
         TribulationConfig cfg = Tribulation.getConfig();
         if (cfg == null || !cfg.levelDecay.enabled) return;
 
-        MinecraftServer server = player.getServer();
+        MinecraftServer server = player.level().getServer();
         if (server == null) return;
 
         try {
@@ -108,7 +108,7 @@ public final class LevelDecayHandler {
                         .withStyle(ChatFormatting.GREEN));
                 Tribulation.LOGGER.debug(
                         "Offline decay: {} away {} days, reduced from level {} to {}",
-                        player.getGameProfile().getName(), daysAway, before, after);
+                        player.getGameProfile().name(), daysAway, before, after);
             }
         } catch (Exception e) {
             Tribulation.LOGGER.error("Failed to apply offline level decay for {}", player, e);

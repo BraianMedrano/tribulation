@@ -1,7 +1,7 @@
 package com.rfizzle.tribulation.mixin;
 
 import net.minecraft.world.level.SpawnData;
-import net.minecraft.world.level.block.entity.trialspawner.TrialSpawnerData;
+import net.minecraft.world.level.block.entity.trialspawner.TrialSpawnerStateData;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.gen.Accessor;
 
@@ -10,7 +10,7 @@ import java.util.Set;
 import java.util.UUID;
 
 /**
- * Mixin-local access to {@link TrialSpawnerData}'s {@code protected} internals.
+ * Mixin-local access to {@link TrialSpawnerStateData}'s {@code protected} internals.
  *
  * <p>{@link #getDetectedPlayers()} backs the scaling path in
  * {@code TrialSpawnerMixin}: trial-spawned mobs are scaled from the levels of
@@ -21,7 +21,7 @@ import java.util.UUID;
  * deterministic spawn (entity id + explicit position) without relying on
  * structure NBT, keeping the trial-spawner spawn assertions reproducible.
  */
-@Mixin(TrialSpawnerData.class)
+@Mixin(TrialSpawnerStateData.class)
 public interface TrialSpawnerDataAccessor {
     @Accessor("detectedPlayers")
     Set<UUID> getDetectedPlayers();

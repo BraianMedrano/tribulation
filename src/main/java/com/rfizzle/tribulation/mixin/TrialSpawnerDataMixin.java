@@ -9,7 +9,7 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.level.block.entity.trialspawner.TrialSpawner;
-import net.minecraft.world.level.block.entity.trialspawner.TrialSpawnerData;
+import net.minecraft.world.level.block.entity.trialspawner.TrialSpawnerStateData;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Unique;
 import org.spongepowered.asm.mixin.injection.At;
@@ -26,7 +26,7 @@ import java.util.UUID;
  * spawner ominous only when a detected player carries Bad Omen; this lets a
  * high-tier world roll a configurable chance to become ominous with no omen
  * effect, hooked at the spawner's own player-detection step
- * ({@link TrialSpawnerData#tryDetectPlayers}), the same step where vanilla runs
+ * ({@link TrialSpawnerStateData#tryDetectPlayers}), the same step where vanilla runs
  * its Bad-Omen-driven upgrade.
  *
  * <p>The hook fires at {@code HEAD}, so it reads the {@code detectedPlayers}
@@ -41,7 +41,7 @@ import java.util.UUID;
  * ominous spawners (vanilla or via this roll) are left untouched, so the
  * player's omen state is never double-triggered.
  */
-@Mixin(TrialSpawnerData.class)
+@Mixin(TrialSpawnerStateData.class)
 public abstract class TrialSpawnerDataMixin {
 
     @Unique

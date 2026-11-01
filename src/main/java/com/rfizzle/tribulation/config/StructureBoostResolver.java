@@ -77,7 +77,7 @@ final class StructureBoostResolver {
 
     int boostFor(Holder<Structure> structure) {
         if (structure == null) return 0;
-        Identifier id = structure.unwrapKey().map(key -> key.location()).orElse(null);
+        Identifier id = structure.unwrapKey().map(key -> key.identifier()).orElse(null);
         return boostFor(id, structure::is);
     }
 

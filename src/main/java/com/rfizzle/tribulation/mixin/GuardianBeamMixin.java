@@ -23,7 +23,7 @@ public abstract class GuardianBeamMixin {
     @Inject(method = "getAttackDuration", at = @At("RETURN"), cancellable = true)
     private void tribulation$fasterBeam(CallbackInfoReturnable<Integer> cir) {
         Mob self = (Mob) (Object) this;
-        if (!self.getTags().contains(AbilityManager.TAG_GUARDIAN_BEAM)) return;
+        if (!self.entityTags().contains(AbilityManager.TAG_GUARDIAN_BEAM)) return;
         cir.setReturnValue(Math.max(MIN_ATTACK_DURATION, cir.getReturnValue() / 2));
     }
 }

@@ -13,7 +13,6 @@ import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.monster.skeleton.AbstractSkeleton;
 import net.minecraft.world.entity.monster.zombie.Zombie;
 import net.minecraft.world.entity.monster.piglin.AbstractPiglin;
-import net.minecraft.world.item.ArmorItem;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
@@ -94,7 +93,7 @@ public final class ArmorEquipmentHandler {
 
     public static void processArmor(Mob mob, int tier, TribulationConfig cfg) {
         TribulationConfig.ArmorEquipment ae = cfg.armorEquipment;
-        if (ae == null || !ae.enabled || mob.getTags().contains(PROCESSED_TAG)) return;
+        if (ae == null || !ae.enabled || mob.entityTags().contains(PROCESSED_TAG)) return;
         // Skip mobs that can't visibly wear armor. Tag them so the (unchanging)
         // capability check isn't repeated on every chunk reload.
         if (!supportsArmor(mob)) {

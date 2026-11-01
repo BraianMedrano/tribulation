@@ -64,7 +64,7 @@ public final class MobScalingDataCollector {
     public static void collect(Mob mob, CompoundTag data) {
         if (mob == null || data == null) return;
 
-        boolean scaled = mob.getTags().contains(MobScalingHandler.PROCESSED_TAG);
+        boolean scaled = mob.entityTags().contains(MobScalingHandler.PROCESSED_TAG);
         data.putBoolean(KEY_SCALED, scaled);
         if (!scaled) return;
 
@@ -76,10 +76,10 @@ public final class MobScalingDataCollector {
     private static String detectVariant(Mob mob) {
         // Skeleton variants are detected by their always-present per-variant tag —
         // a Deadeye with a 0 health malus carries no attribute modifier to probe.
-        if (mob.getTags().contains(SkeletonVariantHandler.DEADEYE_TAG)) {
+        if (mob.entityTags().contains(SkeletonVariantHandler.DEADEYE_TAG)) {
             return "deadeye";
         }
-        if (mob.getTags().contains(SkeletonVariantHandler.BRUTE_TAG)) {
+        if (mob.entityTags().contains(SkeletonVariantHandler.BRUTE_TAG)) {
             return "brute";
         }
         if (hasModifier(mob, ZombieVariantHandler.BIG_HEALTH_ID)
@@ -109,7 +109,7 @@ public final class MobScalingDataCollector {
         List<String> found = new ArrayList<>();
 
         for (Map.Entry<String, String> entry : TAG_ABILITIES.entrySet()) {
-            if (mob.getTags().contains(entry.getKey())) {
+            if (mob.entityTags().contains(entry.getKey())) {
                 found.add(entry.getValue());
             }
         }

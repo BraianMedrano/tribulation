@@ -13,10 +13,10 @@ public final class TribulationNetworking {
     private TribulationNetworking() {}
 
     public static void register() {
-        PayloadTypeRegistry.playS2C().register(TribulationLevelPayload.TYPE, TribulationLevelPayload.STREAM_CODEC);
-        PayloadTypeRegistry.playS2C().register(BloodMoonPayload.TYPE, BloodMoonPayload.STREAM_CODEC);
-        PayloadTypeRegistry.playS2C().register(EnvironmentalPressurePayload.TYPE, EnvironmentalPressurePayload.STREAM_CODEC);
-        PayloadTypeRegistry.playS2C().register(ConfigSyncPayload.TYPE, ConfigSyncPayload.STREAM_CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(TribulationLevelPayload.TYPE, TribulationLevelPayload.STREAM_CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(BloodMoonPayload.TYPE, BloodMoonPayload.STREAM_CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(EnvironmentalPressurePayload.TYPE, EnvironmentalPressurePayload.STREAM_CODEC);
+        PayloadTypeRegistry.clientboundPlay().register(ConfigSyncPayload.TYPE, ConfigSyncPayload.STREAM_CODEC);
     }
 
     /**
@@ -48,7 +48,7 @@ public final class TribulationNetworking {
     }
 
     public static void syncLevel(ServerPlayer player) {
-        PlayerDifficultyState state = PlayerDifficultyState.getOrCreate(player.server);
+        PlayerDifficultyState state = PlayerDifficultyState.getOrCreate(player.level().getServer());
         TribulationConfig cfg = Tribulation.getConfig();
         int level = state.getLevel(player.getUUID());
         int progressTicks = state.getTickCounter(player.getUUID());

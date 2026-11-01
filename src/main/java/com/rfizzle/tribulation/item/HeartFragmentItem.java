@@ -14,14 +14,15 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
 
-import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * Consumable item that restores hearts lost to the Hardcore Hearts system.
@@ -35,38 +36,38 @@ public class HeartFragmentItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-        tooltipComponents.add(Component.translatable("item.tribulation.heart_fragment.tooltip"));
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag tooltipFlag) {
+        tooltip.accept(Component.translatable("item.tribulation.heart_fragment.tooltip"));
         if (TooltipDetailProvider.isShiftHeld()) {
-            tooltipComponents.add(Component.empty());
+            tooltip.accept(Component.empty());
             for (Component line : HeartFragmentInfoFormatter.infoLines(TooltipDetailProvider.effectiveConfig())) {
-                tooltipComponents.add(line.copy().withStyle(ChatFormatting.GRAY));
+                tooltip.accept(line.copy().withStyle(ChatFormatting.GRAY));
             }
         } else {
-            tooltipComponents.add(Component.translatable("item.tribulation.heart_fragment.info.hold_shift")
+            tooltip.accept(Component.translatable("item.tribulation.heart_fragment.info.hold_shift")
                     .withStyle(ChatFormatting.DARK_GRAY));
         }
     }
 
     @Override
-    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+    public InteractionResult use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
 
-        if (level.isClientSide) {
-            return InteractionResultHolder.sidedSuccess(stack, true);
+        if (level.isClientSide()) {
+            return InteractionResult.SUCCESS;
         }
         if (!(player instanceof ServerPlayer serverPlayer)) {
-            return InteractionResultHolder.pass(stack);
+            return InteractionResult.PASS;
         }
 
         TribulationConfig cfg = Tribulation.getConfig();
         if (cfg == null || !cfg.hardcoreHearts.enabled) {
-            return InteractionResultHolder.pass(stack);
+            return InteractionResult.PASS;
         }
 
-        MinecraftServer server = serverPlayer.getServer();
+        MinecraftServer server = serverPlayer.level().getServer();
         if (server == null) {
-            return InteractionResultHolder.pass(stack);
+            return InteractionResult.PASS;
         }
 
         try {
@@ -74,11 +75,9 @@ public class HeartFragmentItem extends Item {
             int before = state.getHeartsLost(serverPlayer.getUUID());
 
             if (before == 0) {
-                serverPlayer.displayClientMessage(
-                        Component.translatable("item.tribulation.heart_fragment.full"),
-                        true
-                );
-                return InteractionResultHolder.pass(stack);
+                serverPlayer.sendOverlayMessage(
+                        Component.translatable("item.tribulation.heart_fragment.full"));
+                return InteractionResult.PASS;
             }
 
             int after = state.restoreHearts(
@@ -95,16 +94,14 @@ public class HeartFragmentItem extends Item {
                     SoundEvents.PLAYER_LEVELUP, SoundSource.PLAYERS, 0.7f, 1.4f);
 
             int currentMax = 20 - after;
-            serverPlayer.displayClientMessage(
+            serverPlayer.sendOverlayMessage(
                     Component.translatable("item.tribulation.heart_fragment.used",
-                            (before - after) / 2, currentMax / 2, 10),
-                    true
-            );
+                            (before - after) / 2, currentMax / 2, 10));
         } catch (Exception e) {
             Tribulation.LOGGER.error("Failed to apply heart fragment for {}", player, e);
-            return InteractionResultHolder.fail(stack);
+            return InteractionResult.FAIL;
         }
 
-        return InteractionResultHolder.sidedSuccess(stack, false);
+        return InteractionResult.CONSUME;
     }
 }

@@ -8,8 +8,9 @@ import net.minecraft.core.BlockPos;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.entity.EntityType;
+import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.LivingEntity;
-import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.monster.Endermite;
 import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.block.Block;
@@ -46,7 +47,7 @@ public final class SilverfishAbilityHandler {
                               float baseDamageTaken, float damageTaken, boolean blocked) {
         if (!(entity instanceof Endermite endermite)) return;
         if (!(endermite.level() instanceof ServerLevel level)) return;
-        if (!endermite.getTags().contains(AbilityManager.TAG_CALL_SLEEPERS)) return;
+        if (!endermite.entityTags().contains(AbilityManager.TAG_CALL_SLEEPERS)) return;
 
         TribulationConfig cfg = Tribulation.getConfig();
         if (cfg == null || !cfg.abilities.silverfishCallSleepers) return;
@@ -64,7 +65,7 @@ public final class SilverfishAbilityHandler {
      * world blocks — matching how the vanilla wake-friends goal behaves.
      */
     static void callSleepers(ServerLevel level, BlockPos center) {
-        if (!level.getGameRules().getBoolean(GameRules.RULE_MOBGRIEFING)) return;
+        if (!level.getGameRules().get(GameRules.MOB_GRIEFING)) return;
         int summoned = 0;
         for (BlockPos scan : BlockPos.betweenClosed(
                 center.offset(-SCAN_RADIUS, -SCAN_RADIUS, -SCAN_RADIUS),
@@ -74,7 +75,7 @@ public final class SilverfishAbilityHandler {
                 BlockPos pos = scan.immutable();
                 level.setBlockAndUpdate(pos, infested.hostStateByInfested(state));
                 level.levelEvent(2001, pos, Block.getId(state));
-                EntityType.SILVERFISH.spawn(level, pos, MobSpawnType.MOB_SUMMONED);
+                EntityTypes.SILVERFISH.spawn(level, pos, EntitySpawnReason.MOB_SUMMONED);
                 if (++summoned >= MAX_SUMMONS) break;
             }
         }

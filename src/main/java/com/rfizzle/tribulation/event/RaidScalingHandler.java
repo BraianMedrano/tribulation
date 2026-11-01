@@ -10,7 +10,8 @@ import net.minecraft.server.TickTask;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.entity.Entity;
 import net.minecraft.world.entity.EntityType;
-import net.minecraft.world.entity.MobSpawnType;
+import net.minecraft.world.entity.EntityTypes;
+import net.minecraft.world.entity.EntitySpawnReason;
 import net.minecraft.world.entity.monster.illager.Pillager;
 
 /**
@@ -44,7 +45,7 @@ public final class RaidScalingHandler {
     static void onEntityLoad(Entity entity, ServerLevel world) {
         if (!(entity instanceof Pillager captain)) return;
         if (!captain.isPatrolLeader()) return;
-        if (captain.getTags().contains(PATROL_PROCESSED_TAG)) return;
+        if (captain.entityTags().contains(PATROL_PROCESSED_TAG)) return;
 
         TribulationConfig cfg = Tribulation.getConfig();
         if (cfg == null || cfg.raidScaling == null || !cfg.raidScaling.enabled) return;
@@ -80,7 +81,7 @@ public final class RaidScalingHandler {
         MinecraftServer server = world.getServer();
         if (server == null) return;
 
-        server.tell(new TickTask(server.getTickCount() + 1, () -> {
+        server.schedule(new TickTask(server.getTickCount() + 1, () -> {
             if (!captain.isAlive()) return;
             for (int i = 0; i < extra; i++) {
                 spawnOne(captain, world, i);
@@ -89,18 +90,18 @@ public final class RaidScalingHandler {
     }
 
     private static void spawnOne(Pillager captain, ServerLevel world, int index) {
-        Pillager extra = EntityType.PILLAGER.create(world);
+        Pillager extra = EntityTypes.PILLAGER.create(world, EntitySpawnReason.PATROL);
         if (extra == null) return;
 
         // Fan the extras out slightly so they don't stack on the captain.
         double offset = 0.5 + index;
-        extra.moveTo(captain.getX() + offset, captain.getY(), captain.getZ() + offset,
+        extra.snapTo(captain.getX() + offset, captain.getY(), captain.getZ() + offset,
                 captain.getYRot(), captain.getXRot());
 
         // Equip the crossbow / loadout vanilla patrol members get, so the extra
         // behaves like a real patroller rather than a bare-handed pillager.
         extra.finalizeSpawn(world, world.getCurrentDifficultyAt(extra.blockPosition()),
-                MobSpawnType.PATROL, null);
+                EntitySpawnReason.PATROL, null);
 
         // Migrate with the group rather than standing idle.
         extra.setPatrolTarget(captain.getPatrolTarget());

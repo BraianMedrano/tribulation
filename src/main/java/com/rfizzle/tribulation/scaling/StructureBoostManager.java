@@ -5,7 +5,7 @@ import it.unimi.dsi.fastutil.longs.Long2ObjectOpenHashMap;
 import it.unimi.dsi.fastutil.longs.LongIterator;
 import it.unimi.dsi.fastutil.longs.LongSet;
 import net.fabricmc.fabric.api.event.lifecycle.v1.ServerChunkEvents;
-import net.fabricmc.fabric.api.event.lifecycle.v1.ServerWorldEvents;
+import net.fabricmc.fabric.api.event.lifecycle.v1.ServerLevelEvents;
 import net.minecraft.core.Registry;
 import net.minecraft.core.SectionPos;
 import net.minecraft.core.registries.Registries;
@@ -131,10 +131,10 @@ public final class StructureBoostManager {
         ServerChunkEvents.CHUNK_UNLOAD.register((world, chunk) -> {
             WorldCache cache = CACHES.get(world);
             if (cache != null) {
-                cache.remove(chunk.getPos().toLong());
+                cache.remove(chunk.getPos().pack());
             }
         });
-        ServerWorldEvents.UNLOAD.register((server, world) -> CACHES.remove(world));
+        ServerLevelEvents.UNLOAD.register((server, world) -> CACHES.remove(world));
     }
 
     /**
@@ -163,7 +163,7 @@ public final class StructureBoostManager {
         }
         int chunkX = SectionPos.blockToSectionCoord(Mth.floor(x));
         int chunkZ = SectionPos.blockToSectionCoord(Mth.floor(z));
-        long key = ChunkPos.asLong(chunkX, chunkZ);
+        long key = ChunkPos.pack(chunkX, chunkZ);
         // Plain get/build/put rather than computeIfAbsent: the build touches
         // chunk data and must not run while holding the map lock. A racing
         // duplicate build is idempotent and harmless.
@@ -235,7 +235,7 @@ public final class StructureBoostManager {
     private static Build buildZones(ServerLevel world, int chunkX, int chunkZ, TribulationConfig cfg) {
         int margin = cfg.structureBoosts != null ? cfg.structureBoosts.marginBlocks : 0;
         int radius = neighborChunkRadius(margin);
-        Registry<Structure> registry = world.registryAccess().registryOrThrow(Registries.STRUCTURE);
+        Registry<Structure> registry = world.registryAccess().lookupOrThrow(Registries.STRUCTURE);
 
         List<BoostZone> zones = null;
         Set<StructureStart> seen = null;

@@ -13,11 +13,11 @@ import net.minecraft.world.entity.monster.illager.AbstractIllager;
 import net.minecraft.world.entity.monster.skeleton.AbstractSkeleton;
 import net.minecraft.world.entity.monster.zombie.Zombie;
 import net.minecraft.world.entity.monster.piglin.AbstractPiglin;
-import net.minecraft.world.item.DiggerItem;
+import net.minecraft.tags.ItemTags;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
-import net.minecraft.world.item.SwordItem;
+import net.minecraft.world.item.MaceItem;
 import net.minecraft.world.item.enchantment.Enchantments;
 
 import java.util.Map;
@@ -76,7 +76,7 @@ public final class WeaponEquipmentHandler {
 
     public static void processWeapon(Mob mob, int tier, TribulationConfig cfg) {
         TribulationConfig.WeaponEquipment we = cfg.weaponEquipment;
-        if (we == null || !we.enabled || mob.getTags().contains(PROCESSED_TAG)) return;
+        if (we == null || !we.enabled || mob.entityTags().contains(PROCESSED_TAG)) return;
         // Skip mobs that can't wield a weapon. Tag them so the (unchanging)
         // capability check isn't repeated on every chunk reload.
         if (!supportsWeapons(mob)) {
@@ -129,7 +129,7 @@ public final class WeaponEquipmentHandler {
         ItemStack stack;
         if (current.isEmpty() || isStandardMelee(current)) {
             // Replace with rolled material
-            Item newItem = (current.getItem() instanceof net.minecraft.world.item.AxeItem) ? material.getAxe() : material.getSword();
+            Item newItem = current.is(ItemTags.AXES) ? material.getAxe() : material.getSword();
             stack = new ItemStack(newItem);
         } else if (isStandardRanged(current)) {
             // Keep ranged item, just prepare for enchantment
@@ -160,7 +160,8 @@ public final class WeaponEquipmentHandler {
 
     private static boolean isStandardMelee(ItemStack stack) {
         Item item = stack.getItem();
-        return item instanceof SwordItem || item instanceof DiggerItem || item instanceof net.minecraft.world.item.MaceItem;
+        return stack.is(ItemTags.SWORDS) || stack.is(ItemTags.AXES) || stack.is(ItemTags.PICKAXES)
+                || stack.is(ItemTags.SHOVELS) || stack.is(ItemTags.HOES) || item instanceof MaceItem;
     }
 
     private static boolean isStandardRanged(ItemStack stack) {
@@ -172,7 +173,7 @@ public final class WeaponEquipmentHandler {
         var lookup = mob.registryAccess().lookupOrThrow(Registries.ENCHANTMENT);
         int max = tierCfg.maxEnchantmentLevel;
 
-        if (stack.getItem() instanceof SwordItem || stack.getItem() instanceof net.minecraft.world.item.AxeItem) {
+        if (stack.is(ItemTags.SWORDS) || stack.is(ItemTags.AXES)) {
             // Sharpness (base)
             int level = rollLevel(max, random);
             lookup.get(Enchantments.SHARPNESS).ifPresent(h -> stack.enchant(h, level));

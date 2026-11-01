@@ -45,7 +45,7 @@ public final class HardcoreHeartsHandler {
         TribulationConfig cfg = Tribulation.getConfig();
         if (cfg == null) return;
 
-        MinecraftServer server = player.getServer();
+        MinecraftServer server = player.level().getServer();
         if (server == null) return;
 
         try {
@@ -89,7 +89,7 @@ public final class HardcoreHeartsHandler {
             return;
         }
 
-        MinecraftServer server = player.getServer();
+        MinecraftServer server = player.level().getServer();
         if (server == null) return;
 
         try {

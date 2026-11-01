@@ -22,7 +22,7 @@ public abstract class BreakDoorGoalMixin {
     @Inject(method = "isValidDifficulty", at = @At("HEAD"), cancellable = true)
     private void tribulation$alwaysBreakWhenTagged(Difficulty difficulty, CallbackInfoReturnable<Boolean> cir) {
         Mob mob = ((DoorInteractGoalAccessor) this).tribulation$getMob();
-        if (mob != null && mob.getTags().contains(AbilityManager.TAG_DOOR_BREAKING)) {
+        if (mob != null && mob.entityTags().contains(AbilityManager.TAG_DOOR_BREAKING)) {
             cir.setReturnValue(true);
         }
     }

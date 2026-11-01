@@ -76,7 +76,7 @@ final class BiomeOffsetResolver {
 
     int offsetFor(Holder<Biome> biome) {
         if (biome == null) return 0;
-        Identifier id = biome.unwrapKey().map(key -> key.location()).orElse(null);
+        Identifier id = biome.unwrapKey().map(key -> key.identifier()).orElse(null);
         return offsetFor(id, biome::is);
     }
 

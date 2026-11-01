@@ -50,7 +50,7 @@ public final class MobScalingHandler {
 
     static void onEntityLoad(Entity entity, ServerLevel world) {
         if (!(entity instanceof Mob mob)) return;
-        if (mob.getTags().contains(PROCESSED_TAG)) return;
+        if (mob.entityTags().contains(PROCESSED_TAG)) return;
 
         TribulationConfig cfg = Tribulation.getConfig();
         if (cfg == null) return;
@@ -89,7 +89,7 @@ public final class MobScalingHandler {
         // Bosses route through BossScalingEngine: uniform rates for health+damage,
         // time + distance axes only (no height), and distance ignores the
         // excludeInOtherDimensions flag. affectBosses=false skips them entirely.
-        if (type.is(BOSSES_TAG)) {
+        if (type.builtInRegistryHolder().is(BOSSES_TAG)) {
             if (!cfg.bosses.affectBosses) {
                 return;
             }

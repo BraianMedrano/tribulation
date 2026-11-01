@@ -3,20 +3,22 @@ package com.rfizzle.tribulation.data;
 import com.rfizzle.tribulation.Tribulation;
 import com.rfizzle.tribulation.config.TribulationConfig;
 import net.minecraft.core.HolderLookup;
+import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.nbt.ListTag;
-import net.minecraft.nbt.Tag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.util.datafix.DataFixTypes;
 import net.minecraft.world.level.saveddata.SavedData;
-import net.minecraft.world.level.storage.DimensionDataStorage;
+import net.minecraft.world.level.saveddata.SavedDataType;
+import net.minecraft.world.level.storage.SavedDataStorage;
 
 import java.util.ArrayList;
 import java.util.Collections;
 import java.util.Comparator;
 import java.util.List;
 import java.util.Map;
+import java.util.Optional;
 import java.util.Set;
 import java.util.UUID;
 import java.util.concurrent.ConcurrentHashMap;
@@ -77,9 +79,10 @@ public class PlayerDifficultyState extends SavedData {
     // guards that null call today, but we don't lean on that safety net — a
     // SAVED_DATA_* constant is the correct, self-sufficient form. It is inert for
     // tags written by the current game version; re-verify on every MC version bump.
-    public static final SavedData.Factory<PlayerDifficultyState> FACTORY = new SavedData.Factory<>(
+    public static final SavedDataType<PlayerDifficultyState> TYPE = new SavedDataType<>(
+            Tribulation.id(STORAGE_KEY),
             PlayerDifficultyState::new,
-            PlayerDifficultyState::load,
+            CompoundTag.CODEC.xmap(tag -> load(tag, null), state -> state.save(new CompoundTag(), null)),
             DataFixTypes.SAVED_DATA_RANDOM_SEQUENCES
     );
 
@@ -89,8 +92,8 @@ public class PlayerDifficultyState extends SavedData {
 
     public static PlayerDifficultyState getOrCreate(MinecraftServer server) {
         ServerLevel overworld = server.overworld();
-        DimensionDataStorage storage = overworld.getDataStorage();
-        return storage.computeIfAbsent(FACTORY, STORAGE_KEY);
+        SavedDataStorage storage = overworld.getDataStorage();
+        return storage.computeIfAbsent(TYPE);
     }
 
     public PlayerData getPlayerData(UUID uuid) {
@@ -437,7 +440,6 @@ public class PlayerDifficultyState extends SavedData {
         return Math.max(0, Math.min(stored, maxPenalty));
     }
 
-    @Override
     public CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
         ListTag list = new ListTag();
         // Reclaim phantom entries before the sort, not during the write loop: an
@@ -464,7 +466,7 @@ public class PlayerDifficultyState extends SavedData {
         entries.sort(Map.Entry.comparingByKey(Comparator.comparing(UUID::toString)));
         for (Map.Entry<UUID, PlayerData> entry : entries) {
             CompoundTag playerTag = new CompoundTag();
-            playerTag.putUUID(NBT_UUID_KEY, entry.getKey());
+            playerTag.store(NBT_UUID_KEY, UUIDUtil.CODEC, entry.getKey());
             playerTag.putInt(NBT_LEVEL_KEY, entry.getValue().level);
             playerTag.putInt(NBT_TICK_KEY, entry.getValue().tickCounter);
             playerTag.putLong(NBT_LAST_DEATH_TICK_KEY, entry.getValue().lastDeathTick);
@@ -493,7 +495,7 @@ public class PlayerDifficultyState extends SavedData {
 
     public static PlayerDifficultyState load(CompoundTag tag, HolderLookup.Provider registries) {
         PlayerDifficultyState state = new PlayerDifficultyState();
-        if (!tag.contains(NBT_PLAYERS_KEY, Tag.TAG_LIST)) {
+        if (!(tag.get(NBT_PLAYERS_KEY) instanceof ListTag list)) {
             return state;
         }
         // Untrusted NBT: derive the clamp bounds from live config. get() loads
@@ -502,22 +504,22 @@ public class PlayerDifficultyState extends SavedData {
         TribulationConfig cfg = Tribulation.getConfig();
         int maxLevel = cfg != null ? cfg.general.maxLevel : MAX_SANE_LEVEL;
         int minimumHearts = cfg != null ? cfg.hardcoreHearts.minimumHearts : 1;
-        ListTag list = tag.getList(NBT_PLAYERS_KEY, Tag.TAG_COMPOUND);
         for (int i = 0; i < list.size(); i++) {
-            CompoundTag playerTag = list.getCompound(i);
+            if (!(list.get(i) instanceof CompoundTag playerTag)) {
+                continue;
+            }
             if (!playerTag.contains(NBT_UUID_KEY)) {
                 continue;
             }
-            UUID uuid;
-            try {
-                uuid = playerTag.getUUID(NBT_UUID_KEY);
-            } catch (Exception e) {
-                Tribulation.LOGGER.warn("Skipping malformed player entry in {}", STORAGE_KEY, e);
+            Optional<UUID> parsedUuid = playerTag.read(NBT_UUID_KEY, UUIDUtil.CODEC);
+            if (parsedUuid.isEmpty()) {
+                Tribulation.LOGGER.warn("Skipping malformed player entry in {}", STORAGE_KEY);
                 continue;
             }
+            UUID uuid = parsedUuid.get();
             PlayerData pd = new PlayerData();
-            int rawLevel = playerTag.getInt(NBT_LEVEL_KEY);
-            int rawHeartsLost = playerTag.getInt(NBT_HEARTS_LOST_KEY);
+            int rawLevel = playerTag.getIntOr(NBT_LEVEL_KEY, 0);
+            int rawHeartsLost = playerTag.getIntOr(NBT_HEARTS_LOST_KEY, 0);
             pd.level = clampStoredLevel(rawLevel, maxLevel);
             int clampedHeartsLost = clampStoredHeartsLost(rawHeartsLost, minimumHearts);
             if (pd.level != rawLevel || clampedHeartsLost != rawHeartsLost) {
@@ -530,14 +532,12 @@ public class PlayerDifficultyState extends SavedData {
                                 + "level {}->{}, heartsLost {}->{}",
                         uuid, STORAGE_KEY, rawLevel, pd.level, rawHeartsLost, clampedHeartsLost);
             }
-            pd.tickCounter = Math.max(0, playerTag.getInt(NBT_TICK_KEY));
-            pd.lastDeathTick = playerTag.contains(NBT_LAST_DEATH_TICK_KEY)
-                    ? playerTag.getLong(NBT_LAST_DEATH_TICK_KEY)
-                    : NEVER_DIED;
+            pd.tickCounter = Math.max(0, playerTag.getIntOr(NBT_TICK_KEY, 0));
+            pd.lastDeathTick = playerTag.getLongOr(NBT_LAST_DEATH_TICK_KEY, NEVER_DIED);
             pd.heartsLost = clampedHeartsLost;
-            pd.lastSeenEpochMs = Math.max(NEVER_SEEN, playerTag.getLong(NBT_LAST_SEEN_KEY));
-            pd.seenLevelUpIntro = playerTag.getBoolean(NBT_SEEN_LEVEL_UP_INTRO_KEY);
-            pd.seenTierDiscoveryHint = playerTag.getBoolean(NBT_SEEN_TIER_DISCOVERY_HINT_KEY);
+            pd.lastSeenEpochMs = Math.max(NEVER_SEEN, playerTag.getLongOr(NBT_LAST_SEEN_KEY, 0L));
+            pd.seenLevelUpIntro = playerTag.getBooleanOr(NBT_SEEN_LEVEL_UP_INTRO_KEY, false);
+            pd.seenTierDiscoveryHint = playerTag.getBooleanOr(NBT_SEEN_TIER_DISCOVERY_HINT_KEY, false);
             state.data.put(uuid, pd);
         }
         return state;

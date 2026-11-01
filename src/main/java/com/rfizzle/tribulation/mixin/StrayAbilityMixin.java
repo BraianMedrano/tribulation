@@ -28,11 +28,11 @@ public abstract class StrayAbilityMixin {
     private void tribulation$upgradeSlowness(ItemStack weapon, float velocity, ItemStack ammo,
                                              CallbackInfoReturnable<AbstractArrow> cir) {
         Mob self = (Mob) (Object) this;
-        if (!self.getTags().contains(AbilityManager.TAG_SLOWNESS_ARROWS)) return;
+        if (!self.entityTags().contains(AbilityManager.TAG_SLOWNESS_ARROWS)) return;
         if (!(cir.getReturnValue() instanceof Arrow arrow)) return;
 
         try {
-            arrow.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN, 600, 1));
+            arrow.addEffect(new MobEffectInstance(MobEffects.SLOWNESS, 600, 1));
         } catch (Exception e) {
             Tribulation.LOGGER.warn("Error upgrading stray slowness arrow for {}", self, e);
         }

@@ -15,16 +15,17 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.sounds.SoundEvents;
 import net.minecraft.sounds.SoundSource;
 import net.minecraft.world.InteractionHand;
-import net.minecraft.world.InteractionResultHolder;
+import net.minecraft.world.InteractionResult;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.player.Player;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.TooltipFlag;
+import net.minecraft.world.item.component.TooltipDisplay;
 import net.minecraft.world.level.Level;
 
-import java.util.List;
+import java.util.function.Consumer;
 
 /**
  * Consumable shard that lowers the using player's difficulty level by
@@ -43,39 +44,39 @@ public class ShatterShardItem extends Item {
     }
 
     @Override
-    public void appendHoverText(ItemStack stack, TooltipContext context, List<Component> tooltipComponents, TooltipFlag tooltipFlag) {
-        tooltipComponents.add(Component.translatable("item.tribulation.shatter_shard.tooltip"));
+    public void appendHoverText(ItemStack stack, TooltipContext context, TooltipDisplay display, Consumer<Component> tooltip, TooltipFlag tooltipFlag) {
+        tooltip.accept(Component.translatable("item.tribulation.shatter_shard.tooltip"));
         if (TooltipDetailProvider.isShiftHeld()) {
-            tooltipComponents.add(Component.empty());
+            tooltip.accept(Component.empty());
             for (Component line : ShardInfoFormatter.infoLines(TooltipDetailProvider.effectiveConfig())) {
-                tooltipComponents.add(line.copy().withStyle(ChatFormatting.GRAY));
+                tooltip.accept(line.copy().withStyle(ChatFormatting.GRAY));
             }
         } else {
-            tooltipComponents.add(Component.translatable("item.tribulation.shatter_shard.info.hold_shift")
+            tooltip.accept(Component.translatable("item.tribulation.shatter_shard.info.hold_shift")
                     .withStyle(ChatFormatting.DARK_GRAY));
         }
     }
 
     @Override
-    public InteractionResultHolder<ItemStack> use(Level level, Player player, InteractionHand hand) {
+    public InteractionResult use(Level level, Player player, InteractionHand hand) {
         ItemStack stack = player.getItemInHand(hand);
 
-        if (level.isClientSide) {
+        if (level.isClientSide()) {
             // Let the client animate the swing; all state mutation happens server-side.
-            return InteractionResultHolder.sidedSuccess(stack, true);
+            return InteractionResult.SUCCESS;
         }
         if (!(player instanceof ServerPlayer serverPlayer)) {
-            return InteractionResultHolder.pass(stack);
+            return InteractionResult.PASS;
         }
 
         TribulationConfig cfg = Tribulation.getConfig();
         if (cfg == null || !cfg.shards.enabled) {
-            return InteractionResultHolder.pass(stack);
+            return InteractionResult.PASS;
         }
 
-        MinecraftServer server = serverPlayer.getServer();
+        MinecraftServer server = serverPlayer.level().getServer();
         if (server == null) {
-            return InteractionResultHolder.pass(stack);
+            return InteractionResult.PASS;
         }
 
         try {
@@ -102,32 +103,28 @@ public class ShatterShardItem extends Item {
 
             if (before != after) {
                 TribulationLevelCallback.EVENT.invoker().onLevelChanged(serverPlayer, before, after);
-                serverPlayer.displayClientMessage(
-                        Component.translatable("item.tribulation.shatter_shard.used", before, after),
-                        true
-                );
+                serverPlayer.sendOverlayMessage(
+                        Component.translatable("item.tribulation.shatter_shard.used", before, after));
                 Tribulation.LOGGER.debug(
                         "Shatter shard used: {} reduced from level {} to {}",
-                        serverPlayer.getGameProfile().getName(), before, after
+                        serverPlayer.getGameProfile().name(), before, after
                 );
             } else {
-                serverPlayer.displayClientMessage(
-                        Component.translatable("item.tribulation.shatter_shard.at_floor", before),
-                        true
-                );
+                serverPlayer.sendOverlayMessage(
+                        Component.translatable("item.tribulation.shatter_shard.at_floor", before));
             }
         } catch (Exception e) {
             Tribulation.LOGGER.error("Failed to apply shatter shard for {}", player, e);
-            return InteractionResultHolder.fail(stack);
+            return InteractionResult.FAIL;
         }
 
-        return InteractionResultHolder.sidedSuccess(stack, false);
+        return InteractionResult.CONSUME;
     }
 
     private static void applySideEffects(ServerPlayer player) {
-        player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN,
+        player.addEffect(new MobEffectInstance(MobEffects.SLOWNESS,
                 SIDE_EFFECT_DURATION_TICKS, SIDE_EFFECT_AMPLIFIER, false, true, true));
-        player.addEffect(new MobEffectInstance(MobEffects.DIG_SLOWDOWN,
+        player.addEffect(new MobEffectInstance(MobEffects.MINING_FATIGUE,
                 SIDE_EFFECT_DURATION_TICKS, SIDE_EFFECT_AMPLIFIER, false, true, true));
         player.addEffect(new MobEffectInstance(MobEffects.WEAKNESS,
                 SIDE_EFFECT_DURATION_TICKS, SIDE_EFFECT_AMPLIFIER, false, true, true));

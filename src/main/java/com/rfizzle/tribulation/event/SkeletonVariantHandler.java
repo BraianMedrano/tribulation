@@ -80,7 +80,7 @@ public final class SkeletonVariantHandler {
         if (!cfg.enabled) return Variant.NONE;
         if (!isEligibleType(toggleKey)) return Variant.NONE;
         if (!(mob instanceof AbstractSkeleton skeleton)) return Variant.NONE;
-        if (skeleton.getTags().contains(PROCESSED_TAG)) return Variant.NONE;
+        if (skeleton.entityTags().contains(PROCESSED_TAG)) return Variant.NONE;
 
         Variant chosen = rollVariant(cfg, random.nextInt(100), random.nextInt(100));
 

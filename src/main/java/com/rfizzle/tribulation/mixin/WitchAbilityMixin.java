@@ -41,7 +41,7 @@ public abstract class WitchAbilityMixin {
     )
     private Item tribulation$lingeringPotions() {
         Mob self = (Mob) (Object) this;
-        return self.getTags().contains(AbilityManager.TAG_LINGERING_POTIONS)
+        return self.entityTags().contains(AbilityManager.TAG_LINGERING_POTIONS)
                 ? Items.LINGERING_POTION
                 : Items.SPLASH_POTION;
     }
@@ -49,6 +49,6 @@ public abstract class WitchAbilityMixin {
     @ModifyConstant(method = "aiStep", constant = @Constant(floatValue = 0.05f))
     private float tribulation$aggressiveHealing(float original) {
         Mob self = (Mob) (Object) this;
-        return self.getTags().contains(AbilityManager.TAG_AGGRESSIVE_HEALING) ? 0.25f : original;
+        return self.entityTags().contains(AbilityManager.TAG_AGGRESSIVE_HEALING) ? 0.25f : original;
     }
 }

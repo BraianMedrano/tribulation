@@ -1,12 +1,14 @@
 package com.rfizzle.tribulation.item;
 
 import com.rfizzle.tribulation.Tribulation;
-import net.fabricmc.fabric.api.itemgroup.v1.FabricItemGroup;
+import net.fabricmc.fabric.api.creativetab.v1.FabricCreativeModeTab;
 import net.minecraft.core.Registry;
 import net.minecraft.core.component.DataComponents;
 import net.minecraft.core.registries.BuiltInRegistries;
+import net.minecraft.core.registries.Registries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
+import net.minecraft.resources.ResourceKey;
 import net.minecraft.world.item.CreativeModeTab;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
@@ -34,6 +36,7 @@ public final class TribulationItems {
 
     public static final Item SHATTER_SHARD = new ShatterShardItem(
             new Item.Properties()
+                    .setId(ResourceKey.create(Registries.ITEM, SHATTER_SHARD_ID))
                     .stacksTo(16)
                     .rarity(Rarity.UNCOMMON)
                     .component(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true)
@@ -41,6 +44,7 @@ public final class TribulationItems {
 
     public static final Item ASCENDANT_SHARD = new AscendantShardItem(
             new Item.Properties()
+                    .setId(ResourceKey.create(Registries.ITEM, ASCENDANT_SHARD_ID))
                     .stacksTo(16)
                     .rarity(Rarity.RARE)
                     .component(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true)
@@ -48,6 +52,7 @@ public final class TribulationItems {
 
     public static final Item HEART_FRAGMENT = new HeartFragmentItem(
             new Item.Properties()
+                    .setId(ResourceKey.create(Registries.ITEM, HEART_FRAGMENT_ID))
                     .stacksTo(16)
                     .rarity(Rarity.RARE)
                     .component(DataComponents.ENCHANTMENT_GLINT_OVERRIDE, true)
@@ -65,7 +70,7 @@ public final class TribulationItems {
         Registry.register(BuiltInRegistries.ITEM, ASCENDANT_SHARD_ID, ASCENDANT_SHARD);
         Registry.register(BuiltInRegistries.ITEM, HEART_FRAGMENT_ID, HEART_FRAGMENT);
 
-        CreativeModeTab tab = FabricItemGroup.builder()
+        CreativeModeTab tab = FabricCreativeModeTab.builder()
                 .icon(() -> new ItemStack(SHATTER_SHARD))
                 .title(Component.translatable("itemGroup.tribulation.main"))
                 .displayItems((params, entries) -> {

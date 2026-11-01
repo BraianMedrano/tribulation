@@ -5,7 +5,7 @@ import com.rfizzle.tribulation.advancement.SimplePlayerTrigger;
 import com.rfizzle.tribulation.advancement.TierReachedCriterion;
 import com.rfizzle.tribulation.advancement.TribulationCriteria;
 import com.rfizzle.tribulation.item.TribulationItems;
-import net.fabricmc.fabric.api.datagen.v1.FabricDataOutput;
+import net.fabricmc.fabric.api.datagen.v1.FabricPackOutput;
 import net.fabricmc.fabric.api.datagen.v1.provider.FabricAdvancementProvider;
 import net.minecraft.advancements.Advancement;
 import net.minecraft.advancements.AdvancementHolder;
@@ -16,7 +16,6 @@ import net.minecraft.advancements.triggers.PlayerTrigger;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.network.chat.Component;
 import net.minecraft.resources.Identifier;
-import net.minecraft.world.item.ItemStack;
 import net.minecraft.world.item.Items;
 import net.minecraft.world.level.ItemLike;
 
@@ -32,9 +31,9 @@ import java.util.function.Consumer;
  */
 public class TribulationAdvancementProvider extends FabricAdvancementProvider {
     private static final Identifier BACKGROUND =
-            Identifier.withDefaultNamespace("textures/gui/advancements/backgrounds/stone.png");
+            Identifier.withDefaultNamespace("gui/advancements/backgrounds/stone");
 
-    public TribulationAdvancementProvider(FabricDataOutput output,
+    public TribulationAdvancementProvider(FabricPackOutput output,
                                           CompletableFuture<HolderLookup.Provider> registryLookup) {
         super(output, registryLookup);
     }
@@ -42,8 +41,8 @@ public class TribulationAdvancementProvider extends FabricAdvancementProvider {
     @Override
     public void generateAdvancement(HolderLookup.Provider registryLookup, Consumer<AdvancementHolder> consumer) {
         AdvancementHolder root = Advancement.Builder.advancement()
-                .display(
-                        new ItemStack(TribulationItems.SHATTER_SHARD),
+                .rootDisplay(
+                        TribulationItems.SHATTER_SHARD,
                         title("root"),
                         description("root"),
                         BACKGROUND,
@@ -54,7 +53,8 @@ public class TribulationAdvancementProvider extends FabricAdvancementProvider {
                         true, false, false)
                 .addCriterion("tick", CriteriaTriggers.TICK.createCriterion(
                         new PlayerTrigger.TriggerInstance(Optional.empty())))
-                .save(consumer, id("root"));
+                .build(id("root"));
+        consumer.accept(root);
 
         AdvancementHolder tier1 = tierAdvancement(consumer, root, 1, Items.STONE_SWORD);
         AdvancementHolder tier2 = tierAdvancement(consumer, tier1, 2, Items.IRON_SWORD);
@@ -82,34 +82,34 @@ public class TribulationAdvancementProvider extends FabricAdvancementProvider {
     private static AdvancementHolder tierAdvancement(Consumer<AdvancementHolder> consumer, AdvancementHolder parent,
                                                      int tier, ItemLike icon) {
         String key = "tier_" + tier;
-        return Advancement.Builder.advancement()
+        AdvancementHolder holder = Advancement.Builder.advancement()
                 .parent(parent)
                 .display(
-                        new ItemStack(icon),
+                        icon.asItem(),
                         title(key),
                         description(key),
-                        null,
                         tier == 5 ? AdvancementType.GOAL : AdvancementType.TASK,
                         true, false, false)
                 .addCriterion("reach_tier_" + tier, TribulationCriteria.TIER_REACHED.createCriterion(
                         TierReachedCriterion.TriggerInstance.forTier(tier)))
-                .save(consumer, id(key));
+                .build(id(key));
+        consumer.accept(holder);
+        return holder;
     }
 
     private static void leaf(Consumer<AdvancementHolder> consumer, AdvancementHolder parent, String key,
                              ItemLike icon, AdvancementType type, String criterionName,
                              Criterion<?> criterion) {
-        Advancement.Builder.advancement()
+        consumer.accept(Advancement.Builder.advancement()
                 .parent(parent)
                 .display(
-                        new ItemStack(icon),
+                        icon.asItem(),
                         title(key),
                         description(key),
-                        null,
                         type,
                         true, false, false)
                 .addCriterion(criterionName, criterion)
-                .save(consumer, id(key));
+                .build(id(key)));
     }
 
     private static SimplePlayerTrigger.TriggerInstance simple() {
@@ -124,7 +124,7 @@ public class TribulationAdvancementProvider extends FabricAdvancementProvider {
         return Component.translatable("advancements.tribulation." + key + ".description");
     }
 
-    private static String id(String key) {
-        return Tribulation.id(key).toString();
+    private static Identifier id(String key) {
+        return Tribulation.id(key);
     }
 }

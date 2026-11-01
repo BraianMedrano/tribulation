@@ -10,6 +10,7 @@ import com.rfizzle.tribulation.config.TribulationConfig.Tiers;
 import com.rfizzle.tribulation.data.PlayerDifficultyState;
 import com.rfizzle.tribulation.event.BloodMoonHandler;
 import net.minecraft.core.BlockPos;
+import net.minecraft.world.attribute.EnvironmentAttributes;
 import net.minecraft.core.Holder;
 import net.minecraft.resources.ResourceKey;
 import net.minecraft.resources.Identifier;
@@ -341,7 +342,7 @@ public final class ScalingEngine {
         // mobs out of detection range never scale anyway. The biome offset stacks
         // additively with the dimension offset; the hasBiomeOffsets() guard keeps
         // the biome lookup off the hot path when the feature is unconfigured.
-        int offset = cfg.getDimensionOffset(world.dimension().location());
+        int offset = cfg.getDimensionOffset(world.dimension().identifier());
         if (cfg.hasBiomeOffsets()) {
             offset += cfg.getBiomeOffset(world.getBiome(BlockPos.containing(x, y, z)));
         }
@@ -456,7 +457,7 @@ public final class ScalingEngine {
 
     /** 2D horizontal distance from world spawn (Y is excluded by design). */
     public static double horizontalDistanceFromSpawn(ServerLevel world, double mobX, double mobZ) {
-        BlockPos spawn = world.getSharedSpawnPos();
+        BlockPos spawn = world.getRespawnData().pos();
         double dx = mobX - spawn.getX();
         double dz = mobZ - spawn.getZ();
         return Math.sqrt(dx * dx + dz * dz);
@@ -482,7 +483,7 @@ public final class ScalingEngine {
     public static boolean moonAppliesAt(ServerLevel world, Entity entity, TribulationConfig.MoonPhaseScaling cfg) {
         if (cfg == null || !cfg.enabled) return false;
         if (!world.dimensionType().hasSkyLight() || world.dimensionType().hasCeiling()) return false;
-        if (world.isDay()) return false;
+        if (world.isBrightOutside()) return false;
         if (cfg.surfaceOnly && entity.getY() < cfg.surfaceY) return false;
         return true;
     }
@@ -506,7 +507,7 @@ public final class ScalingEngine {
      */
     public static double effectiveMoonFactor(ServerLevel world, Entity entity, TribulationConfig config) {
         if (!moonAppliesAt(world, entity, config.moonPhaseScaling)) return 0.0;
-        double raw = computeMoonFactor(world.getMoonPhase(), config.moonPhaseScaling.maxBonus);
+        double raw = computeMoonFactor(world.environmentAttributes().getDimensionValue(EnvironmentAttributes.MOON_PHASE).index(), config.moonPhaseScaling.maxBonus);
         return amplifyMoonFactor(raw, BloodMoonHandler.moonMultiplier(world, config));
     }
 

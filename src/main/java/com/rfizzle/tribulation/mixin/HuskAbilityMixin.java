@@ -26,7 +26,7 @@ public abstract class HuskAbilityMixin {
         if (!cir.getReturnValue()) return;
         if (!(target instanceof LivingEntity living)) return;
         Mob self = (Mob) (Object) this;
-        if (!self.getTags().contains("tribulation_hunger2")) return;
+        if (!self.entityTags().contains("tribulation_hunger2")) return;
 
         try {
             MobEffectInstance existing = living.getEffect(MobEffects.HUNGER);

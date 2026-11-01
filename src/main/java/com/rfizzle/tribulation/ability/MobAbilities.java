@@ -150,7 +150,7 @@ public final class MobAbilities {
                     (mob, cfg) -> mob.addTag(AbilityManager.TAG_DOOR_BREAKING)),
             new MobAbility("vindicator", "vindicator_resistance", 4,
                     a -> a.vindicatorResistance,
-                    (mob, cfg) -> AbilityManager.applyInfiniteEffect(mob, MobEffects.DAMAGE_RESISTANCE, 0)),
+                    (mob, cfg) -> AbilityManager.applyInfiniteEffect(mob, MobEffects.RESISTANCE, 0)),
 
             // ---- Witch ----
             new MobAbility("witch", "witch_lingering_potions", 3,

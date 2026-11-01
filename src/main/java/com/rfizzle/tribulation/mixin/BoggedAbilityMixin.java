@@ -27,7 +27,7 @@ public abstract class BoggedAbilityMixin {
     private void tribulation$upgradePoison(ItemStack weapon, float velocity, ItemStack ammo,
                                            CallbackInfoReturnable<AbstractArrow> cir) {
         Mob self = (Mob) (Object) this;
-        if (!self.getTags().contains(AbilityManager.TAG_POISON_ARROWS)) return;
+        if (!self.entityTags().contains(AbilityManager.TAG_POISON_ARROWS)) return;
         if (!(cir.getReturnValue() instanceof Arrow arrow)) return;
 
         try {

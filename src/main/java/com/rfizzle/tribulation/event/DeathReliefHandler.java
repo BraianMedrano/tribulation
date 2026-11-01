@@ -56,7 +56,7 @@ public final class DeathReliefHandler {
         TribulationConfig cfg = Tribulation.getConfig();
         if (cfg == null) return;
 
-        MinecraftServer server = player.getServer();
+        MinecraftServer server = player.level().getServer();
         if (server == null) return;
 
         try {
@@ -73,7 +73,7 @@ public final class DeathReliefHandler {
             if (!applied) {
                 Tribulation.LOGGER.debug(
                         "Death relief skipped for {} — within cooldown ({} ticks)",
-                        player.getGameProfile().getName(),
+                        player.getGameProfile().name(),
                         cfg.deathRelief.cooldownTicks
                 );
                 return;
@@ -83,13 +83,12 @@ public final class DeathReliefHandler {
             if (before != after) {
                 player.awardStat(TribulationStats.LEVELS_LOST_TO_DEATH_RELIEF, before - after);
                 TribulationLevelCallback.EVENT.invoker().onLevelChanged(player, before, after);
-                player.displayClientMessage(
+                player.sendOverlayMessage(
                         Component.translatable("message.tribulation.death_relief", before, after)
-                                .withStyle(ChatFormatting.AQUA),
-                        true);
+                                .withStyle(ChatFormatting.AQUA));
                 Tribulation.LOGGER.debug(
                         "Death relief: {} reduced from level {} to {}",
-                        player.getGameProfile().getName(),
+                        player.getGameProfile().name(),
                         before,
                         after
                 );

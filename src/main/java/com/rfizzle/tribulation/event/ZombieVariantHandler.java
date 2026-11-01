@@ -74,7 +74,7 @@ public final class ZombieVariantHandler {
         if (!isEligibleType(toggleKey)) return Variant.NONE;
         if (!(mob instanceof Zombie zombie)) return Variant.NONE;
         if (zombie.isBaby()) return Variant.NONE;
-        if (zombie.getTags().contains(PROCESSED_TAG)) return Variant.NONE;
+        if (zombie.entityTags().contains(PROCESSED_TAG)) return Variant.NONE;
 
         Variant chosen = rollVariant(cfg, random.nextInt(100), random.nextInt(100));
 

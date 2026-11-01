@@ -16,13 +16,13 @@ public final class TribulationTooltipFormatter {
 
     public static List<String> format(CompoundTag data) {
         List<String> lines = new ArrayList<>();
-        if (data == null || !data.getBoolean(MobScalingDataCollector.KEY_SCALED)) {
+        if (data == null || !data.getBooleanOr(MobScalingDataCollector.KEY_SCALED, false)) {
             return lines;
         }
 
-        double healthFactor = data.getDouble(MobScalingDataCollector.KEY_HEALTH_FACTOR);
-        String variant = data.getString(MobScalingDataCollector.KEY_VARIANT);
-        String abilities = data.getString(MobScalingDataCollector.KEY_ABILITIES);
+        double healthFactor = data.getDoubleOr(MobScalingDataCollector.KEY_HEALTH_FACTOR, 0.0);
+        String variant = data.getStringOr(MobScalingDataCollector.KEY_VARIANT, "");
+        String abilities = data.getStringOr(MobScalingDataCollector.KEY_ABILITIES, "");
 
         StringBuilder header = new StringBuilder("Tribulation Scaled");
         if (healthFactor > 0) {

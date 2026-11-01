@@ -1,10 +1,12 @@
 package com.rfizzle.tribulation.data;
 
+import com.rfizzle.tribulation.Tribulation;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.util.datafix.DataFixTypes;
 import net.minecraft.world.level.saveddata.SavedData;
+import net.minecraft.world.level.saveddata.SavedDataType;
 
 /**
  * Persistent Blood Moon event state, stored as overworld {@link SavedData} so a
@@ -26,9 +28,10 @@ public class BloodMoonState extends SavedData {
     // guards that null call today, but we don't lean on that safety net — a
     // SAVED_DATA_* constant is the correct, self-sufficient form. It is inert for
     // tags written by the current game version; re-verify on every MC version bump.
-    public static final SavedData.Factory<BloodMoonState> FACTORY = new SavedData.Factory<>(
+    public static final SavedDataType<BloodMoonState> TYPE = new SavedDataType<>(
+            Tribulation.id(STORAGE_KEY),
             BloodMoonState::new,
-            BloodMoonState::load,
+            CompoundTag.CODEC.xmap(tag -> load(tag, null), state -> state.save(new CompoundTag(), null)),
             DataFixTypes.SAVED_DATA_RANDOM_SEQUENCES
     );
 
@@ -38,7 +41,7 @@ public class BloodMoonState extends SavedData {
     public BloodMoonState() {}
 
     public static BloodMoonState getOrCreate(MinecraftServer server) {
-        return server.overworld().getDataStorage().computeIfAbsent(FACTORY, STORAGE_KEY);
+        return server.overworld().getDataStorage().computeIfAbsent(TYPE);
     }
 
     public boolean isActive() {
@@ -63,7 +66,6 @@ public class BloodMoonState extends SavedData {
         }
     }
 
-    @Override
     public CompoundTag save(CompoundTag tag, HolderLookup.Provider registries) {
         tag.putBoolean(NBT_ACTIVE_KEY, active);
         tag.putLong(NBT_LAST_ROLLED_DAY_KEY, lastRolledDay);
@@ -72,10 +74,8 @@ public class BloodMoonState extends SavedData {
 
     public static BloodMoonState load(CompoundTag tag, HolderLookup.Provider registries) {
         BloodMoonState state = new BloodMoonState();
-        state.active = tag.getBoolean(NBT_ACTIVE_KEY);
-        state.lastRolledDay = tag.contains(NBT_LAST_ROLLED_DAY_KEY)
-                ? tag.getLong(NBT_LAST_ROLLED_DAY_KEY)
-                : NEVER_ROLLED;
+        state.active = tag.getBooleanOr(NBT_ACTIVE_KEY, false);
+        state.lastRolledDay = tag.getLongOr(NBT_LAST_ROLLED_DAY_KEY, NEVER_ROLLED);
         return state;
     }
 }

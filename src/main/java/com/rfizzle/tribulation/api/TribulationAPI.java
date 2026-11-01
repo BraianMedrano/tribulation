@@ -40,7 +40,7 @@ public final class TribulationAPI {
      * @return the player's level
      */
     public static int getLevel(ServerPlayer player) {
-        PlayerDifficultyState state = PlayerDifficultyState.getOrCreate(player.server);
+        PlayerDifficultyState state = PlayerDifficultyState.getOrCreate(player.level().getServer());
         return state.getLevel(player.getUUID());
     }
 

@@ -11,6 +11,7 @@ import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayConnectionEvents;
 import net.fabricmc.fabric.api.networking.v1.ServerPlayNetworking;
 import net.minecraft.resources.Identifier;
+import net.minecraft.world.attribute.EnvironmentAttributes;
 import net.minecraft.server.MinecraftServer;
 import net.minecraft.server.level.ServerLevel;
 import net.minecraft.server.level.ServerPlayer;
@@ -88,7 +89,7 @@ public final class EnvironmentalPressureHandler {
             return;
         }
         if (blocked || damageTaken <= 0f) return;
-        int level = PlayerDifficultyState.getOrCreate(player.server).getLevel(player.getUUID());
+        int level = PlayerDifficultyState.getOrCreate(player.level().getServer()).getLevel(player.getUUID());
         handleStrike(player, source, TierManager.getTier(level, cfg.tiers), cfg);
     }
 
@@ -120,7 +121,7 @@ public final class EnvironmentalPressureHandler {
                     strikes.weaknessDurationTicks, strikes.weaknessAmplifier), attacker);
         }
         if (strikes.applySlowness) {
-            player.addEffect(new MobEffectInstance(MobEffects.MOVEMENT_SLOWDOWN,
+            player.addEffect(new MobEffectInstance(MobEffects.SLOWNESS,
                     strikes.slownessDurationTicks, strikes.slownessAmplifier), attacker);
         }
     }
@@ -162,7 +163,7 @@ public final class EnvironmentalPressureHandler {
     public static boolean isOppressiveNight(ServerLevel world) {
         DimensionType dimension = world.dimensionType();
         if (dimension.hasFixedTime() || !dimension.hasSkyLight()) return false;
-        return isNightTime(world.getTimeOfDay(1.0f));
+        return isNightTime(world.environmentAttributes().getDimensionValue(EnvironmentAttributes.SUN_ANGLE) / 360.0f);
     }
 
     /**

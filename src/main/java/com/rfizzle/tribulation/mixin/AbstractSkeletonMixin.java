@@ -42,9 +42,9 @@ public abstract class AbstractSkeletonMixin {
         if (sk == null || !sk.enabled) return;
 
         Integer interval = null;
-        if (self.getTags().contains(SkeletonVariantHandler.DEADEYE_TAG)) {
+        if (self.entityTags().contains(SkeletonVariantHandler.DEADEYE_TAG)) {
             interval = sk.deadeyeSkeletonAttackInterval;
-        } else if (self.getTags().contains(SkeletonVariantHandler.BRUTE_TAG)) {
+        } else if (self.entityTags().contains(SkeletonVariantHandler.BRUTE_TAG)) {
             interval = sk.bruteSkeletonAttackInterval;
         }
         if (interval == null) return;

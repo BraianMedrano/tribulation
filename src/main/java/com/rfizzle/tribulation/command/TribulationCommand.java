@@ -27,6 +27,7 @@ import com.mojang.brigadier.arguments.IntegerArgumentType;
 import com.mojang.brigadier.context.CommandContext;
 import com.mojang.brigadier.exceptions.CommandSyntaxException;
 import net.minecraft.commands.CommandSourceStack;
+import net.minecraft.world.attribute.EnvironmentAttributes;
 import net.minecraft.commands.Commands;
 import net.minecraft.commands.arguments.EntityArgument;
 import net.minecraft.core.Holder;
@@ -78,37 +79,37 @@ public final class TribulationCommand {
         dispatcher.register(
                 Commands.literal(ROOT)
                         .then(Commands.literal("level")
-                                .requires(src -> src.hasPermission(2))
+                                .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                                 .then(Commands.argument("player", EntityArgument.player())
                                         .executes(TribulationCommand::runLevel)))
                         .then(Commands.literal("set")
-                                .requires(src -> src.hasPermission(2))
+                                .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                                 .then(Commands.argument("player", EntityArgument.player())
                                         .then(Commands.argument("level", IntegerArgumentType.integer(0))
                                                 .executes(TribulationCommand::runSet))))
                         .then(Commands.literal("reset")
-                                .requires(src -> src.hasPermission(2))
+                                .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                                 .then(Commands.argument("player", EntityArgument.player())
                                         .executes(TribulationCommand::runReset)))
                         .then(Commands.literal("reload")
-                                .requires(src -> src.hasPermission(2))
+                                .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                                 .executes(TribulationCommand::runReload))
                         .then(Commands.literal("info")
                                 .executes(TribulationCommand::runInfo))
                         .then(Commands.literal("config")
-                                .requires(src -> src.hasPermission(2))
+                                .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                                 .executes(TribulationCommand::runConfig))
                         .then(Commands.literal("debug")
-                                .requires(src -> src.hasPermission(2))
+                                .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                                 .then(Commands.argument("player", EntityArgument.player())
                                         .executes(TribulationCommand::runDebug)))
                         .then(Commands.literal("inspect")
-                                .requires(src -> src.hasPermission(2))
+                                .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                                 .executes(TribulationCommand::runInspect))
                         .then(Commands.literal("hearts")
                                 .executes(TribulationCommand::runHeartsSelf)
                                 .then(Commands.argument("player", EntityArgument.player())
-                                        .requires(src -> src.hasPermission(2))
+                                        .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                                         .executes(TribulationCommand::runHearts)
                                         .then(Commands.literal("restore")
                                                 .then(Commands.argument("amount", IntegerArgumentType.integer(1))
@@ -116,14 +117,14 @@ public final class TribulationCommand {
                                         .then(Commands.literal("reset")
                                                 .executes(TribulationCommand::runHeartsReset))))
                         .then(Commands.literal("bloodmoon")
-                                .requires(src -> src.hasPermission(2))
+                                .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                                 .executes(TribulationCommand::runBloodMoonStatus)
                                 .then(Commands.literal("start")
                                         .executes(TribulationCommand::runBloodMoonStart))
                                 .then(Commands.literal("stop")
                                         .executes(TribulationCommand::runBloodMoonStop)))
                         .then(Commands.literal("inventory")
-                                .requires(src -> src.hasPermission(2))
+                                .requires(Commands.hasPermission(Commands.LEVEL_GAMEMASTERS))
                                 .then(Commands.argument("player", EntityArgument.player())
                                         .executes(TribulationCommand::runInventory)))
         );
@@ -148,7 +149,7 @@ public final class TribulationCommand {
 
         src.sendSuccess(() -> Component.literal(String.format(Locale.ROOT,
                 "%s is level %d / %d (%d ticks to next, %s remaining)",
-                target.getGameProfile().getName(), level, cfg.general.maxLevel,
+                target.getGameProfile().name(), level, cfg.general.maxLevel,
                 remaining, formatTicksAsDuration(remaining))), false);
         return Command.SINGLE_SUCCESS;
     }
@@ -165,7 +166,7 @@ public final class TribulationCommand {
         PlayerDifficultyState state = PlayerDifficultyState.getOrCreate(src.getServer());
         int actual = applySetLevel(target, requested, state, cfg);
         src.sendSuccess(() -> Component.literal(String.format(Locale.ROOT,
-                "Set %s to level %d", target.getGameProfile().getName(), actual)), true);
+                "Set %s to level %d", target.getGameProfile().name(), actual)), true);
         return Command.SINGLE_SUCCESS;
     }
 
@@ -196,7 +197,7 @@ public final class TribulationCommand {
             TribulationLevelCallback.EVENT.invoker().onLevelChanged(target, oldLevel, newLevel);
         }
         src.sendSuccess(() -> Component.literal(String.format(Locale.ROOT,
-                "Reset %s to level 0", target.getGameProfile().getName())), true);
+                "Reset %s to level 0", target.getGameProfile().name())), true);
         return Command.SINGLE_SUCCESS;
     }
 
@@ -234,7 +235,7 @@ public final class TribulationCommand {
         PlayerDifficultyState state = PlayerDifficultyState.getOrCreate(src.getServer());
         UUID uuid = player.getUUID();
         for (Component line : formatPlayerInfo(
-                player.getGameProfile().getName(),
+                player.getGameProfile().name(),
                 state.getLevel(uuid),
                 state.getTickCounter(uuid),
                 state.getHeartsLost(uuid),
@@ -284,7 +285,7 @@ public final class TribulationCommand {
             for (ServerPlayer sp : world.players()) {
                 if (ScalingEngine.countsForBlend(sp, target.getX(), target.getY(), target.getZ(), rangeSq)) {
                     considered.add(new ConsideredPlayer(
-                            sp.getGameProfile().getName(),
+                            sp.getGameProfile().name(),
                             state.getLevel(sp.getUUID()),
                             Math.sqrt(sp.distanceToSqr(target.getX(), target.getY(), target.getZ()))));
                 }
@@ -352,7 +353,7 @@ public final class TribulationCommand {
         int currentMax = 20 - heartsLost;
         src.sendSuccess(() -> Component.literal(String.format(Locale.ROOT,
                 "%s has lost %d half-hearts (%d/%d max HP)",
-                target.getGameProfile().getName(), heartsLost, currentMax, 20)), false);
+                target.getGameProfile().name(), heartsLost, currentMax, 20)), false);
         return Command.SINGLE_SUCCESS;
     }
 
@@ -366,7 +367,7 @@ public final class TribulationCommand {
         HardcoreHeartsHandler.applyModifier(target);
         src.sendSuccess(() -> Component.literal(String.format(Locale.ROOT,
                 "Restored %d half-hearts for %s (%d → %d lost)",
-                before - after, target.getGameProfile().getName(), before, after)), true);
+                before - after, target.getGameProfile().name(), before, after)), true);
         return Command.SINGLE_SUCCESS;
     }
 
@@ -378,7 +379,7 @@ public final class TribulationCommand {
         HardcoreHeartsHandler.applyModifier(target);
         src.sendSuccess(() -> Component.literal(String.format(Locale.ROOT,
                 "Cleared heart penalty for %s (was %d half-hearts lost)",
-                target.getGameProfile().getName(), prev)), true);
+                target.getGameProfile().name(), prev)), true);
         return Command.SINGLE_SUCCESS;
     }
 
@@ -393,7 +394,7 @@ public final class TribulationCommand {
         int count = SoulInventoryHandler.countSoulboundItems(target);
         src.sendSuccess(() -> Component.literal(String.format(Locale.ROOT,
                 "%s has %d soulbound item(s)",
-                target.getGameProfile().getName(), count)), false);
+                target.getGameProfile().name(), count)), false);
         return Command.SINGLE_SUCCESS;
     }
 
@@ -411,8 +412,8 @@ public final class TribulationCommand {
                 state.isActive() ? "ACTIVE" : "inactive",
                 onOff(cfg.bloodMoon.enabled),
                 cfg.bloodMoon.chance * 100.0,
-                overworld.getMoonPhase(),
-                overworld.isDay() ? "day" : "night")), false);
+                overworld.environmentAttributes().getDimensionValue(EnvironmentAttributes.MOON_PHASE).index(),
+                overworld.isBrightOutside() ? "day" : "night")), false);
         return Command.SINGLE_SUCCESS;
     }
 
@@ -632,11 +633,11 @@ public final class TribulationCommand {
             double rawMoonFactor
     ) {
         List<String> lines = new ArrayList<>();
-        lines.add("=== Debug: " + target.getGameProfile().getName() + " ===");
+        lines.add("=== Debug: " + target.getGameProfile().name() + " ===");
         lines.add(String.format(Locale.ROOT,
                 "Position: (%.1f, %.1f, %.1f) in %s",
                 target.getX(), target.getY(), target.getZ(),
-                world.dimension().location()));
+                world.dimension().identifier()));
         lines.add(String.format(Locale.ROOT,
                 "Player level: %d  Tier: %d",
                 playerLevel, TierManager.getTier(playerLevel, cfg.tiers)));
@@ -646,13 +647,13 @@ public final class TribulationCommand {
         lines.addAll(formatConsideredPlayers(cfg, considered));
         lines.add(String.format(Locale.ROOT,
                 "Dimension offset: %+d  (%s)",
-                cfg.getDimensionOffset(world.dimension().location()),
-                world.dimension().location()));
+                cfg.getDimensionOffset(world.dimension().identifier()),
+                world.dimension().identifier()));
         Holder<Biome> biome = world.getBiome(target.blockPosition());
         lines.add(String.format(Locale.ROOT,
                 "Biome offset: %+d  (%s)",
                 cfg.getBiomeOffset(biome),
-                biome.unwrapKey().map(key -> key.location().toString()).orElse("unknown")));
+                biome.unwrapKey().map(key -> key.identifier().toString()).orElse("unknown")));
         if (cfg.hasStructureBoosts()) {
             lines.add(formatStructureBoostLine(
                     StructureBoostManager.zonesAt(world, target.getX(), target.getZ(), cfg),
@@ -675,7 +676,7 @@ public final class TribulationCommand {
             boolean bloodMoon = BloodMoonHandler.isActive(world);
             lines.add(String.format(Locale.ROOT,
                     "Moon phase: %d  →  factor %+.3f%s",
-                    world.getMoonPhase(), rawMoonFactor,
+                    world.environmentAttributes().getDimensionValue(EnvironmentAttributes.MOON_PHASE).index(), rawMoonFactor,
                     bloodMoon
                             ? String.format(Locale.ROOT, "  (BLOOD MOON ×%.1f)", cfg.bloodMoon.moonBonusMultiplier)
                             : ""));
@@ -683,7 +684,7 @@ public final class TribulationCommand {
             String reason;
             if (cfg.moonPhaseScaling.maxBonus <= 0) {
                 reason = "maxBonus is 0";
-            } else if (world.isDay()) {
+            } else if (world.isBrightOutside()) {
                 reason = "day";
             } else if (!world.dimensionType().hasSkyLight() || world.dimensionType().hasCeiling()) {
                 reason = "no daylight cycle";
@@ -726,7 +727,7 @@ public final class TribulationCommand {
         List<String> lines = new ArrayList<>();
         Identifier typeId = BuiltInRegistries.ENTITY_TYPE.getKey(mob.getType());
         EntityType<?> type = mob.getType();
-        boolean isBoss = type.is(MobScalingHandler.BOSSES_TAG);
+        boolean isBoss = type.builtInRegistryHolder().is(MobScalingHandler.BOSSES_TAG);
         String toggleKey = MobScalingHandler.resolveToggleKey(typeId);
         Variant variant = detectVariant(mob);
 
@@ -837,10 +838,10 @@ public final class TribulationCommand {
      */
     static Variant detectVariant(Mob mob) {
         if (mob == null) return Variant.NONE;
-        if (mob.getTags().contains(SkeletonVariantHandler.DEADEYE_TAG)) {
+        if (mob.entityTags().contains(SkeletonVariantHandler.DEADEYE_TAG)) {
             return Variant.DEADEYE;
         }
-        if (mob.getTags().contains(SkeletonVariantHandler.BRUTE_TAG)) {
+        if (mob.entityTags().contains(SkeletonVariantHandler.BRUTE_TAG)) {
             return Variant.BRUTE;
         }
         if (hasModifier(mob, ZombieVariantHandler.BIG_HEALTH_ID)
@@ -897,7 +898,7 @@ public final class TribulationCommand {
     }
 
     private static double horizontalDistanceFromSpawn(ServerLevel world, double x, double z) {
-        var spawn = world.getSharedSpawnPos();
+        var spawn = world.getRespawnData().pos();
         double dx = x - spawn.getX();
         double dz = z - spawn.getZ();
         return Math.sqrt(dx * dx + dz * dz);
