@@ -4,7 +4,9 @@ package com.rfizzle.tribulation.data;
 import com.rfizzle.tribulation.config.TribulationConfig;
 import net.minecraft.core.UUIDUtil;
 import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.IntArrayTag;
 import net.minecraft.nbt.ListTag;
+import net.minecraft.nbt.StringTag;
 import org.junit.jupiter.api.Test;
 
 import java.util.ArrayList;
@@ -1221,6 +1223,62 @@ class PlayerDifficultyStateTest {
 
         assertEquals(0, loaded.getLevel(uuid));
         assertEquals(0, loaded.getHeartsLost(uuid));
+    }
+
+    @Test
+    void nbt_load_readsAPlayerSavedByTheOneTwentyOneBuild() {
+        // 1.21.1 wrote the UUID with CompoundTag.putUUID: an int array of the four
+        // 32-bit words, most significant first. Built by hand so the test does not
+        // lean on the 26.x codec it is checking.
+        UUID uuid = UUID.fromString("0f1e2d3c-4b5a-6978-8796-a5b4c3d2e1f0");
+        long msb = uuid.getMostSignificantBits();
+        long lsb = uuid.getLeastSignificantBits();
+        CompoundTag playerTag = new CompoundTag();
+        playerTag.put("UUID", new IntArrayTag(new int[]{
+                (int) (msb >> 32), (int) msb, (int) (lsb >> 32), (int) lsb}));
+        playerTag.putInt("Level", 120);
+        playerTag.putInt("Tick", 3456);
+        playerTag.putLong("LastDeathTick", 98765L);
+        playerTag.putInt("HeartsLost", 4);
+        playerTag.putLong("LastSeenEpochMs", 1_700_000_000_000L);
+        playerTag.putBoolean("SeenLevelUpIntro", true);
+        playerTag.putBoolean("SeenTierDiscoveryHint", true);
+        ListTag list = new ListTag();
+        list.add(playerTag);
+        CompoundTag tag = new CompoundTag();
+        tag.put("Players", list);
+
+        PlayerDifficultyState loaded = PlayerDifficultyState.load(tag, null);
+
+        PlayerDifficultyState.PlayerData pd = loaded.getPlayerData(uuid);
+        assertEquals(120, pd.level);
+        assertEquals(3456, pd.tickCounter);
+        assertEquals(98765L, pd.lastDeathTick);
+        assertEquals(4, pd.heartsLost);
+        assertEquals(1_700_000_000_000L, pd.lastSeenEpochMs);
+        assertTrue(pd.seenLevelUpIntro);
+        assertTrue(pd.seenTierDiscoveryHint);
+    }
+
+    @Test
+    void nbt_load_skipsMalformedEntriesAndKeepsValidOnes() {
+        UUID valid = UUID.randomUUID();
+        CompoundTag tag = singlePlayerTag(valid, 50, 0);
+        ListTag list = (ListTag) tag.get("Players");
+        list.add(StringTag.valueOf("not a player"));
+        CompoundTag noUuid = new CompoundTag();
+        noUuid.putInt("Level", 70);
+        list.add(noUuid);
+        CompoundTag badUuid = new CompoundTag();
+        badUuid.put("UUID", new IntArrayTag(new int[]{1, 2, 3}));
+        badUuid.putInt("Level", 80);
+        list.add(badUuid);
+
+        PlayerDifficultyState loaded = PlayerDifficultyState.load(tag, null);
+
+        assertEquals(50, loaded.getLevel(valid));
+        ListTag saved = (ListTag) loaded.save(new CompoundTag(), null).get("Players");
+        assertEquals(1, saved.size());
     }
 
     private static CompoundTag singlePlayerTag(UUID uuid, int level, int heartsLost) {

@@ -271,6 +271,12 @@ Si el port se alarga, **BuffMobs** ya soporta 26.3 en Fabric (escalado por días
 - **Migración de datos guardados.** En 26.x el almacenamiento del overworld guarda cada `SavedData` en `dimensions/minecraft/overworld/data/<namespace>/<nombre>.dat`. La actualización de mundos de vanilla (`DimensionStorageFileFix`) solo mueve los archivos de vanilla que nombra, así que `data/tribulation_players.dat` y `data/tribulation_blood_moon.dat` quedaban donde el mod ya no los lee: en un mundo actualizado todos los jugadores volvían a nivel 0. `data/LegacySavedDataMigration` mueve cada archivo a la ruta nueva en `SERVER_STARTING` (antes de que se carguen los mundos), sin convertir nada porque el NBT no cambió. Nunca pisa un archivo que ya exista en la ruta nueva (avisa en el log y deja el viejo intacto) y, si el movimiento falla, deja el archivo viejo en su lugar y explica cómo moverlo a mano.
 - Probado de punta a punta con un mundo creado en 1.21.1 (`master`, JDK 21) con una Blood Moon activa: sin la migración, 26.3 lo abre con la Blood Moon `inactive`; con la migración, el log dice `Moved legacy Tribulation data ...` y sigue `ACTIVE`. Si el mundo ya se había abierto una vez sin migración (existen los dos archivos), avisa y no toca nada.
 - `./gradlew build`: OK, 904 tests unitarios (898 + 6 de la migración). `./gradlew runGametest`: OK, 149 gametests.
+- Después de la review, cuatro arreglos:
+  - **Raids cargados desde disco**: en 1.21.1, un raid restaurado calculaba sus olas extra en la primera ola con ravager, dentro de `spawnGroup`, leyendo `Raid.level`. En 26.x no había nivel ahí y quedaba en 0 olas extra. `RaidScalingMixin` ahora publica el nivel mientras corre `spawnGroup`. Nuevo gametest `restoredRaidKeepsTierWavesWhenSpawningAGroup` (falla sin el arreglo: 5 en vez de 7).
+  - **Día de la Blood Moon**: sin cambios. `DayTimeToClockFix` de vanilla copia el `DayTime` de 1.21.1 al reloj `minecraft:overworld`, que es lo que devuelve `getOverworldClockTime()`, así que el `LastRolledDay` guardado sigue valiendo.
+  - **UUIDs de 1.21.1**: dos tests nuevos prueban que un jugador guardado con `putUUID` (array de 4 ints) se carga con todos sus campos y que las entradas rotas se saltean.
+  - **Mensajes de la migración**: si falla, o si ya existe el archivo nuevo, el log ahora dice que hay que reemplazar el archivo nuevo con el viejo.
+- `./gradlew build`: OK, 907 tests unitarios. `./gradlew runGametest`: OK, 150 gametests.
 
 ### Desactivado temporalmente
 

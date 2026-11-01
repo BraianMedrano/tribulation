@@ -111,6 +111,24 @@ class LegacySavedDataMigrationTest {
         assertArrayEquals(LEGACY_BYTES, Files.readAllBytes(legacy));
     }
 
+    @Test
+    void message_tellsTheAdminToReplaceTheTargetWhenTheLegacyFileStayedBehind() {
+        Path legacy = LegacySavedDataMigration.legacyFile(world, PlayerDifficultyState.STORAGE_KEY);
+        Path target = LegacySavedDataMigration.targetFile(world, PlayerDifficultyState.STORAGE_KEY);
+        String replace = "stop the server and replace " + target;
+
+        String failed = LegacySavedDataMigration.message(new Result(legacy, target, Outcome.FAILED, "boom"));
+        assertTrue(failed.contains(replace + " with " + legacy), failed);
+        assertTrue(failed.contains("boom"), failed);
+
+        String targetExists = LegacySavedDataMigration.message(new Result(legacy, target, Outcome.TARGET_EXISTS, null));
+        assertTrue(targetExists.contains(replace + " with it"), targetExists);
+
+        assertTrue(LegacySavedDataMigration.message(new Result(legacy, target, Outcome.MOVED, null))
+                .contains(legacy + " to " + target));
+        assertEquals(null, LegacySavedDataMigration.message(new Result(legacy, target, Outcome.NO_LEGACY_FILE, null)));
+    }
+
     private static void write(Path file, byte[] bytes) throws IOException {
         Files.createDirectories(file.getParent());
         Files.write(file, bytes);

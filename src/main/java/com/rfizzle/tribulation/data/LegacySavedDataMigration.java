@@ -49,20 +49,36 @@ public final class LegacySavedDataMigration {
     private static void run(MinecraftServer server) {
         Path worldRoot = server.getWorldPath(LevelResource.ROOT).normalize();
         for (Result result : migrateWorld(worldRoot)) {
+            String message = message(result);
             switch (result.outcome()) {
-                case MOVED -> Tribulation.LOGGER.info(
-                        "Moved legacy Tribulation data {} to {}", result.from(), result.to());
-                case TARGET_EXISTS -> Tribulation.LOGGER.warn(
-                        "Legacy Tribulation data {} was not moved because {} already exists; "
-                                + "the existing file is used and the legacy one is left untouched",
-                        result.from(), result.to());
-                case FAILED -> Tribulation.LOGGER.error(
-                        "Could not move legacy Tribulation data {} to {} ({}); move it there by hand "
-                                + "with the server stopped to keep this world's Tribulation progress",
-                        result.from(), result.to(), result.error());
+                case MOVED -> Tribulation.LOGGER.info(message);
+                case TARGET_EXISTS -> Tribulation.LOGGER.warn(message);
+                case FAILED -> Tribulation.LOGGER.error(message);
                 case NO_LEGACY_FILE -> { }
             }
         }
+    }
+
+    /**
+     * The log line for a result, or {@code null} when there is nothing to report. After a
+     * failed move the server goes on to write a fresh file at the target, so later starts
+     * report {@link Outcome#TARGET_EXISTS}; both messages therefore say the target has to be
+     * replaced, not just that the legacy file has to be moved.
+     */
+    static String message(Result result) {
+        return switch (result.outcome()) {
+            case MOVED -> "Moved legacy Tribulation data " + result.from() + " to " + result.to();
+            case TARGET_EXISTS -> "Legacy Tribulation data " + result.from() + " was not moved because "
+                    + result.to() + " already exists, so the existing file is used and the legacy one is "
+                    + "left untouched. If the legacy file holds this world's real progress (for example, "
+                    + "the world was opened once by a build that could not move it), stop the server and "
+                    + "replace " + result.to() + " with it.";
+            case FAILED -> "Could not move legacy Tribulation data " + result.from() + " to " + result.to()
+                    + " (" + result.error() + "). This start uses empty Tribulation data and will save it "
+                    + "to " + result.to() + ". To keep this world's progress, stop the server and replace "
+                    + result.to() + " with " + result.from() + ".";
+            case NO_LEGACY_FILE -> null;
+        };
     }
 
     static List<Result> migrateWorld(Path worldRoot) {
