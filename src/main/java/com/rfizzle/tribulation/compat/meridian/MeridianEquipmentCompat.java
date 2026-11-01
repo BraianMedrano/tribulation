@@ -150,8 +150,9 @@ public final class MeridianEquipmentCompat {
      * so the handles are resolved only when {@link #augment} first calls in — after the caller's
      * {@code isModLoaded} guard has passed. A missing class or method fails the static initializer,
      * which {@link #augment}'s {@code catch (Throwable)} degrades to the vanilla-enchanted item.
+     * Package-private so {@code MeridianEquipmentCompatApiTest} can check the handles resolve.
      */
-    private static final class Api {
+    static final class Api {
         private static final MethodHandle GET_ENCHANTMENT_INFO;
         private static final MethodHandle ENABLED;
         private static final MethodHandle GET_MAX_LEVEL;

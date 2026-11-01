@@ -1,6 +1,7 @@
 package com.rfizzle.tribulation.mixin;
 
 import com.rfizzle.tribulation.Tribulation;
+import net.minecraft.server.level.ServerLevel;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
 import net.minecraft.world.entity.Entity;
@@ -21,8 +22,8 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfoReturnable;
 @Mixin(Husk.class)
 public abstract class HuskAbilityMixin {
 
-    @Inject(method = "doHurtTarget(Lnet/minecraft/world/entity/Entity;)Z", at = @At("RETURN"))
-    private void tribulation$upgradeHunger(Entity target, CallbackInfoReturnable<Boolean> cir) {
+    @Inject(method = "doHurtTarget(Lnet/minecraft/server/level/ServerLevel;Lnet/minecraft/world/entity/Entity;)Z", at = @At("RETURN"))
+    private void tribulation$upgradeHunger(ServerLevel level, Entity target, CallbackInfoReturnable<Boolean> cir) {
         if (!cir.getReturnValue()) return;
         if (!(target instanceof LivingEntity living)) return;
         Mob self = (Mob) (Object) this;

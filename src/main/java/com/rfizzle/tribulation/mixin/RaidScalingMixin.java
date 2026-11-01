@@ -4,6 +4,7 @@ import com.llamalad7.mixinextras.injector.ModifyReturnValue;
 import com.rfizzle.tribulation.Tribulation;
 import com.rfizzle.tribulation.config.TribulationConfig;
 import com.rfizzle.tribulation.data.PlayerDifficultyState;
+import com.rfizzle.tribulation.scaling.RaidCreationContext;
 import com.rfizzle.tribulation.scaling.ScalingEngine;
 import com.rfizzle.tribulation.scaling.TierManager;
 import net.minecraft.core.BlockPos;
@@ -13,7 +14,6 @@ import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.entity.EntitySelector;
 import net.minecraft.world.entity.raid.Raid;
 import net.minecraft.world.phys.Vec3;
-import org.spongepowered.asm.mixin.Final;
 import org.spongepowered.asm.mixin.Mixin;
 import org.spongepowered.asm.mixin.Shadow;
 import org.spongepowered.asm.mixin.Unique;
@@ -41,11 +41,13 @@ import java.util.List;
  * constructor, where the instigators are present near the raid centre, so the
  * value is captured from the raid's triggering players and stays consistent
  * across the constructor, the bar, and every {@code spawnGroup} call.
+ *
+ * <p>Since 26.1 the raid no longer holds its level and the live constructor does
+ * not receive it, so the level comes from {@link RaidCreationContext}, which
+ * {@code RaidsMixin} fills while the constructor runs.
  */
 @Mixin(Raid.class)
 public abstract class RaidScalingMixin {
-
-    @Shadow @Final private ServerLevel level;
 
     @Shadow public abstract BlockPos getCenter();
 
@@ -80,7 +82,7 @@ public abstract class RaidScalingMixin {
      */
     @Unique
     private int tribulation$detectedLevel(TribulationConfig cfg) {
-        ServerLevel world = this.level;
+        ServerLevel world = RaidCreationContext.level();
         if (world == null) return 0;
         MinecraftServer server = world.getServer();
         if (server == null) return 0;

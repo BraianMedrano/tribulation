@@ -241,6 +241,17 @@ Si el port se alarga, **BuffMobs** ya soporta 26.3 en Fabric (escalado por días
 - Los cuatro source sets (`main`, `client`, `test`, `gametest`) compilan en 26.3 con JDK 25. Detalle de cada reemplazo de API en `odd/tasks/port-26-3.md` (L11).
 - Pendiente de verificar en fases siguientes: los `SavedData` ahora se guardan en `dimensions/minecraft/overworld/data/tribulation/` (ruta de 26.x), así que un mundo actualizado desde 1.21.1 arrancaría sin el estado de Tribulation (Fase 6); faltan las definiciones `assets/tribulation/items/*.json` que pide 26.x para el modelo de cada ítem (Fase 7); hay que regenerar datagen por el cambio de id del fondo de advancements (Fase 4).
 
+### Fase 4 (tests unitarios, 2026-11-01)
+
+- `./gradlew build`: OK. 898 tests unitarios, 0 fallos (los 896 de la línea base más 2 nuevos para Meridian).
+- `gradle/concord-common.gradle`: se quitó la exclusión de `fabric-api` en `testRuntimeClasspath`. Existía porque en 1.21.1 Loom dejaba una copia sin remapear de fabric-api cuyo access widener chocaba con la remapeada. En 26.x no hay remapeo, así que la exclusión sacaba fabric-api entero y `fabric-loader-junit` no arrancaba ("requires any version of fabric-api, which is missing").
+- Mixins que no aplicaban (javac no valida los strings de `method`/`target`, por eso la Fase 3 no los vio). Se auditaron los 26 mixins de `tribulation.mixins.json` con `javap` contra el jar de 26.3:
+  - `MobAbilityMixin` y `HuskAbilityMixin`: `doHurtTarget(Entity)` pasó a ser `doHurtTarget(ServerLevel, Entity)`. El Husk sigue aplicando Hunger I antes del `RETURN` donde lo subimos a Hunger II.
+  - `NaturalSpawnerSpawnStateMixin`: `SpawnState.canSpawnForCategory` se dividió en `canSpawnForCategoryGlobal` (el tope global con `getMaxInstancesPerChunk`, que es lo que redirigimos) y `canSpawnForCategoryLocal` (que ya cubre `LocalMobCapCalculatorMixin`). Mismo cálculo.
+  - `RaidScalingMixin`: `Raid` ya no guarda su `ServerLevel` y el constructor `Raid(BlockPos, Difficulty)` no lo recibe, pero ahí es donde corre la primera llamada a `getNumGroups`, que captura el tier. El nuevo `RaidsMixin` envuelve el `new Raid(...)` de `Raids.getOrCreateRaid` (el único lugar que crea raids vivos) y publica el nivel en `scaling/RaidCreationContext` (un `ThreadLocal` que se limpia en `finally`) mientras corre el constructor.
+- Meridian: `MeridianEquipmentCompatApiTest` prueba que los `MethodHandle` resuelven y que los valores pasan bien por los casts de `invoke`, contra stand-ins con la forma de `meridian-1.0.0` en `src/test/java/com/rfizzle/meridian/api/`. Se verificó que falla si se cambia la firma de un handle.
+- Datagen regenerado: solo cambian las 11 advancements (`background` ahora es `minecraft:gui/advancements/backgrounds/stone` y el ícono omite `count: 1`, que es el valor por defecto en 26.x).
+
 ### Desactivado temporalmente
 
 | Qué | Cómo | Motivo | Cómo restaurarlo |

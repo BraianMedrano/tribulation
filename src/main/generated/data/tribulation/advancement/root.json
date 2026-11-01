@@ -6,12 +6,11 @@
   },
   "display": {
     "announce_to_chat": false,
-    "background": "minecraft:textures/gui/advancements/backgrounds/stone.png",
+    "background": "minecraft:gui/advancements/backgrounds/stone",
     "description": {
       "translate": "advancements.tribulation.root.description"
     },
     "icon": {
-      "count": 1,
       "id": "tribulation:shatter_shard"
     },
     "title": {

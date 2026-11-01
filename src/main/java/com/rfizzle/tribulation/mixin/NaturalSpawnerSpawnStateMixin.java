@@ -24,7 +24,7 @@ public abstract class NaturalSpawnerSpawnStateMixin {
     @Shadow @Final private LocalMobCapCalculator localMobCapCalculator;
 
     @Redirect(
-            method = "canSpawnForCategory",
+            method = "canSpawnForCategoryGlobal",
             at = @At(
                     value = "INVOKE",
                     target = "Lnet/minecraft/world/entity/MobCategory;getMaxInstancesPerChunk()I"))

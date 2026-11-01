@@ -248,9 +248,10 @@ tasks.matching { it.name == 'runGametest' }.configureEach {
 // fabric-loader-junit then reads both the remapped (named) AW and the unmapped (intermediary)
 // AW and aborts on namespace mismatch. Dropping the unmapped sibling keeps the remapped
 // artifacts in place and lets the junit launcher boot.
-configurations.testRuntimeClasspath {
-    exclude group: 'net.fabricmc.fabric-api', module: 'fabric-api'
-}
+// Port to 26.3: 26.x ships unobfuscated, so Loom no longer remaps fabric-api and there is no
+// intermediary access widener to clash with. The exclusion would remove fabric-api (and all its
+// modules) from the test runtime, and fabric-loader-junit then refuses to start because
+// tribulation depends on it. Dropped on the port branch; see PORTING.md.
 
 test {
     useJUnitPlatform()
