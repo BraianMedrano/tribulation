@@ -6,12 +6,8 @@
         " S "
     ],
     "key": {
-        "S": {
-            "item": "tribulation:shatter_shard"
-        },
-        "N": {
-            "item": "minecraft:nether_star"
-        }
+        "S": "tribulation:shatter_shard",
+        "N": "minecraft:nether_star"
     },
     "result": {
         "id": "tribulation:ascendant_shard",

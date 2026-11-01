@@ -252,6 +252,17 @@ Si el port se alarga, **BuffMobs** ya soporta 26.3 en Fabric (escalado por días
 - Meridian: `MeridianEquipmentCompatApiTest` prueba que los `MethodHandle` resuelven y que los valores pasan bien por los casts de `invoke`, contra stand-ins con la forma de `meridian-1.0.0` en `src/test/java/com/rfizzle/meridian/api/`. Se verificó que falla si se cambia la firma de un handle.
 - Datagen regenerado: solo cambian las 11 advancements (`background` ahora es `minecraft:gui/advancements/backgrounds/stone` y el ícono omite `count: 1`, que es el valor por defecto en 26.x).
 
+### Fase 5 (gametests, 2026-11-01)
+
+- `./gradlew runGametest`: OK. 149 gametests (los 148 que ya existían más uno nuevo de raids), 0 fallos. `./gradlew build`: OK, 898 tests unitarios.
+- El server no arrancaba: las dos recetas escritas a mano (`ascendant_shard`, `heart_fragment`) y sus advancements seguían en formato 1.21.1. En 26.x un ingrediente es un id (`"S": "tribulation:shatter_shard"`, ya no `{"item": ...}`) y la condición de `recipe_unlocked` se llama `recipes`. Un server dedicado también habría fallado al cargar el mundo.
+- Cambios de 26.x que afectaban a los tests, no al mod:
+  - El framework encierra cada estructura de test en barreras, techo incluido, salvo que el test declare `skyAccess = true`. En una estructura de 3 de alto, la barrera queda encima de la cama (vanilla la da por obstruida) y a la altura de los ojos de los mobs (corta la línea de visión que pide Pack Tactics). Los tests de cama de Blood Moon y los siete de alerta de Pack Tactics usan `skyAccess = true`; sin eso, los cinco tests negativos de Pack Tactics pasaban sin probar nada.
+  - `CompoundTag.getString` devuelve `Optional<String>`: `"deadeye".equals(...)` compilaba pero siempre daba falso. Se usa `getStringOr`.
+  - `ServerPlayer.spawnInvulnerableTime` ya no existe: un jugador es invulnerable hasta que su cliente avisa que cargó (`connection.hasClientLoaded()`). El test manda el mismo paquete que un cliente real (`ServerboundPlayerLoadedPacket`).
+  - `Mob.setTarget` y `getTarget` ahora descartan jugadores en creativo, y `MockPlayers` forzaba `isCreative() == true` aunque el test pusiera supervivencia. Se quitó ese override: el server de tests ya pone a los jugadores en creativo por defecto, así que solo cambia algo para los tests que piden supervivencia a propósito. `MockPlayers` es un archivo de Concord: este cambio hay que llevarlo al hub (igual que el de `level().getServer()` de la Fase 3).
+- Nuevo gametest `raidWaveCountFollowsTargetedPlayerTier`: crea raids reales con `Raids.createOrExtendRaid` y lee el `group_count` guardado en el raid. Con tier 0 da las olas de vanilla, con tier 5 suma las extra, y con el escalado apagado vuelve a vanilla. Se comprobó que falla sin `RaidsMixin` (da 5 en vez de 7).
+
 ### Desactivado temporalmente
 
 | Qué | Cómo | Motivo | Cómo restaurarlo |

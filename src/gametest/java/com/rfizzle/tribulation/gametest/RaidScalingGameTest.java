@@ -1,19 +1,28 @@
 // Tier: 3 (Fabric Gametest)
 package com.rfizzle.tribulation.gametest;
 
+import com.rfizzle.concord.gametest.MockPlayers;
+import com.rfizzle.tribulation.Tribulation;
 import com.rfizzle.tribulation.config.TribulationConfig;
+import com.rfizzle.tribulation.data.PlayerDifficultyState;
 import com.rfizzle.tribulation.event.RaidScalingHandler;
 import com.rfizzle.tribulation.event.WeaponEquipmentHandler;
 import com.rfizzle.tribulation.scaling.TierManager;
 import net.minecraft.core.BlockPos;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.nbt.NbtOps;
 import net.minecraft.server.level.ServerLevel;
+import net.minecraft.server.level.ServerPlayer;
+import net.minecraft.world.Difficulty;
 import net.minecraft.world.entity.EntityType;
 import net.minecraft.world.entity.EntityTypes;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.monster.illager.Pillager;
+import net.minecraft.world.entity.raid.Raid;
+import net.minecraft.world.entity.raid.Raids;
 import net.minecraft.world.item.Item;
 import net.minecraft.world.item.ItemStack;
 
@@ -104,6 +113,89 @@ public class RaidScalingGameTest {
             }
             helper.succeed();
         });
+    }
+
+    // ---- extra raid waves (RaidsMixin + RaidScalingMixin, end to end) ----
+
+    /** Extra waves granted at or above the threshold; distinct from the default 1. */
+    private static final int EXTRA_WAVES = 2;
+
+    /**
+     * Narrow detection radius used while a raid is created, so only this test's
+     * player is folded in and never a mock player from a neighbouring structure.
+     */
+    private static final double ISOLATED_DETECTION_RANGE = 2.0;
+
+    /** Vanilla {@code Raid.getNumGroups} table, before any extra waves. */
+    private static int vanillaWaves(Difficulty difficulty) {
+        return switch (difficulty) {
+            case PEACEFUL -> 0;
+            case EASY -> 3;
+            case NORMAL -> 5;
+            case HARD -> 7;
+        };
+    }
+
+    /**
+     * Starts a live raid through {@link Raids#createOrExtendRaid} (the path a Raid
+     * Omen takes), reads the wave count frozen into the raid, then stops it so the
+     * next creation builds a fresh raid instead of extending this one.
+     */
+    private static int createRaidAndReadWaves(GameTestHelper helper, ServerPlayer player, BlockPos center) {
+        Raid raid = helper.getLevel().getRaids().createOrExtendRaid(player, center);
+        helper.assertTrue(raid != null, "createOrExtendRaid must start a raid in the test level");
+        try {
+            CompoundTag saved = (CompoundTag) Raid.MAP_CODEC.codec()
+                    .encodeStart(NbtOps.INSTANCE, raid).getOrThrow();
+            return saved.getIntOr("group_count", -1);
+        } finally {
+            raid.stop();
+        }
+    }
+
+    @GameTest(structure = "tribulation:empty_3x3")
+    public void raidWaveCountFollowsTargetedPlayerTier(GameTestHelper helper) {
+        ServerLevel world = helper.getLevel();
+        BlockPos center = helper.absolutePos(CAPTAIN_POS);
+        ServerPlayer player = MockPlayers.serverPlayerInLevel(helper);
+        player.teleportTo(center.getX() + 0.5, center.getY(), center.getZ() + 0.5);
+
+        // The mixins read the live config; mutate it only inside this synchronous
+        // body so no other test observes the change.
+        TribulationConfig live = Tribulation.getConfig();
+        PlayerDifficultyState state = PlayerDifficultyState.getOrCreate(world.getServer());
+        boolean savedEnabled = live.raidScaling.enabled;
+        int savedThreshold = live.raidScaling.extraWaveTierThreshold;
+        int savedCount = live.raidScaling.extraWaveCount;
+        double savedRange = live.general.mobDetectionRange;
+        int savedLevel = state.getLevel(player.getUUID());
+        try {
+            live.raidScaling.enabled = true;
+            live.raidScaling.extraWaveTierThreshold = 4;
+            live.raidScaling.extraWaveCount = EXTRA_WAVES;
+            live.general.mobDetectionRange = ISOLATED_DETECTION_RANGE;
+            int vanilla = vanillaWaves(world.getDifficulty());
+
+            state.setLevel(player.getUUID(), 0, live.general.maxLevel);
+            int lowTier = createRaidAndReadWaves(helper, player, center);
+            helper.assertValueEqual(lowTier, vanilla, "waves for a tier-0 player");
+
+            state.setLevel(player.getUUID(), live.tiers.tier5, live.general.maxLevel);
+            int highTier = createRaidAndReadWaves(helper, player, center);
+            helper.assertValueEqual(highTier, vanilla + EXTRA_WAVES, "waves for a tier-5 player");
+
+            live.raidScaling.enabled = false;
+            int disabled = createRaidAndReadWaves(helper, player, center);
+            helper.assertValueEqual(disabled, vanilla, "waves for a tier-5 player with raid scaling off");
+        } finally {
+            live.raidScaling.enabled = savedEnabled;
+            live.raidScaling.extraWaveTierThreshold = savedThreshold;
+            live.raidScaling.extraWaveCount = savedCount;
+            live.general.mobDetectionRange = savedRange;
+            state.setLevel(player.getUUID(), savedLevel, live.general.maxLevel);
+            MockPlayers.retire(player);
+        }
+        helper.succeed();
     }
 
     @GameTest(structure = "tribulation:empty_3x3")

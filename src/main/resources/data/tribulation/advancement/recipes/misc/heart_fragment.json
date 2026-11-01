@@ -12,7 +12,7 @@
         "has_the_recipe": {
             "trigger": "minecraft:recipe_unlocked",
             "conditions": {
-                "recipe": "tribulation:heart_fragment"
+                "recipes": "tribulation:heart_fragment"
             }
         }
     },

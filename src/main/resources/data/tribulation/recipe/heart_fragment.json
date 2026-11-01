@@ -6,12 +6,8 @@
         " S "
     ],
     "key": {
-        "S": {
-            "item": "tribulation:shatter_shard"
-        },
-        "A": {
-            "item": "minecraft:golden_apple"
-        }
+        "S": "tribulation:shatter_shard",
+        "A": "minecraft:golden_apple"
     },
     "result": {
         "id": "tribulation:heart_fragment",

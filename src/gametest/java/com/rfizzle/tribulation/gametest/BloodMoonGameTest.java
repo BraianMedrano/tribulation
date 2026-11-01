@@ -148,6 +148,9 @@ public class BloodMoonGameTest {
      * {@link EntitySleepEvents#ALLOW_SLEEPING} hook — so {@code isSleeping()}
      * is genuinely true. Callers must have set night time first (vanilla
      * refuses daytime sleep) and are responsible for discarding the player.
+     * Callers also need {@code skyAccess = true}: the framework otherwise roofs
+     * the structure with barriers, and a suffocating block above the bed makes
+     * vanilla reject it as obstructed.
      */
     private ServerPlayer putPlayerToSleep(GameTestHelper helper) {
         BlockPos footRel = BED_HEAD_REL.north();
@@ -184,7 +187,7 @@ public class BloodMoonGameTest {
      * {@code ALLOW_SLEEPING} hook can never catch — and the bed then refuses
      * re-entry like any other blood-moon bed attempt.
      */
-    @GameTest(structure = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3", skyAccess = true)
     public void bloodMoon_wakesSleepersOnStart(GameTestHelper helper) {
         MinecraftServer server = helper.getLevel().getServer();
         TribulationConfig cfg = Tribulation.getConfig();
@@ -232,7 +235,7 @@ public class BloodMoonGameTest {
     }
 
     /** With {@code blockSleep} off, an event start leaves sleepers untouched. */
-    @GameTest(structure = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3", skyAccess = true)
     public void bloodMoon_leavesSleepersWhenBlockSleepOff(GameTestHelper helper) {
         MinecraftServer server = helper.getLevel().getServer();
         TribulationConfig cfg = Tribulation.getConfig();
@@ -275,7 +278,7 @@ public class BloodMoonGameTest {
      * a sleeper already deep into vanilla's 100-tick skip countdown is woken
      * before the skip's next top-of-tick read.
      */
-    @GameTest(structure = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3", skyAccess = true)
     public void bloodMoon_wakesMidEventSleeper(GameTestHelper helper) {
         MinecraftServer server = helper.getLevel().getServer();
         TribulationConfig cfg = Tribulation.getConfig();

@@ -27,6 +27,9 @@ import net.minecraft.world.level.GameType;
  */
 public class PackTacticsGameTest {
 
+    // The alert tests use skyAccess: otherwise the framework roofs the 3-high
+    // structure with barriers at the mobs' eye height, which blocks the
+    // packmate-to-victim line of sight the alert requires.
     private static final BlockPos VICTIM_POS = new BlockPos(1, 2, 1);
     private static final BlockPos PACKMATE_POS = new BlockPos(2, 2, 1);
 
@@ -48,7 +51,7 @@ public class PackTacticsGameTest {
         return helper.getLevel().damageSources().playerAttack(player);
     }
 
-    @GameTest(structure = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3", skyAccess = true)
     public void packmateAcquiresTargetAboveThreshold(GameTestHelper helper) {
         Mob victim = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, VICTIM_POS);
         Mob packmate = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, PACKMATE_POS);
@@ -64,7 +67,7 @@ public class PackTacticsGameTest {
         helper.succeed();
     }
 
-    @GameTest(structure = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3", skyAccess = true)
     public void packmateStaysVanillaBelowThreshold(GameTestHelper helper) {
         Mob victim = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, VICTIM_POS);
         Mob packmate = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, PACKMATE_POS);
@@ -80,7 +83,7 @@ public class PackTacticsGameTest {
         helper.succeed();
     }
 
-    @GameTest(structure = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3", skyAccess = true)
     public void masterToggleDisablesSharedAggro(GameTestHelper helper) {
         Mob victim = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, VICTIM_POS);
         Mob packmate = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, PACKMATE_POS);
@@ -98,7 +101,7 @@ public class PackTacticsGameTest {
         helper.succeed();
     }
 
-    @GameTest(structure = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3", skyAccess = true)
     public void crossTypeMobIsNotAlerted(GameTestHelper helper) {
         Mob victim = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, VICTIM_POS);
         Mob bystander = helper.spawnWithNoFreeWill(EntityTypes.SKELETON, PACKMATE_POS);
@@ -114,7 +117,7 @@ public class PackTacticsGameTest {
         helper.succeed();
     }
 
-    @GameTest(structure = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3", skyAccess = true)
     public void ineligibleTypeIsNotAlerted(GameTestHelper helper) {
         Mob victim = helper.spawnWithNoFreeWill(EntityTypes.CREEPER, VICTIM_POS);
         Mob packmate = helper.spawnWithNoFreeWill(EntityTypes.CREEPER, PACKMATE_POS);
@@ -130,7 +133,7 @@ public class PackTacticsGameTest {
         helper.succeed();
     }
 
-    @GameTest(structure = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3", skyAccess = true)
     public void engagedPackmateKeepsItsTarget(GameTestHelper helper) {
         Mob victim = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, VICTIM_POS);
         Mob packmate = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, PACKMATE_POS);
@@ -149,7 +152,7 @@ public class PackTacticsGameTest {
         helper.succeed();
     }
 
-    @GameTest(structure = "tribulation:empty_3x3")
+    @GameTest(structure = "tribulation:empty_3x3", skyAccess = true)
     public void realDamageEventAlertsPack(GameTestHelper helper) {
         Mob victim = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, VICTIM_POS);
         Mob packmate = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, PACKMATE_POS);

@@ -200,9 +200,9 @@ public class SkeletonVariantGameTest {
 
             CompoundTag data = new CompoundTag();
             MobScalingDataCollector.collect(sk, data);
-            helper.assertTrue("deadeye".equals(data.getString(MobScalingDataCollector.KEY_VARIANT)),
+            helper.assertTrue("deadeye".equals(data.getStringOr(MobScalingDataCollector.KEY_VARIANT, "")),
                     "data collector must report deadeye by tag, got "
-                            + data.getString(MobScalingDataCollector.KEY_VARIANT));
+                            + data.getStringOr(MobScalingDataCollector.KEY_VARIANT, ""));
         } finally {
             saved.restore(sky);
         }

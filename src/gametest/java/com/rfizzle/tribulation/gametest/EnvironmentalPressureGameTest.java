@@ -9,6 +9,7 @@ import com.rfizzle.tribulation.event.EnvironmentalPressureHandler;
 import net.minecraft.core.BlockPos;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.protocol.game.ServerboundPlayerLoadedPacket;
 import net.minecraft.server.level.ServerPlayer;
 import net.minecraft.world.damagesource.DamageSource;
 import net.minecraft.world.effect.MobEffectInstance;
@@ -230,17 +231,11 @@ public class EnvironmentalPressureGameTest {
         ServerPlayer player = victim(helper);
         Mob zombie = scaledZombie(helper);
 
-        // A freshly placed mock player carries 60 ticks of join
-        // invulnerability (ServerPlayer#spawnInvulnerableTime) that would
-        // swallow the hit; zero it reflectively rather than idling the test.
-        try {
-            java.lang.reflect.Field field = ServerPlayer.class.getDeclaredField("spawnInvulnerableTime");
-            field.setAccessible(true);
-            field.setInt(player, 0);
-        } catch (ReflectiveOperationException e) {
-            helper.fail("ServerPlayer.spawnInvulnerableTime not found — field renamed? " + e);
-            return;
-        }
+        // A freshly placed mock player is invulnerable until its client reports
+        // the world as loaded (ServerPlayer#isInvulnerableTo checks
+        // connection.hasClientLoaded()), which would swallow the hit. Send the
+        // same packet a real client sends instead of idling out the timeout.
+        player.connection.handleAcceptPlayerLoad(new ServerboundPlayerLoadedPacket());
 
         // Route through a real hurt() so the Fabric AFTER_DAMAGE hook and the
         // stored-level tier resolution are exercised. The live config and the

@@ -63,7 +63,7 @@ public final class MockPlayers {
      * spectator is left out of a feature's accounting or its broadcasts.
      *
      * <p>It is a spectator through {@code isSpectator()} only: it is still placed
-     * with the server's default {@code GameType} and still reports creative, so
+     * with the server's default {@code GameType} (creative on the test server), so
      * code gating on {@code GameType.SPECTATOR} or on {@code !isCreative()} runs
      * the wrong branch against it. Check which predicate the code under test uses.
      */
@@ -150,11 +150,6 @@ public final class MockPlayers {
             @Override
             public boolean isSpectator() {
                 return spectator;
-            }
-
-            @Override
-            public boolean isCreative() {
-                return true;
             }
         };
 
