@@ -153,22 +153,22 @@ La línea base es importante: si el proyecto original no compila en tu Mac, el p
 ## 8. Checklist de prueba manual (en el server de pruebas)
 
 Comandos del mod (el original los tiene todos):
-- [ ] `/tribulation info`: ver nivel, tier y progreso.
+- [x] `/tribulation info`: ver nivel, tier y progreso.
 - [x] `/tribulation set <jugador> 250`: llevar a tier 5 para ver todas las habilidades.
-- [ ] `/tribulation inspect` y `/tribulation debug <jugador>`: ver el desglose de escalado de un mob.
+- [x] `/tribulation inspect` y `/tribulation debug <jugador>`: ver el desglose de escalado de un mob.
 - [x] `/tribulation reload`: recargar `config/tribulation.json`.
 - [x] `/tribulation bloodmoon start` y `stop`.
 
 Comportamiento:
-- [ ] Spawnear zombie, esqueleto, araña y creeper: verificar vida/daño y habilidades por tier.
-- [ ] Equipamiento de mobs por tier.
-- [ ] Muerte → Death Relief (pierde 2 niveles).
-- [ ] Craftear y usar Shatter Shard y Ascendant Shard.
+- [x] Spawnear zombie, esqueleto, araña y creeper: verificar vida/daño y habilidades por tier.
+- [x] Equipamiento de mobs por tier.
+- [x] Muerte → Death Relief (pierde 2 niveles).
+- [x] Craftear y usar Shatter Shard y Ascendant Shard.
 - [x] Heart Fragment (si activás Hardcore Hearts).
-- [ ] Élites (nivel 50+): afijos y drops.
-- [ ] Pack Tactics (tier 3+).
-- [ ] Jefes (Dragon/Wither): escalado más suave.
-- [ ] Reinicio del server: el nivel debe persistir.
+- [x] Élites (nivel 50+): afijos y drops.
+- [x] Pack Tactics (tier 3+).
+- [x] Jefes (Dragon/Wither): escalado más suave (probado con el Wither).
+- [x] Reinicio del server: el nivel debe persistir.
 - [ ] Con 2 jugadores: modos de multijugador (nearest / average / max).
 
 Cliente:
@@ -310,7 +310,18 @@ Los cuatro mixins de cliente volvieron, reescritos contra el render de 26.3 y co
 
 - El jar de `./gradlew build` trae `fabric.mod.json`, los dos configs de mixins, assets (incluidas las definiciones `items/*.json`) y data. No trae clases de test ni de gametest, ni las integraciones desactivadas (solo `EmiShardRefresh`, que usa reflection).
 - Server de producción (no el de desarrollo): Fabric server launcher 26.3 / loader 0.20.1, con `fabric-api-0.165.0+26.3.jar` y el jar del mod en `mods/`. Arranca en ~1 s sin errores ni avisos de mixins y crea `config/tribulation.json`. Por consola: `config`, `reload`, `bloodmoon start`/status/`stop` OK. Un zombie invocado en (3000, 120, 3000) recibe los modificadores `tribulation:distance_*`, `height_*` y `moon_*` en vida, daño, armadura y dureza. Los archivos quedan en `dimensions/minecraft/overworld/data/tribulation/`.
-- Falta la prueba con el cliente real (Prism) y los ítems de la checklist §8 que necesitan un jugador.
+- Cliente real (2026-11-01): Prism en Windows (Minecraft 26.3, loader 0.20.1, `fabric-api-0.165.0+26.3` y el jar del mod) contra ese mismo server en la red local, con cuenta de Microsoft. Pasó toda la checklist §8 salvo multijugador:
+  - HUD: la calavera cambia de color por tier, el panel de Left Alt muestra nivel, progreso y las habilidades de los mobs cercanos, y destella en dorado al subir y en celeste al bajar.
+  - Comandos `info`, `set`, `debug`, `inspect`, `reload`, `config`, `bloodmoon` y `hearts`.
+  - A tier 5 los mobs reciben los modificadores de tiempo, altura y luna, habilidades (sprint, telarañas, flechas de fuego, etc.) y equipamiento. Las partículas de amenaza (disco violeta, `threat_tier.png`) salen en mobs de tier 4+, como en 1.21.1.
+  - Shatter Shard (-5 niveles) y Ascendant Shard (+5), las dos recetas, Death Relief (-2) y su espera de 5 minutos.
+  - Campeones invocados y naturales (nombre, aura de fuego de almas, `champion_damage` ×1.25, botín extra).
+  - Pack Tactics (4 de 5 zombies alertados con un golpe).
+  - Blood Moon (cielo, horizonte y spawns duplicados) y su persistencia al reiniciar, junto con el nivel del jugador.
+  - Wither por la ruta de jefes: solo vida y daño, +3.0 (tope). La vida queda en 1024, el máximo de vanilla para cualquier entidad.
+  - Heart Fragment con Hardcore Hearts activado: devuelve 1 corazón y no se gasta con la vida completa.
+- Cosas de 26.3 que no son del mod: el `server.properties` que genera vanilla trae `white-list=true`, y en modo offline la whitelist guarda el UUID de la cuenta real, que no coincide con el UUID offline (se usó `online-mode=true`). El aviso "standing on air - force-sending blocks below" del log es de vanilla. La gamerule ahora es `keep_inventory`.
+- Pendiente: multijugador con 2 jugadores (modos nearest / average / max). El Dragón no se probó en vivo: usa la misma ruta de jefes que el Wither.
 
 ### Desactivado temporalmente
 
