@@ -16,9 +16,12 @@ public final class JadeTribulationPlugin implements IWailaPlugin {
     /**
      * The tooltip component lives in the client source set: Jade 26.x's {@code ITooltip} extends a
      * client-only Minecraft type, so it cannot compile here. Jade calls {@link #registerClient}
-     * only on a client, where this class exists, so it is reached by name.
+     * only on a client, where this class exists, so it is reached by name. Both names are
+     * constants so {@code ManifestEntrypointsCompiledTest} can read them from this class file and
+     * check that the target is a {@code public static void register(IWailaClientRegistration)}.
      */
     private static final String CLIENT_COMPONENT = "com.rfizzle.tribulation.compat.jade.MobScalingJadeComponent";
+    private static final String CLIENT_REGISTER_METHOD = "register";
 
     @Override
     public void register(IWailaCommonRegistration registration) {
@@ -29,7 +32,7 @@ public final class JadeTribulationPlugin implements IWailaPlugin {
     public void registerClient(IWailaClientRegistration registration) {
         try {
             MethodHandles.publicLookup()
-                    .findStatic(Class.forName(CLIENT_COMPONENT), "register",
+                    .findStatic(Class.forName(CLIENT_COMPONENT), CLIENT_REGISTER_METHOD,
                             MethodType.methodType(void.class, IWailaClientRegistration.class))
                     .invoke(registration);
         } catch (Throwable t) {
