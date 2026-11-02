@@ -7,6 +7,31 @@ plugins {
 // idempotence, and packaging excludes: hub-owned, synced verbatim (see mc-gradle-builds).
 apply from: 'gradle/concord-common.gradle'
 
+repositories {
+    // The shared Shedaniel repo is scoped to Cloth Config only; REI resolves from here.
+    maven {
+        name = 'ShedanielRei'
+        url = 'https://maven.shedaniel.me/'
+        content {
+            includeGroup 'me.shedaniel'
+        }
+    }
+    maven {
+        name = 'Architectury'
+        url = 'https://maven.architectury.dev/'
+        content {
+            includeGroup 'dev.architectury'
+        }
+    }
+    maven {
+        name = 'BlameJared'
+        url = 'https://maven.blamejared.com/'
+        content {
+            includeGroup 'mezz.jei'
+        }
+    }
+}
+
 dependencies {
     // Minecraft
     minecraft "com.mojang:minecraft:${project.minecraft_version}"
@@ -18,9 +43,37 @@ dependencies {
     // Client source set
     "clientImplementation"("net.fabricmc.fabric-api:fabric-api:${project.fabric_version}")
 
-    // Port to 26.3: the Mod Menu, Cloth Config, Jade, WTHIT, EMI, REI and JEI integrations are
-    // temporarily disabled (dependencies dropped, sources excluded below), and Meridian is reached
-    // by reflection only, since no mod built for 1.21.x compiles against 26.x. See PORTING.md.
+    // Optional integrations: compile-only so players get each one only when they install the mod
+    // themselves, plus the full mod on the dev runtime. 26.x ships unobfuscated, so these are plain
+    // `compileOnly`/`localRuntime` (no remapping). WTHIT and EMI stay disabled (no 26.3 build
+    // exists, sources excluded below), and Meridian is reached by reflection only. See PORTING.md.
+
+    // Mod Menu — config screen entry point.
+    compileOnly "maven.modrinth:modmenu:${project.modmenu_version}"
+    localRuntime "maven.modrinth:modmenu:${project.modmenu_version}"
+
+    // Cloth Config — config screen builder used by ModMenuIntegration.
+    compileOnly "me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config_version}"
+    localRuntime "me.shedaniel.cloth:cloth-config-fabric:${project.cloth_config_version}"
+
+    // Jade — probe-tooltip integration. No api split published; only snownee.jade.api is used.
+    compileOnly "maven.modrinth:jade:${project.jade_version}"
+    localRuntime "maven.modrinth:jade:${project.jade_version}"
+
+    // REI — recipe viewer info panel. Its POM declares Architectury at runtime scope only, but
+    // the API's EntryStacks overloads name Architectury's FluidStack, so javac needs it too.
+    compileOnly "me.shedaniel:RoughlyEnoughItems-api-fabric:${project.rei_version}"
+    compileOnly "me.shedaniel:RoughlyEnoughItems-default-plugin-fabric:${project.rei_version}"
+    compileOnly "dev.architectury:architectury-fabric:${project.architectury_version}"
+    localRuntime "me.shedaniel:RoughlyEnoughItems-fabric:${project.rei_version}"
+    localRuntime "dev.architectury:architectury-fabric:${project.architectury_version}"
+
+    // JEI — recipe viewer info panel. The `fabric` runtime jar shades in all `common-api`
+    // classes, so `transitive = false` keeps the same classes off the classpath twice.
+    compileOnly "mezz.jei:jei-${project.minecraft_version}-fabric-api:${project.jei_version}"
+    localRuntime("mezz.jei:jei-${project.minecraft_version}-fabric:${project.jei_version}") {
+        transitive = false
+    }
 
     // Tests
     testImplementation platform("org.junit:junit-bom:5.10.2")
@@ -36,16 +89,15 @@ dependencies {
 // tests so they can reach client-only classes and the client resource root. Only .output is
 // added, never client.compileClasspath/runtimeClasspath, so the unmapped fabric-api sibling the
 // shared testRuntimeClasspath exclusion guards against is never pulled in.
-// Port to 26.3: keep the disabled integrations' sources on disk but out of the build, so they
-// can be restored by deleting these excludes once 26.3 builds of each mod exist. See PORTING.md.
+// Port to 26.3: WTHIT and EMI have no 26.3 build yet, so their adapters stay on disk but out of
+// the build. Restore each by deleting its exclude once a 26.3 build exists. See PORTING.md.
 sourceSets {
     main {
-        java.exclude 'com/rfizzle/tribulation/compat/jade/**', 'com/rfizzle/tribulation/compat/wthit/**'
+        java.exclude 'com/rfizzle/tribulation/compat/wthit/**'
         resources.exclude 'waila_plugins.json'
     }
     client {
-        java.exclude 'com/rfizzle/tribulation/compat/modmenu/**', 'com/rfizzle/tribulation/compat/emi/EmiShardPlugin.java',
-                'com/rfizzle/tribulation/compat/rei/**', 'com/rfizzle/tribulation/compat/jei/**'
+        java.exclude 'com/rfizzle/tribulation/compat/emi/EmiShardPlugin.java'
     }
 }
 

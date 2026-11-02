@@ -121,7 +121,10 @@ The mod has optional integrations (all `modCompileOnly` — not bundled):
 Compat classes live under `com.rfizzle.tribulation.compat.<modid>` — server-safe
 integrations (`jade`, `wthit`, `meridian`) in `main`, client-only ones (`modmenu`,
 `emi`, `rei`, `jei`) in the `client` source set; `compat/common` holds the shared
-helpers in each.
+helpers in each. Jade's tooltip component is the exception: Jade 26.x's `ITooltip`
+extends a client-only type, so `MobScalingJadeComponent` lives in `client` and the
+`main` plugin reaches it by name from `registerClient`. On 26.3, WTHIT and EMI are
+excluded from the build until a 26.3 build of each exists (see `PORTING.md`).
 
 ## Where things live
 

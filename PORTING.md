@@ -63,7 +63,7 @@ Referencia útil: otros ports 1.21.1 → 26.x documentan migrar "nombres de la e
 - [ ] **Una carpeta y un puerto de pruebas aparte** del server real (por ejemplo `~/mc-test-server`, puerto 25566), para no tocar el mundo de tus amigos.
 - [ ] **Backup** del mundo real antes de instalar cualquier mod nuevo.
 - [ ] **Prism Launcher** (o el launcher que uses) con una instancia "Tribulation-dev" de 26.3 + Fabric, para probar el jar final como cliente real.
-- [ ] Mod Menu y Cloth Config de 26.3 *solo si existen versiones para 26.3* **[no verificado]**; el mod funciona sin ellos.
+- [ ] Mod Menu y Cloth Config de 26.3 (existen: Mod Menu `21.0.0`, Cloth Config `26.3.159`, ver «Integraciones opcionales» en la sección 14); el mod funciona sin ellos.
 
 ### Cosas a tener en cuenta (Mac Air)
 - El MacBook Air no tiene ventilador: compilar + gametests + cliente de desarrollo a la vez puede hacer que se throttlee. Hacelo por etapas.
@@ -219,7 +219,7 @@ Si el port se alarga, **BuffMobs** ya soporta 26.3 en Fabric (escalado por días
 
 - La fecha del último commit del repo (GitHub bloqueó el acceso automatizado).
 - El contenido de los 2 comentarios en CurseForge.
-- Si existen versiones 26.3 de Mod Menu, Cloth Config, Jade y EMI/REI.
+- ~~Si existen versiones 26.3 de Mod Menu, Cloth Config, Jade y EMI/REI.~~ Verificado el 2026-11-01: existen todas menos EMI y WTHIT (ver «Integraciones opcionales» en la sección 14).
 - Cuánto tiempo va a llevar el port: depende de cuánto cambió el render y de cuántos mixins fallen.
 
 ---
@@ -323,18 +323,33 @@ Los cuatro mixins de cliente volvieron, reescritos contra el render de 26.3 y co
 - Cosas de 26.3 que no son del mod: el `server.properties` que genera vanilla trae `white-list=true`, y en modo offline la whitelist guarda el UUID de la cuenta real, que no coincide con el UUID offline (se usó `online-mode=true`). El aviso "standing on air - force-sending blocks below" del log es de vanilla. La gamerule ahora es `keep_inventory`.
 - Pendiente: multijugador con 2 jugadores (modos nearest / average / max). El Dragón no se probó en vivo: usa la misma ruta de jefes que el Wither.
 
+### Integraciones opcionales (T10, 2026-11-01)
+
+Versiones de 26.3 verificadas en Modrinth y en cada Maven el 2026-11-01:
+
+| Integración | Versión | Estado |
+|---|---|---|
+| Mod Menu | `21.0.0` | Restaurada sin cambios de código |
+| Cloth Config | `26.3.159` | Restaurada sin cambios de código |
+| Jade | `26.3.5+fabric` | Restaurada; ver abajo |
+| REI (+ Architectury) | `26.3.824` (+ `22.0.5`) | Restaurada sin cambios de código |
+| JEI | `31.17.0.108` (artefacto `jei-26.3-fabric`) | Restaurada sin cambios de código |
+| WTHIT | no hay build de 26.3 (la última, `fabric-20.0.0`, es de 26.2) | Sigue desactivada |
+| EMI | no hay build de 26.x (la última, `1.1.24`, es de 1.21.1) | Sigue desactivada |
+
+- Las dependencias son `compileOnly` + `localRuntime` (26.x viene sin ofuscar, no hay remapeo). El POM de la API de REI declara Architectury solo en scope `runtime`, pero las sobrecargas de `EntryStacks.of` nombran su `FluidStack`, así que Architectury también es `compileOnly`.
+- Jade: en 26.x `ITooltip` extiende `NarrationSupplier`, una clase de cliente, así que el componente del tooltip ya no compila en el source set `main`. Se separó en dos: `MobScalingJadeProvider` (datos del server, `main`) y `MobScalingJadeComponent` (tooltip, `client`), unidos por el mismo UID. El plugin sigue en `main` (los runs de server en dev no cargan el source set `client`, y Jade tumba el server si un plugin no instancia) y llega al componente por nombre desde `registerClient`, que Jade solo llama en el cliente. Si esa búsqueda falla, se pierde el tooltip y queda un warning en el log; Jade sigue cargando.
+- `ManifestEntrypointsCompiledTest` (review R3-001): falla el build si un entrypoint de `fabric.mod.json`, o un literal que nombra una clase del mod en los fuentes (los accessors de `TribulationAPI`, el componente de Jade), apunta a una clase que no se compiló. Se vio fallar con los entrypoints repuestos y los excludes todavía puestos, y con un nombre roto a propósito en el plugin de Jade.
+- Pruebas: `./gradlew build` OK (914 tests unitarios); `runGametest` OK (150), con el plugin de Jade cargado en el server; `runClientGametest` OK con Mod Menu, Cloth Config, Jade, REI, Architectury y JEI cargados a la vez, y el plugin de Jade cargado en el cliente sin el warning.
+
 ### Desactivado temporalmente
 
 | Qué | Cómo | Motivo | Cómo restaurarlo |
 |---|---|---|---|
-| Mod Menu + Cloth Config (pantalla de config) | Dependencias quitadas de `build.gradle`, `compat/modmenu/**` excluido del source set `client`, entrypoint quitado de `fabric.mod.json` | Las versiones fijadas eran de 1.21.1 (`modmenu_version=11.0.4`, `cloth_config_version=15.0.140`). Mientras tanto la config se edita en `config/tribulation.json` y se aplica con `/tribulation reload` | Conseguir versiones 26.3, volver a declarar las dependencias y el entrypoint, y quitar el exclude |
-| Jade | Igual, `compat/jade/**` excluido del source set `main` | `jade_version=15.10.5+fabric` era de 1.21.1 | Igual |
-| WTHIT | Igual, `compat/wthit/**` y `waila_plugins.json` excluidos de `main` | `wthit_version=fabric-12.10.2` era de 1.21.1 | Igual, y volver a incluir `waila_plugins.json` |
-| EMI | Igual, `compat/emi/EmiShardPlugin.java` excluido de `client`. `EmiShardRefresh` sigue compilando porque usa reflection, no importa EMI y `compat/common/ShardViewerRefresh` lo llama | `emi_version=1.1.22+1.21.1` | Igual |
-| REI (+ Architectury en dev) | Igual, `compat/rei/**` excluido de `client` | `rei_version=16.0.799`, `architectury_version=13.0.6` | Igual |
-| JEI | Igual, `compat/jei/**` excluido de `client` | El artefacto se llama `jei-1.21.1-fabric`, `jei_version=19.27.0.340` | Igual |
+| WTHIT | Sin dependencia; `compat/wthit/**` y `waila_plugins.json` excluidos de `main` | No hay build de 26.3 (la última es `fabric-20.0.0`, de 26.2) | Cuando exista: declarar `wthit-api` (`compileOnly`, repo Bai ya está en la base), quitar los dos excludes y verificar la API |
+| EMI | Sin dependencia; `compat/emi/EmiShardPlugin.java` excluido de `client` y entrypoint `emi` fuera de `fabric.mod.json`. `EmiShardRefresh` sigue compilando porque usa reflection, no importa EMI y `compat/common/ShardViewerRefresh` lo llama | No hay build de 26.x (la última es `1.1.24`, de 1.21.1) | Cuando exista: repo TerraformersMC, `compileOnly` del artefacto `:api`, quitar el exclude y volver a poner el entrypoint `emi` |
 
-El código de esas integraciones sigue en el repo, solo está fuera de la compilación. El bloque `suggests` de `fabric.mod.json` se dejó como estaba: es solo informativo, y `ClothGuardTest` (guard de Concord que lee los fuentes del disco) exige `cloth-config` mientras `TribulationConfigScreen` exista.
+El código de esas dos integraciones sigue en el repo, solo está fuera de la compilación. El bloque `suggests` de `fabric.mod.json` se dejó como estaba: es solo informativo.
 
 ### Meridian (resuelto en la Fase 2)
 
@@ -356,6 +371,6 @@ Fuentes: rama `26.3` de [FabricMC/fabric-example-mod](https://github.com/FabricM
 | Java | 21 | 25 (también `compatibilityLevel` de los mixins) |
 | JaCoCo | 0.8.12 | 0.8.14 (la primera con soporte oficial de Java 25) |
 
-Otros cambios de build: sin línea `mappings` (26.x viene sin ofuscar), `modImplementation` pasa a ser `implementation`, y se quitaron los repos Maven de las integraciones desactivadas.
+Otros cambios de build: sin línea `mappings` (26.x viene sin ofuscar), `modImplementation` pasa a ser `implementation`, y se quitaron los repos Maven de las integraciones desactivadas (los de REI, Architectury y JEI volvieron en T10).
 
 `versions-common.properties` y `gradle/concord-common.gradle` son archivos de Concord que se editaron a mano en esta rama. Por eso no hay que correr `make sync`.
