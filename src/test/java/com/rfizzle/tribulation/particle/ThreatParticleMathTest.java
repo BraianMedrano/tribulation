@@ -24,7 +24,7 @@ class ThreatParticleMathTest {
         assertEquals(0.0f, ThreatParticleMath.fadeAlpha(0.8f, 0, 0), EPS);
     }
 
-    // --- smoke growth (S1: 0.20 to 0.48 block across the life) ---
+    // --- smoke growth (S1: half-size 0.10 to 0.34, so 0.20 to 0.68 block wide) ---
 
     @Test
     void grownSize_swellsFromBaseToBasePlusGrow() {
