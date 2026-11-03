@@ -1098,6 +1098,8 @@ Drop-chance fields accept `[0, 2]` — a value ≥1.0 requests a guaranteed + pr
 ### Migration
 Tribulation is a single self-contained jar; users should remove any prior mob-scaling mod before installing.
 
+Mobs saved by an older build keep that build's state, since the `tribulation_processed` tag skips scaling on every later load. `LegacyMobMigration` runs on each processed mob's `ENTITY_LOAD` instead and corrects state an older build left: a skeleton with infinite Fire Resistance (the old flame-arrows ability, which also set it alight) loses the effect and the fire and gains `tribulation_flame_arrows`; a champion whose name is always visible (drawn through blocks) has it set to show only on crosshair. Each step matches only the exact old state, so current mobs are untouched.
+
 ---
 
 ## 31. Sound Design

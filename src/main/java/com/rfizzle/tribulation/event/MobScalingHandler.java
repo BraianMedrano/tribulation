@@ -50,7 +50,14 @@ public final class MobScalingHandler {
 
     static void onEntityLoad(Entity entity, ServerLevel world) {
         if (!(entity instanceof Mob mob)) return;
-        if (mob.entityTags().contains(PROCESSED_TAG)) return;
+        if (mob.entityTags().contains(PROCESSED_TAG)) {
+            try {
+                LegacyMobMigration.migrate(mob);
+            } catch (Exception e) {
+                Tribulation.LOGGER.error("Failed to migrate saved state of {}", mob, e);
+            }
+            return;
+        }
 
         TribulationConfig cfg = Tribulation.getConfig();
         if (cfg == null) return;
