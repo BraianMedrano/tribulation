@@ -7,6 +7,7 @@ import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.Difficulty;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -18,9 +19,11 @@ import net.minecraft.world.entity.ai.attributes.AttributeInstance;
 import net.minecraft.world.entity.ai.attributes.Attributes;
 import net.minecraft.world.entity.ai.goal.BreakDoorGoal;
 import net.minecraft.world.entity.monster.skeleton.Bogged;
+import net.minecraft.world.entity.monster.skeleton.Skeleton;
 import net.minecraft.world.entity.monster.Endermite;
 import net.minecraft.world.entity.monster.skeleton.Stray;
 import net.minecraft.world.entity.monster.illager.Vindicator;
+import net.minecraft.world.entity.projectile.arrow.AbstractArrow;
 import net.minecraft.world.level.gamerules.GameRules;
 import net.minecraft.world.level.block.Blocks;
 import net.minecraft.world.item.ItemStack;
@@ -34,7 +37,7 @@ import java.lang.reflect.Method;
 
 /**
  * Deterministic gametest coverage for the tier abilities that hinge on live
- * registry/entity state: arrow effect upgrades (Stray/Bogged), held-crossbow
+ * registry/entity state: arrow upgrades (Skeleton flame, Stray/Bogged effects), held-crossbow
  * enchantments (Pillager), and the door-breaking difficulty relaxation
  * (Vindicator). Each ability is asserted both enabled and disabled so the
  * config toggle is proven to gate it. Projectile flight and door-pathfinding
@@ -69,6 +72,44 @@ public class AbilitiesGameTest {
         AttributeInstance inst = zombie.getAttribute(Attributes.SPAWN_REINFORCEMENTS_CHANCE);
         if (inst != null && inst.getModifier(AbilityManager.abilityId("zombie_reinforcements")) != null) {
             helper.fail("Disabled toggle should leave no reinforcements modifier");
+        }
+        helper.succeed();
+    }
+
+    // ---- Skeleton: flame arrows ----
+
+    @GameTest(structure = "tribulation:empty_3x3")
+    public void skeleton_flameArrowsLitAtTier4(GameTestHelper helper) {
+        Skeleton skeleton = (Skeleton) helper.spawnWithNoFreeWill(EntityTypes.SKELETON, SPAWN);
+        TribulationConfig cfg = new TribulationConfig();
+        AbilityManager.applyAbilities(skeleton, 4, "skeleton", cfg);
+
+        if (!skeleton.entityTags().contains(AbilityManager.TAG_FLAME_ARROWS)) {
+            helper.fail("Tier-4 skeleton should carry the flame-arrows tag");
+        }
+        AbstractArrow arrow = produceArrow(helper, skeleton);
+        if (arrow.getRemainingFireTicks() <= 0) {
+            helper.fail("Tier-4 skeleton arrow should be on fire, got fire ticks " + arrow.getRemainingFireTicks());
+        }
+        if (skeleton.getRemainingFireTicks() > 0) {
+            helper.fail("Tier-4 skeleton itself should not burn, got fire ticks " + skeleton.getRemainingFireTicks());
+        }
+        if (skeleton.hasEffect(MobEffects.FIRE_RESISTANCE)) {
+            helper.fail("Tier-4 skeleton should not gain Fire Resistance from the flame-arrows ability");
+        }
+        helper.succeed();
+    }
+
+    @GameTest(structure = "tribulation:empty_3x3")
+    public void skeleton_flameArrowsUnlitWhenDisabled(GameTestHelper helper) {
+        Skeleton skeleton = (Skeleton) helper.spawnWithNoFreeWill(EntityTypes.SKELETON, SPAWN);
+        TribulationConfig cfg = new TribulationConfig();
+        cfg.abilities.skeletonFlameArrows = false;
+        AbilityManager.applyAbilities(skeleton, 4, "skeleton", cfg);
+
+        AbstractArrow arrow = produceArrow(helper, skeleton);
+        if (arrow.getRemainingFireTicks() > 0) {
+            helper.fail("Disabled toggle should leave the arrow unlit, got fire ticks " + arrow.getRemainingFireTicks());
         }
         helper.succeed();
     }
@@ -280,22 +321,43 @@ public class AbilitiesGameTest {
     // ---- Helpers ----
 
     /**
-     * Invoke the mob's protected {@code getArrow} and return the highest
-     * amplifier of {@code effect} among the produced arrow's stored effects, or
-     * {@code -1} if absent. Reflection is used because {@code getArrow} is
-     * protected; gametests run with named mappings so the name resolves.
+     * Invoke the mob's protected {@code getArrow} and return the produced arrow.
+     * Reflection is used because {@code getArrow} is protected; gametests run
+     * with named mappings so the name resolves. The lookup walks up the class
+     * hierarchy because a plain {@link Skeleton} inherits {@code getArrow} from
+     * {@code AbstractSkeleton} instead of declaring its own.
      */
-    private static int maxArrowEffectAmplifier(GameTestHelper helper, Mob shooter,
-                                               net.minecraft.world.effect.MobEffect effect) {
+    private static AbstractArrow produceArrow(GameTestHelper helper, Mob shooter) {
         try {
             // Vanilla signature is getArrow(arrowStack, velocity, weaponStack).
             ItemStack arrowStack = new ItemStack(Items.ARROW);
             ItemStack bow = new ItemStack(Items.BOW);
-            Method getArrow = shooter.getClass().getDeclaredMethod(
-                    "getArrow", ItemStack.class, float.class, ItemStack.class);
-            getArrow.setAccessible(true);
-            Object arrow = getArrow.invoke(shooter, arrowStack, 1.0f, bow);
+            for (Class<?> type = shooter.getClass(); type != null; type = type.getSuperclass()) {
+                try {
+                    Method getArrow = type.getDeclaredMethod(
+                            "getArrow", ItemStack.class, float.class, ItemStack.class);
+                    getArrow.setAccessible(true);
+                    return (AbstractArrow) getArrow.invoke(shooter, arrowStack, 1.0f, bow);
+                } catch (NoSuchMethodException ignored) {
+                    // Keep walking up to the class that declares getArrow.
+                }
+            }
+            throw helper.assertionException(Component.literal("No getArrow found on " + shooter.getClass()));
+        } catch (java.lang.reflect.InvocationTargetException e) {
+            throw helper.assertionException(Component.literal("getArrow threw: " + e.getCause()));
+        } catch (ReflectiveOperationException e) {
+            throw helper.assertionException(Component.literal("Reflection on getArrow failed: " + e));
+        }
+    }
 
+    /**
+     * Return the highest amplifier of {@code effect} among the stored effects of
+     * the arrow {@code shooter} produces, or {@code -1} if absent.
+     */
+    private static int maxArrowEffectAmplifier(GameTestHelper helper, Mob shooter,
+                                               net.minecraft.world.effect.MobEffect effect) {
+        AbstractArrow arrow = produceArrow(helper, shooter);
+        try {
             Method getPotionContents = arrow.getClass().getDeclaredMethod("getPotionContents");
             getPotionContents.setAccessible(true);
             PotionContents contents = (PotionContents) getPotionContents.invoke(arrow);
@@ -308,10 +370,10 @@ public class AbilitiesGameTest {
             }
             return max;
         } catch (java.lang.reflect.InvocationTargetException e) {
-            helper.fail("getArrow/getPotionContents threw: " + e.getCause());
+            helper.fail("getPotionContents threw: " + e.getCause());
             return -1;
         } catch (ReflectiveOperationException e) {
-            helper.fail("Reflection on getArrow/getPotionContents failed: " + e);
+            helper.fail("Reflection on getPotionContents failed: " + e);
             return -1;
         }
     }

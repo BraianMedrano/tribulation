@@ -49,6 +49,7 @@ public final class AbilityManager {
      * mechanics that no attribute can capture (arrow effects, potion type,
      * roar radius, door breaking, beam charge, infested-block summons).
      */
+    public static final String TAG_FLAME_ARROWS = "tribulation_flame_arrows";
     public static final String TAG_SLOWNESS_ARROWS = "tribulation_slow2";
     public static final String TAG_POISON_ARROWS = "tribulation_poison2";
     public static final String TAG_LINGERING_POTIONS = "tribulation_lingering_potions";

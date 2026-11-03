@@ -67,10 +67,7 @@ public final class MobAbilities {
                     }),
             new MobAbility("skeleton", "skeleton_flame_arrows", 4,
                     a -> a.skeletonFlameArrows,
-                    (mob, cfg) -> {
-                        AbilityManager.applyInfiniteEffect(mob, MobEffects.FIRE_RESISTANCE, 0);
-                        mob.setRemainingFireTicks(Integer.MAX_VALUE);
-                    }),
+                    (mob, cfg) -> mob.addTag(AbilityManager.TAG_FLAME_ARROWS)),
 
             // ---- Creeper ----
             new MobAbility("creeper", "creeper_shorter_fuse", 1,

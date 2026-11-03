@@ -24,6 +24,7 @@
         "RaidScalingMixin",
         "RaidsMixin",
         "RavagerRoarMixin",
+        "SkeletonFlameArrowsMixin",
         "SoulInventoryMixin",
         "StrayAbilityMixin",
         "TrialSpawnerDataAccessor",
