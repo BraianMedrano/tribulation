@@ -169,7 +169,7 @@ Comportamiento:
 - [x] Pack Tactics (tier 3+).
 - [x] Jefes (Dragon/Wither): escalado más suave (probado con el Wither).
 - [x] Reinicio del server: el nivel debe persistir.
-- [ ] Con 2 jugadores: modos de multijugador (nearest / average / max).
+- [x] Con 2 jugadores: modos de multijugador (nearest / average / max). Probado el 2026-11-02 (ver «Multijugador con 2 jugadores» en la sección 14).
 
 Cliente:
 - [x] HUD visible y correcto; panel de detalle con Left Alt.
