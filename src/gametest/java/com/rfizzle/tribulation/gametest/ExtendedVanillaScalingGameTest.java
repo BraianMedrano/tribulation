@@ -2,6 +2,8 @@ package com.rfizzle.tribulation.gametest;
 
 import com.rfizzle.concord.gametest.MockPlayers;
 import com.rfizzle.tribulation.Tribulation;
+import com.rfizzle.tribulation.champion.ChampionAffix;
+import com.rfizzle.tribulation.champion.ChampionManager;
 import com.rfizzle.tribulation.config.TribulationConfig;
 import com.rfizzle.tribulation.data.PlayerDifficultyState;
 import com.rfizzle.tribulation.data.TribulationAttachments;
@@ -74,11 +76,9 @@ public class ExtendedVanillaScalingGameTest {
 
     @GameTest(structure = "tribulation:empty_3x3")
     public void curedZombieVillager_dropsTribulationTagsAndChampionName(GameTestHelper helper) {
-        Mob zombieVillager = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE_VILLAGER, SPAWN);
+        Mob zombieVillager = spawnWithoutChampionRoll(helper, EntityTypes.ZOMBIE_VILLAGER);
         zombieVillager.addTag(MobScalingHandler.PROCESSED_TAG);
-        zombieVillager.setAttached(TribulationAttachments.CHAMPION_AFFIXES, List.of("thorns"));
-        zombieVillager.setCustomName(Component.literal("Thorned Zombie Villager Champion"));
-        zombieVillager.setCustomNameVisible(true);
+        makeChampion(zombieVillager);
 
         Mob villager = zombieVillager.convertTo(EntityTypes.VILLAGER,
                 ConversionParams.single(zombieVillager, false, false), converted -> { });
@@ -98,7 +98,7 @@ public class ExtendedVanillaScalingGameTest {
     public void curedZombieVillager_keepsPlayerNameTag(GameTestHelper helper) {
         // Only a champion's generated name is cleared: a name a player gave with a
         // name tag survives the cure, as in vanilla.
-        Mob zombieVillager = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE_VILLAGER, SPAWN);
+        Mob zombieVillager = spawnWithoutChampionRoll(helper, EntityTypes.ZOMBIE_VILLAGER);
         zombieVillager.setCustomName(Component.literal("Bob"));
 
         Mob villager = zombieVillager.convertTo(EntityTypes.VILLAGER,
@@ -109,6 +109,25 @@ public class ExtendedVanillaScalingGameTest {
             helper.assertTrue(villager.getCustomName() != null
                             && "Bob".equals(villager.getCustomName().getString()),
                     "cured villager lost its player-given name, had " + villager.getCustomName());
+        });
+    }
+
+    @GameTest(structure = "tribulation:empty_3x3")
+    public void curedChampionZombieVillager_keepsPlayerRename(GameTestHelper helper) {
+        // A player who renames a champion with a name tag keeps that name through
+        // the cure: only the generated champion name is cleared.
+        Mob zombieVillager = spawnWithoutChampionRoll(helper, EntityTypes.ZOMBIE_VILLAGER);
+        makeChampion(zombieVillager);
+        zombieVillager.setCustomName(Component.literal("Bob"));
+
+        Mob villager = zombieVillager.convertTo(EntityTypes.VILLAGER,
+                ConversionParams.single(zombieVillager, false, false), converted -> { });
+
+        helper.succeedWhen(() -> {
+            helper.assertTrue(villager != null, "conversion produced no villager");
+            helper.assertTrue(villager.getCustomName() != null
+                            && "Bob".equals(villager.getCustomName().getString()),
+                    "cured champion lost its player-given name, had " + villager.getCustomName());
         });
     }
 
@@ -126,6 +145,25 @@ public class ExtendedVanillaScalingGameTest {
             helper.assertTrue(drowned.entityTags().contains(MobScalingHandler.PROCESSED_TAG),
                     "drowned lost " + MobScalingHandler.PROCESSED_TAG);
         });
+    }
+
+    /** Spawn with the champion roll off, so a random promotion cannot change the outcome. */
+    private static Mob spawnWithoutChampionRoll(GameTestHelper helper, EntityType<? extends Mob> type) {
+        TribulationConfig cfg = Tribulation.getConfig();
+        boolean savedChampions = cfg.champions.enabled;
+        cfg.champions.enabled = false;
+        try {
+            return helper.spawnWithNoFreeWill(type, SPAWN);
+        } finally {
+            cfg.champions.enabled = savedChampions;
+        }
+    }
+
+    /** Promote to a champion the way ChampionManager does: affix attachment plus the generated name. */
+    private static void makeChampion(Mob mob) {
+        mob.setAttached(TribulationAttachments.CHAMPION_AFFIXES, List.of(ChampionAffix.THORNS.id()));
+        mob.setCustomName(ChampionManager.championName(List.of(ChampionAffix.THORNS), mob.getType().getDescription()));
+        mob.setCustomNameVisible(true);
     }
 
     private static void placePlayerAtLevel(GameTestHelper helper, int level, TribulationConfig cfg) {

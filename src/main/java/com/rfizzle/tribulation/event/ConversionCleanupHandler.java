@@ -1,7 +1,9 @@
 package com.rfizzle.tribulation.event;
 
+import com.rfizzle.tribulation.champion.ChampionAffix;
 import com.rfizzle.tribulation.champion.ChampionManager;
 import net.fabricmc.fabric.api.entity.event.v1.ServerLivingEntityEvents;
+import net.minecraft.network.chat.Component;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.monster.Enemy;
 
@@ -35,10 +37,22 @@ public final class ConversionCleanupHandler {
         for (String tag : tribulationTags(converted.entityTags())) {
             converted.removeTag(tag);
         }
-        if (ChampionManager.isChampion(previous)) {
+        if (hasGeneratedChampionName(previous, converted)) {
             converted.setCustomName(null);
             converted.setCustomNameVisible(false);
         }
+    }
+
+    /**
+     * Whether {@code converted} still carries the champion name generated for
+     * {@code previous}. A name a player set with a name tag after the promotion
+     * differs from it and is kept.
+     */
+    private static boolean hasGeneratedChampionName(Mob previous, Mob converted) {
+        List<ChampionAffix> affixes = ChampionManager.getAffixes(previous);
+        if (affixes.isEmpty() || converted.getCustomName() == null) return false;
+        Component generated = ChampionManager.championName(affixes, previous.getType().getDescription());
+        return generated.equals(converted.getCustomName());
     }
 
     /** The Tribulation-owned tags in {@code tags}, copied so the caller can remove them while iterating. */
