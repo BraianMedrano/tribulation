@@ -541,7 +541,7 @@
     "config.tribulation.threat_particles.enabled": "Threat Particles",
     "config.tribulation.threat_particles.enabled.tooltip": "Emit threat particles. Default: true.",
     "config.tribulation.threat_particles.minimum_tier": "Minimum Tier for Particles",
-    "config.tribulation.threat_particles.minimum_tier.tooltip": "Lowest tier that trails the generic cursed-mote cue (variant cues ignore this). Default: 4.",
+    "config.tribulation.threat_particles.minimum_tier.tooltip": "Lowest tier that trails the generic dark red smoke cue (variant cues ignore this). Default: 4.",
     "config.tribulation.threat_particles.particle_frequency_ticks": "Particle Interval (ticks)",
     "config.tribulation.threat_particles.particle_frequency_ticks.tooltip": "Average ticks between particle emissions per mob (higher is sparser). Default: 40.",
 

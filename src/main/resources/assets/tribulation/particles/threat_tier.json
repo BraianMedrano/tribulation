@@ -1,5 +1,10 @@
 {
   "textures": [
-    "tribulation:threat_tier"
+    "tribulation:threat_tier_0",
+    "tribulation:threat_tier_1",
+    "tribulation:threat_tier_2",
+    "tribulation:threat_tier_3",
+    "tribulation:threat_tier_4",
+    "tribulation:threat_tier_5"
   ]
 }

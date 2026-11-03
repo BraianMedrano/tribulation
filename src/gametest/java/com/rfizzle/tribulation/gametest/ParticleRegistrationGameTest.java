@@ -10,7 +10,8 @@ import net.minecraft.gametest.framework.GameTestHelper;
 import net.minecraft.resources.Identifier;
 
 /**
- * Smoke test that the three threat-telegraphing particle types resolve in
+ * Smoke test that the three threat-telegraphing particle types and the
+ * champion aura resolve in
  * {@link BuiltInRegistries#PARTICLE_TYPE} after mod init — guarding the
  * {@code TribulationParticles.register()} wiring. Rendering itself (the client
  * sprites and the emitter) has no headless-server context and is verified
@@ -23,6 +24,7 @@ public class ParticleRegistrationGameTest {
         assertRegistered(helper, "threat_tier", TribulationParticles.THREAT_TIER);
         assertRegistered(helper, "threat_big", TribulationParticles.THREAT_BIG);
         assertRegistered(helper, "threat_speed", TribulationParticles.THREAT_SPEED);
+        assertRegistered(helper, "champion_aura", TribulationParticles.CHAMPION_AURA);
         helper.succeed();
     }
 
