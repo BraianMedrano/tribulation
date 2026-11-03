@@ -321,7 +321,8 @@ Los cuatro mixins de cliente volvieron, reescritos contra el render de 26.3 y co
   - Wither por la ruta de jefes: solo vida y daño, +3.0 (tope). La vida queda en 1024, el máximo de vanilla para cualquier entidad.
   - Heart Fragment con Hardcore Hearts activado: devuelve 1 corazón y no se gasta con la vida completa.
 - Cosas de 26.3 que no son del mod: el `server.properties` que genera vanilla trae `white-list=true`, y en modo offline la whitelist guarda el UUID de la cuenta real, que no coincide con el UUID offline (se usó `online-mode=true`). El aviso "standing on air - force-sending blocks below" del log es de vanilla. La gamerule ahora es `keep_inventory`.
-- Pendiente: multijugador con 2 jugadores (modos nearest / average / max). El Dragón no se probó en vivo: usa la misma ruta de jefes que el Wither.
+- Multijugador con 2 jugadores (2026-11-02): el segundo jugador entró desde otra red con Tailscale (Fabric Loader 0.20.1, `fabric-api-0.165.0+26.3` y `gfec18ea`). Con niveles 200 y 20, un husk aparecido cerca de cada uno tomó en `nearest` el nivel del más cercano (24,5 y 64,3 de vida), en `average` el promedio, 110 (44,3 y 44,5), y en `max` el 200 en los dos (el de 32,1 tenía la variante rápida, −10 de vida antes del multiplicador; sus modificadores son los de nivel 200, tier 4). `/tribulation debug` en `max` lista a los dos jugadores y da nivel efectivo 200. El segundo jugador ve su HUD y su panel con su propio nivel. El server quedó otra vez en `nearest`.
+- El Dragón no se probó en vivo: usa la misma ruta de jefes que el Wither.
 
 ### Integraciones opcionales (T10, 2026-11-01)
 
