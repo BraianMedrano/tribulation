@@ -1,11 +1,13 @@
 package com.rfizzle.tribulation.gametest;
 
 import com.rfizzle.tribulation.ability.AbilityManager;
+import com.rfizzle.tribulation.config.TribulationConfig;
 import com.rfizzle.tribulation.data.TribulationAttachments;
 import com.rfizzle.tribulation.event.MobScalingHandler;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
 import net.minecraft.core.BlockPos;
 import net.minecraft.gametest.framework.GameTestHelper;
+import net.minecraft.core.registries.BuiltInRegistries;
 import net.minecraft.network.chat.Component;
 import net.minecraft.world.effect.MobEffectInstance;
 import net.minecraft.world.effect.MobEffects;
@@ -58,6 +60,8 @@ public class LegacyMobMigrationGameTest {
                 "legacy flame skeleton must lose its infinite Fire Resistance");
         helper.assertValueEqual(skeleton.getRemainingFireTicks() > 0, false,
                 "legacy flame skeleton must stop burning");
+        helper.assertTrue(skeleton.entityTags().contains(MobScalingHandler.MIGRATED_TAG),
+                "a migrated mob must be marked so the migration never runs on it again");
         helper.succeed();
     }
 
@@ -113,6 +117,47 @@ public class LegacyMobMigrationGameTest {
 
         helper.assertTrue(named.isCustomNameVisible(),
                 "a visible name on a non-champion is not ours to change");
+        helper.succeed();
+    }
+
+    @GameTest(structure = "tribulation:empty_3x3")
+    public void migratedMob_laterStateSurvivesReload(GameTestHelper helper) {
+        // Already migrated once; an admin then gave this skeleton infinite Fire
+        // Resistance and made this champion's name always visible.
+        Mob skeleton = legacyMob(helper, EntityTypes.SKELETON);
+        skeleton.addTag(MobScalingHandler.MIGRATED_TAG);
+        skeleton.addEffect(infiniteFireResistance());
+        Mob champion = legacyMob(helper, EntityTypes.ZOMBIE);
+        champion.addTag(MobScalingHandler.MIGRATED_TAG);
+        champion.setAttached(TribulationAttachments.CHAMPION_AFFIXES, List.of("vampiric"));
+        champion.setCustomName(Component.literal("Vampiric Zombie Champion"));
+        champion.setCustomNameVisible(true);
+
+        helper.getLevel().addFreshEntity(skeleton);
+        helper.getLevel().addFreshEntity(champion);
+
+        helper.assertTrue(skeleton.hasEffect(MobEffects.FIRE_RESISTANCE),
+                "state set after migration must survive the reload");
+        helper.assertFalse(skeleton.entityTags().contains(AbilityManager.TAG_FLAME_ARROWS),
+                "a migrated skeleton must not be migrated again");
+        helper.assertTrue(champion.isCustomNameVisible(),
+                "a name made visible after migration must survive the reload");
+        helper.succeed();
+    }
+
+    @GameTest(structure = "tribulation:empty_3x3")
+    public void newlyScaledMob_markedAsMigrated(GameTestHelper helper) {
+        // A mob scaled by this build has nothing to migrate, so it never should.
+        Mob zombie = helper.spawnWithNoFreeWill(EntityTypes.ZOMBIE, SPAWN);
+        zombie.removeTag(MobScalingHandler.PROCESSED_TAG);
+        zombie.removeTag(MobScalingHandler.MIGRATED_TAG);
+        MobScalingHandler.applyScaling(zombie, helper.getLevel(), EntityTypes.ZOMBIE,
+                BuiltInRegistries.ENTITY_TYPE.getKey(EntityTypes.ZOMBIE), 50, new TribulationConfig());
+
+        helper.assertTrue(zombie.entityTags().contains(MobScalingHandler.PROCESSED_TAG),
+                "the scaled zombie must be processed");
+        helper.assertTrue(zombie.entityTags().contains(MobScalingHandler.MIGRATED_TAG),
+                "a mob scaled by this build must be marked as migrated");
         helper.succeed();
     }
 }

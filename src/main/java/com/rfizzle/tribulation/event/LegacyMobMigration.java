@@ -12,11 +12,13 @@ import net.minecraft.world.entity.Mob;
  *
  * <p>Scaling runs once per mob: {@link MobScalingHandler#PROCESSED_TAG} skips
  * it on every later load, so a mob saved before a behavior change keeps the
- * state the old build gave it. Each step here matches only the exact state the
- * old build left, so it is a no-op on current mobs and runs at most once per
- * mob in effect: the fix removes the state it matches.
+ * state the old build gave it. Each step here matches only the state the old
+ * build left.
  *
- * <p>Runs on every processed-mob load, so each check is a cheap field read.
+ * <p>Runs once per mob: the load path skips mobs carrying
+ * {@link MobScalingHandler#MIGRATED_TAG}, which scaling stamps on every new mob
+ * and the load path stamps after this runs, so state set on a mob later (an
+ * admin effect, a visible name) is never undone.
  */
 final class LegacyMobMigration {
 
