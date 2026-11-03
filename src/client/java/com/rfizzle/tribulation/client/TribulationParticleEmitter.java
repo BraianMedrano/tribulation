@@ -12,7 +12,6 @@ import net.minecraft.client.Minecraft;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.player.LocalPlayer;
 import net.minecraft.core.Holder;
-import net.minecraft.core.particles.ParticleTypes;
 import net.minecraft.core.particles.SimpleParticleType;
 import net.minecraft.resources.Identifier;
 import net.minecraft.util.RandomSource;
@@ -41,8 +40,11 @@ public final class TribulationParticleEmitter {
     /** Scan radius around the local player, in blocks (AC: visible within ~16). */
     private static final double RADIUS = 16.0;
     private static final double RADIUS_SQR = RADIUS * RADIUS;
-    /** Mean ticks between champion-aura motes; fixed so the aura stays subtle. */
-    private static final int CHAMPION_AURA_INTERVAL_TICKS = 5;
+    /**
+     * Mean ticks between champion-aura sparks. With a 44-tick spark lifetime this
+     * keeps about eleven sparks circling a champion at once.
+     */
+    private static final int CHAMPION_AURA_INTERVAL_TICKS = 4;
 
     private TribulationParticleEmitter() {}
 
@@ -95,8 +97,8 @@ public final class TribulationParticleEmitter {
             }
 
             // Champion aura is independent of the tier/variant threat cues:
-            // every champion telegraphs, whatever its tier. Vanilla soul-fire
-            // motes — the affix visuals are data-driven, not custom-textured.
+            // every champion telegraphs, whatever its tier, with golden sparks
+            // whose hue and orbit read apart from the red rising tier smoke.
             if (championAura
                     && mob.hasAttached(TribulationAttachments.CHAMPION_AFFIXES)
                     && !mob.isInvisible()
@@ -170,19 +172,23 @@ public final class TribulationParticleEmitter {
             }
             default -> {
                 y = mob.getY() + (0.5 + random.nextDouble() * 0.5) * height;
-                yd = 0.01;
+                xd = (random.nextDouble() - 0.5) * 0.008;
+                yd = 0.012;
+                zd = (random.nextDouble() - 0.5) * 0.008;
             }
         }
         level.addParticle(type, x, y, z, xd, yd, zd);
     }
 
-    /** A slow-rising soul-fire mote hugging the champion's silhouette. */
+    /**
+     * A golden spark that orbits the champion from a random start angle. The
+     * particle follows the mob itself, so it receives the mob's network id and
+     * the angle through the velocity arguments (see {@link ChampionAuraParticle}).
+     */
     private static void emitChampionAura(ClientLevel level, Mob mob, RandomSource random) {
-        double width = mob.getBbWidth();
-        double x = mob.getX() + (random.nextDouble() - 0.5) * width * 1.2;
-        double z = mob.getZ() + (random.nextDouble() - 0.5) * width * 1.2;
-        double y = mob.getY() + random.nextDouble() * mob.getBbHeight();
-        level.addParticle(ParticleTypes.SOUL_FIRE_FLAME, x, y, z, 0.0, 0.02, 0.0);
+        double startAngle = random.nextDouble() * Math.PI * 2.0;
+        level.addParticle(TribulationParticles.CHAMPION_AURA,
+                mob.getX(), mob.getY(), mob.getZ(), mob.getId(), startAngle, 0.0);
     }
 
     private static SimpleParticleType particleFor(ThreatCue.Type cue) {

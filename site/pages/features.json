@@ -207,7 +207,7 @@
           "type": "sub",
           "id": "champions",
           "title": "Champion Mobs",
-          "intro": "Above a configurable player level (50 by default), hostile spawns roll a 5% chance to become a <strong>champion</strong>: a named elite carrying 1–2 affixes, ×1.5 health and ×1.25 damage on top of normal scaling, a soul-fire particle aura, ×3 XP, and an extra roll of its own loot table on death.",
+          "intro": "Above a configurable player level (50 by default), hostile spawns roll a 5% chance to become a <strong>champion</strong>: a named elite carrying 1–2 affixes, ×1.5 health and ×1.25 damage on top of normal scaling, an aura of golden sparks that circle it, ×3 XP, and an extra roll of its own loot table on death.",
           "blocks": [
             {
               "type": "cards",
@@ -653,7 +653,7 @@
               "id": "threat-telegraphing",
               "title": "Threat Telegraphing",
               "html": [
-                "Dangerous mobs give themselves away. Scaled hostiles at Tier 4 and above trail a faint cursed mote, so you can read threat at a glance even without Jade or WTHIT installed — equipment scaling stays the primary tell, these particles are the secondary hint.",
+                "Dangerous mobs give themselves away. Scaled hostiles at Tier 4 and above give off puffs of dark red smoke that swell and darken as they rise, so you can read threat at a glance even without Jade or WTHIT installed — equipment scaling stays the primary tell, these particles are the secondary hint. The smoke never renders darker than a dimly lit room, so it stays readable at night and underground. Champions carry their own cue on top: golden sparks that circle the mob and climb from its feet to its head.",
                 "Big and Speed zombie variants carry their own distinguishable cue — a heavy sooty dust for the Big Zombie's mass, a sharp pale afterimage streak for the Speed Zombie's velocity — and they show it at <em>any</em> tier, since a hulking or blink-fast zombie is dangerous the moment it spawns. Custom particle sprites are authored through the suite's texture pipeline.",
                 "Entirely client-side and free: the cues read tier and variant data the entity already syncs, so there is no server-tick cost. Invisible mobs emit nothing."
               ],

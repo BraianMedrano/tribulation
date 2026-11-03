@@ -552,7 +552,7 @@
           "headers": ["Key", "Type", "Default", "Description"],
           "rows": [
             ["<code class='text-accent2 whitespace-nowrap'>enabled</code>", "boolean", "true", "Emit threat particles"],
-            ["<code class='text-accent2 whitespace-nowrap'>minimumTier</code>", "int", "4", "Lowest tier that trails the generic cursed-mote cue (variant cues ignore this)"],
+            ["<code class='text-accent2 whitespace-nowrap'>minimumTier</code>", "int", "4", "Lowest tier that trails the generic dark red smoke cue (variant cues ignore this)"],
             ["<code class='text-accent2 whitespace-nowrap'>particleFrequencyTicks</code>", "int", "40", "Average ticks between particle emissions per mob (higher is sparser)"]
           ]
         },

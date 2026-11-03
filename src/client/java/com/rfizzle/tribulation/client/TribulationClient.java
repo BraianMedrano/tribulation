@@ -53,5 +53,6 @@ public class TribulationClient implements ClientModInitializer {
                 sprites -> new ThreatParticle.Provider(sprites, ThreatParticle.Style.BIG));
         registry.register(TribulationParticles.THREAT_SPEED,
                 sprites -> new ThreatParticle.Provider(sprites, ThreatParticle.Style.SPEED));
+        registry.register(TribulationParticles.CHAMPION_AURA, ChampionAuraParticle.Provider::new);
     }
 }
