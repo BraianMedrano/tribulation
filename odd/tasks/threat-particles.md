@@ -19,7 +19,7 @@ Branch: `feat/threat-particles` (from `develop`). Delivery: single PR into `deve
 | T2 | S1, S2, S4 | inline | done | `ThreatParticleMathTest` RED (missing class) then GREEN 15/15 |
 | T3 | S3 | inline | done | `ParticleRegistrationGameTest` asserts `champion_aura` |
 | T4 | S5 | inline | done | site features/config copy, minimum-tier tooltip |
-| T5 | S1-S4 | inline | partial | build green (985 unit tests), 157/157 gametests; live: golden orbit confirmed (L7), client log has no missing particle sprites; user confirmation of the smoke pending |
+| T5 | S1-S4 | inline | done | build green (985 unit tests), 157/157 gametests; live: smoke and golden orbit confirmed at night and in caves (L7, L8), client log has no missing particle sprites |
 
 ## Log
 
@@ -29,4 +29,5 @@ Branch: `feat/threat-particles` (from `develop`). Delivery: single PR into `deve
 - L5 Native review of dcbb41f (readability + reliability) approved and acknowledged. Advisory R2-smoke-size-doc-mismatch: the preview card label said "0.20 to 0.48 block" while its animation (and the code) grow 0.20 to 0.68 block wide. Kept the size the user saw; corrected S1, the test comment and the preview label.
 - L6 Stop hook offered the whole branch from 6d4fdc3 (186 files, 5652 lines); user granted; START refused `lens_context_budget_exceeded`, nothing created. Reduced scope: 09f6b7b assessed against the reviewed boundary dcbb41f: medium, `under_budget`, stays pending in the slice.
 - L7 (2026-11-03) Live check on the Mac (`runClient`, level 250, champion chance 1.0 in the dev run config): golden sparks orbit the champion skeletons in a dark cave (user screenshot). Out of scope, found during the check: every tier 4+ skeleton burns without damage and shoots unlit arrows (pre-existing `skeleton_flame_arrows`, MobAbilities.java:68; MC 26.3 never lights an arrow from a burning shooter). User: "dale, arreglalo así con flechas reales y sin fuego, pero seria en otra sesion no?" — separate fix, next session.
+- L8 (2026-11-03) User: "Si se ve bien las particulas, todas de noche, en cuevas y demas". Stop hook offered the whole branch from 6d4fdc3 again (with 480f319); user declined this candidate. Feature closed; merge into `develop` is the user's call.
 - L4 The orbit spark receives the champion's entity id and start angle through the spawn velocity arguments; the provider returns null when the entity is gone.
