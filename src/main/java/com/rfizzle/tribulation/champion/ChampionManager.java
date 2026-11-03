@@ -106,8 +106,10 @@ public final class ChampionManager {
         setMultiplier(mob, Attributes.ATTACK_DAMAGE, DAMAGE_ID, cfg.damageMultiplier);
 
         if (cfg.showNameTag) {
+            // Not always visible: vanilla draws an always-visible name through
+            // blocks, which gives a champion's position away behind walls. Left
+            // off, the name shows only while the crosshair is on the champion.
             mob.setCustomName(championName(affixes, mob.getType().getDescription()));
-            mob.setCustomNameVisible(true);
         }
     }
 

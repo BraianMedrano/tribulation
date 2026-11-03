@@ -616,7 +616,7 @@ Above a level threshold, a small share of hostile spawns are promoted to named e
 
 1. Draws `1..maxAffixes` (default max 2) distinct affixes uniformly from the enabled pool (count is uniform over `[1, maxAffixes]`, clamped to the pool size) and stores their ids in the persistent, client-synced `CHAMPION_AFFIXES` attachment — both the "is champion" flag and the source of truth for affix behavior.
 2. Gains `tribulation:champion_health` / `champion_damage` modifiers (`ADD_MULTIPLIED_TOTAL` with amount `multiplier − 1`, so they stack on the fully-scaled value): ×`healthMultiplier` (1.5) on `MAX_HEALTH` and ×`damageMultiplier` (1.25) on `ATTACK_DAMAGE`.
-3. When `showNameTag` (default true), gets an always-visible custom name composed through `fragment.tribulation.champion.name.one/.two` from the affix display names `fragment.tribulation.affix.*` (Vampiric, Explosive, Repulsing, Thorned, Regenerating) — e.g. "Vampiric Zombie Champion", or "Vampiric Thorned Zombie Champion" for two affixes.
+3. When `showNameTag` (default true), gets a custom name, shown only while the crosshair is on the champion (never always-visible, which would render through blocks), composed through `fragment.tribulation.champion.name.one/.two` from the affix display names `fragment.tribulation.affix.*` (Vampiric, Explosive, Repulsing, Thorned, Regenerating) — e.g. "Vampiric Zombie Champion", or "Vampiric Thorned Zombie Champion" for two affixes.
 
 ### Affixes
 

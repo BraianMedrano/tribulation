@@ -94,6 +94,9 @@ public class ChampionGameTest {
                     "level-50 zombie (30 HP) with champion ×1.5");
             helper.assertValueEqual(z.getHealth(), z.getMaxHealth(), "champion spawns topped off");
             helper.assertTrue(z.hasCustomName(), "champion must carry a name tag");
+            // The name renders only while the crosshair is on the champion, so it
+            // never shows through walls (vanilla draws always-visible names through blocks).
+            helper.assertFalse(z.isCustomNameVisible(), "champion name must not be always visible");
         });
     }
 

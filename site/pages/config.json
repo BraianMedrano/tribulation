@@ -474,7 +474,7 @@
             ["<code class='text-accent2 whitespace-nowrap'>damageMultiplier</code>", "double", "1.25", "Damage multiplier applied on top of normal scaling"],
             ["<code class='text-accent2 whitespace-nowrap'>xpMultiplier</code>", "double", "3.0", "XP multiplier for killing a champion"],
             ["<code class='text-accent2 whitespace-nowrap'>bonusLootRolls</code>", "int", "1", "Extra loot-table rolls granted on a champion's death"],
-            ["<code class='text-accent2 whitespace-nowrap'>showNameTag</code>", "boolean", "true", "Show the champion's generated name above its head"],
+            ["<code class='text-accent2 whitespace-nowrap'>showNameTag</code>", "boolean", "true", "Give the champion its generated name, shown when you look at it (not through walls)"],
             ["<code class='text-accent2 whitespace-nowrap'>particleAura</code>", "boolean", "true", "Emit an ambient particle aura around champions"],
             ["<code class='text-accent2 whitespace-nowrap'>affixes.vampiric</code>", "boolean", "true", "Allow the Vampiric affix — heals the champion when it deals damage"],
             ["<code class='text-accent2 whitespace-nowrap'>affixes.vampiricHealFraction</code>", "double", "0.5", "Fraction of damage dealt healed back by the Vampiric affix"],
