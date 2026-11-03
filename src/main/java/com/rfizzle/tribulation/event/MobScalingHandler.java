@@ -121,7 +121,7 @@ public final class MobScalingHandler {
         }
 
         // Abilities and zombie variants are vanilla-only concerns — they key off
-        // the mobToggles path and only make sense for the 21 vanilla mob types.
+        // the mobToggles path and only make sense for the vanilla mob types in MOB_KEYS.
         // Modded mobs scaled via the fallback (or full-ID overrides on non-vanilla
         // namespaces) skip this block; their stats are scaled, but no additional
         // ability injection happens.

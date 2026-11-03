@@ -244,7 +244,7 @@
           "type": "sub",
           "id": "scaled-mobs",
           "title": "Scaled Mob Types",
-          "intro": "21 vanilla hostile mobs have individually tuned scaling rates and caps for six attributes. Each can be toggled on or off independently.",
+          "intro": "28 vanilla hostile mobs have individually tuned scaling rates and caps for six attributes. Each can be toggled on or off independently.",
           "blocks": [
             {
               "type": "table",
@@ -271,7 +271,14 @@
                 ["<span class='text-bone'>Ravager</span>", "0.016 / 4.00", "0.014 / 3.50", "0.0008 / 0.20", "0.032 / 8.0"],
                 ["<span class='text-bone'>Piglin</span>", "0.010 / 2.50", "0.014 / 3.50", "0.0012 / 0.30", "0.024 / 6.0"],
                 ["<span class='text-bone'>Zombified Piglin</span>", "0.010 / 2.50", "0.015 / 3.75", "0.0012 / 0.30", "0.024 / 6.0"],
-                ["<span class='text-bone'>Bogged</span>", "0.010 / 2.50", "0.012 / 3.00", "0.0012 / 0.30", "0.020 / 5.0"]
+                ["<span class='text-bone'>Bogged</span>", "0.010 / 2.50", "0.012 / 3.00", "0.0012 / 0.30", "0.020 / 5.0"],
+                ["<span class='text-bone'>Parched</span>", "0.010 / 2.50", "0.012 / 3.00", "0.0012 / 0.30", "0.020 / 5.0"],
+                ["<span class='text-bone'>Zombie Villager</span>", "0.010 / 2.50", "0.015 / 3.75", "0.0012 / 0.30", "0.032 / 8.0"],
+                ["<span class='text-bone'>Piglin Brute</span>", "0.014 / 3.50", "0.016 / 4.00", "0.0012 / 0.30", "0.032 / 8.0"],
+                ["<span class='text-bone'>Enderman</span>", "0.010 / 2.50", "0.014 / 3.50", "0.0008 / 0.20", "0.016 / 4.0"],
+                ["<span class='text-bone'>Blaze</span>", "0.010 / 2.50", "0.012 / 3.00", "0.0008 / 0.20", "0.016 / 4.0"],
+                ["<span class='text-bone'>Breeze</span>", "0.008 / 2.00", "0.012 / 3.00", "0.0008 / 0.20", "0.016 / 4.0"],
+                ["<span class='text-bone'>Evoker</span>", "0.008 / 2.00", "0.008 / 2.00", "0.0008 / 0.20", "0.016 / 4.0"]
               ],
               "note": "<em>Rate</em> = stat gain per player level. <em>Cap</em> = maximum total factor from the time axis alone. Follow range and toughness are also scaled per-mob — see <a href='/config.html#scaling' class='text-accent hover:text-accent2 underline'>config</a> for full values."
             }

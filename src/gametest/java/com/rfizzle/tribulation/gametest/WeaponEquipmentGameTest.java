@@ -74,6 +74,50 @@ public class WeaponEquipmentGameTest {
     }
 
     @GameTest(structure = "tribulation:empty_3x3")
+    public void weapon_skippedForEvoker(GameTestHelper helper) {
+        // Evokers are illagers but cast spells instead of swinging a weapon, so a
+        // guaranteed wear roll must still leave their hand empty.
+        Mob mob = helper.spawnWithNoFreeWill(EntityTypes.EVOKER, new net.minecraft.core.BlockPos(1, 2, 1));
+        mob.entityTags().remove(WeaponEquipmentHandler.PROCESSED_TAG);
+        mob.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
+
+        TribulationConfig cfg = new TribulationConfig();
+        cfg.weaponEquipment.enabled = true;
+        cfg.weaponEquipment.tiers.get("tier5").wearChancePercent = 100;
+
+        WeaponEquipmentHandler.processWeapon(mob, 5, cfg);
+
+        helper.succeedWhen(() -> {
+            if (!mob.getMainHandItem().isEmpty()) {
+                helper.fail("Evoker should never be given a weapon, had " + mob.getMainHandItem().getItem());
+            }
+            if (!mob.entityTags().contains(WeaponEquipmentHandler.PROCESSED_TAG)) {
+                helper.fail("Skipped evoker should still be tagged processed");
+            }
+        });
+    }
+
+    @GameTest(structure = "tribulation:empty_3x3")
+    public void weapon_equippedOnPillager(GameTestHelper helper) {
+        // The illager gate still lets weapon-wielding illagers through.
+        Mob mob = helper.spawnWithNoFreeWill(EntityTypes.PILLAGER, new net.minecraft.core.BlockPos(1, 2, 1));
+        mob.entityTags().remove(WeaponEquipmentHandler.PROCESSED_TAG);
+        mob.setItemSlot(EquipmentSlot.MAINHAND, ItemStack.EMPTY);
+
+        TribulationConfig cfg = new TribulationConfig();
+        cfg.weaponEquipment.enabled = true;
+        cfg.weaponEquipment.tiers.get("tier5").wearChancePercent = 100;
+
+        WeaponEquipmentHandler.processWeapon(mob, 5, cfg);
+
+        helper.succeedWhen(() -> {
+            if (mob.getMainHandItem().isEmpty()) {
+                helper.fail("Pillager should still be given a weapon at tier 5 with 100% wear chance");
+            }
+        });
+    }
+
+    @GameTest(structure = "tribulation:empty_3x3")
     public void weapon_keptOnFailedWearRoll(GameTestHelper helper) {
         // A failed wear roll must not disarm a mob that came armed. Vindicators are
         // weapon-capable (pass supportsWeapons) and spawn with an iron axe in vanilla;

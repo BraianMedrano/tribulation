@@ -42,7 +42,8 @@ public class TribulationConfig {
             "zombie", "skeleton", "creeper", "spider", "cave_spider",
             "endermite", "silverfish", "drowned", "husk", "stray",
             "pillager", "vindicator", "witch", "wither_skeleton", "guardian",
-            "hoglin", "zoglin", "ravager", "piglin", "zombified_piglin", "bogged"
+            "hoglin", "zoglin", "ravager", "piglin", "zombified_piglin", "bogged",
+            "parched", "zombie_villager", "piglin_brute", "enderman", "blaze", "breeze", "evoker"
     };
 
     public int configVersion = 15;
@@ -1048,6 +1049,20 @@ public class TribulationConfig {
         map.put("zombified_piglin", MobScaling.of(0.010, 2.50, 0.015, 3.75, 0.0012, 0.30, 0.010, 1.0, 0.024, 6, 0.020, 5));
         // Bogged — poison skeleton; mirrors skeleton.
         map.put("bogged",           MobScaling.of(0.010, 2.50, 0.012, 3.00, 0.0012, 0.30, 0.010, 1.0, 0.020, 5, 0.015, 4));
+        // Parched — desert skeleton; mirrors skeleton.
+        map.put("parched",          MobScaling.of(0.010, 2.50, 0.012, 3.00, 0.0012, 0.30, 0.010, 1.0, 0.020, 5, 0.015, 4));
+        // Zombie Villager — zombie family; mirrors zombie.
+        map.put("zombie_villager",  MobScaling.of(0.010, 2.50, 0.015, 3.75, 0.0012, 0.30, 0.010, 1.0, 0.032, 8, 0.024, 6));
+        // Piglin Brute — heavy axe melee; tanky like the hoglin.
+        map.put("piglin_brute",     MobScaling.of(0.014, 3.50, 0.016, 4.00, 0.0012, 0.30, 0.010, 1.0, 0.032, 8, 0.024, 6));
+        // Enderman — teleports, so speed scales slowly; medium armor.
+        map.put("enderman",         MobScaling.of(0.010, 2.50, 0.014, 3.50, 0.0008, 0.20, 0.010, 1.0, 0.016, 4, 0.012, 3));
+        // Blaze — fireballs deal fixed damage, so health carries most of the scaling.
+        map.put("blaze",            MobScaling.of(0.010, 2.50, 0.012, 3.00, 0.0008, 0.20, 0.010, 1.0, 0.016, 4, 0.012, 3));
+        // Breeze — agile wind-charge caster; wind charges deal fixed damage.
+        map.put("breeze",           MobScaling.of(0.008, 2.00, 0.012, 3.00, 0.0008, 0.20, 0.010, 1.0, 0.016, 4, 0.012, 3));
+        // Evoker — spellcaster; fangs and vexes are not attribute damage, so mirrors witch.
+        map.put("evoker",           MobScaling.of(0.008, 2.00, 0.008, 2.00, 0.0008, 0.20, 0.008, 0.8, 0.016, 4, 0.012, 3));
         return map;
     }
 

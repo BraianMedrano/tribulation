@@ -38,7 +38,7 @@ Upstream of the four axes, per-dimension and per-biome level offsets add a flat 
 
 Structure danger zones stack the same way: mobs spawning inside (or within a configurable margin of) a configured structure's bounds use a boosted effective level — fortresses and bastions (+20), ancient cities (+30), end cities (+25), monuments and trial chambers (+15) by default. Keys accept structure IDs or `#`-prefixed structure tags; an empty map disables the feature.
 
-21 vanilla mob types have individually tuned scaling rates and caps. Modded hostile mobs get conservative fallback scaling automatically.
+28 vanilla mob types have individually tuned scaling rates and caps. Modded hostile mobs get conservative fallback scaling automatically.
 
 ### Tier-Gated Abilities
 

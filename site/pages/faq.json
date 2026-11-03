@@ -43,7 +43,7 @@
             },
             {
               "q": "Can I disable individual features or abilities?",
-              "a": "Yes, granularly. Each major system has an <code class='text-accent2'>enabled</code> flag. Each of the 21 scaled mobs has an on/off switch in <code class='text-accent2'>mobToggles</code>. Each tier-gated ability has its own flag in <code class='text-accent2'>abilities</code> (e.g. set <code class='text-accent2'>zombieDoorBreaking</code> to <code class='text-accent2'>false</code> to keep zombies out of your house). The level badge HUD is a client toggle. See the <a href='/config.html' class='text-accent hover:text-accent2 underline'>full config reference</a>."
+              "a": "Yes, granularly. Each major system has an <code class='text-accent2'>enabled</code> flag. Each of the 28 scaled mobs has an on/off switch in <code class='text-accent2'>mobToggles</code>. Each tier-gated ability has its own flag in <code class='text-accent2'>abilities</code> (e.g. set <code class='text-accent2'>zombieDoorBreaking</code> to <code class='text-accent2'>false</code> to keep zombies out of your house). The level badge HUD is a client toggle. See the <a href='/config.html' class='text-accent hover:text-accent2 underline'>full config reference</a>."
             },
             {
               "q": "Does the level badge HUD conflict with other HUD mods?",

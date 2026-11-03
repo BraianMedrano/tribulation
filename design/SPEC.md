@@ -91,17 +91,17 @@ Global caps (`statCaps`): health `4.0`, damage `4.5`, speed `0.5`, protection `2
 `resolveScalingForEntity` picks a mob's `MobScaling` profile by precedence:
 
 1. **Full-ID override** — if `scaling` contains a key equal to the entity's full ID string (e.g. `"create:dark_zombie"`), use it. Works for any namespace; the hand-tuned escape hatch.
-2. **Vanilla path lookup** — for the `minecraft` namespace the lookup is final: if the path's `mobToggles` entry is `true`, return `scaling.get(path)`; if the toggle is `false` **or the path is not a toggle key at all**, return `null`. A vanilla mob never falls through to the modded fallback, so explicit no-scale wins and vanilla hostiles outside the 21 tuned keys (blaze, enderman, ghast, phantom, slime, evoker, …) receive no axis scaling unless given a full-ID override.
+2. **Vanilla path lookup** — for the `minecraft` namespace the lookup is final: if the path's `mobToggles` entry is `true`, return `scaling.get(path)`; if the toggle is `false` **or the path is not a toggle key at all**, return `null`. A vanilla mob never falls through to the modded fallback, so explicit no-scale wins and vanilla hostiles outside the 28 tuned keys (ghast, phantom, slime, magma cube, vex, shulker, …) receive no axis scaling unless given a full-ID override.
 3. **Modded fallback** — when `unlistedHostileMobs.enabled` (default true), the entity is a `Monster`, and its namespace is not in `unlistedHostileMobs.excludedNamespaces`, use `unlistedHostileMobs.scaling`.
 4. Otherwise `null` — no scaling.
 
 The fallback profile scales **health and damage only** (zombie's rates: health `0.010/2.50`, damage `0.015/3.75`); all other axes are zero, so modded mobs get conservative HP/damage growth without second-guessing the author's speed/AI/armor tuning.
 
-### The 21 Tuned Vanilla Mobs
+### The 28 Tuned Vanilla Mobs
 
-`MOB_KEYS` and the default `scaling` map cover 21 vanilla hostile types, each with individually tuned rate/cap pairs for all six attributes:
+`MOB_KEYS` and the default `scaling` map cover 28 vanilla hostile types, each with individually tuned rate/cap pairs for all six attributes:
 
-`zombie`, `skeleton`, `creeper`, `spider`, `cave_spider`, `endermite`, `silverfish`, `drowned`, `husk`, `stray`, `pillager`, `vindicator`, `witch`, `wither_skeleton`, `guardian`, `hoglin`, `zoglin`, `ravager`, `piglin`, `zombified_piglin`, `bogged`.
+`zombie`, `skeleton`, `creeper`, `spider`, `cave_spider`, `endermite`, `silverfish`, `drowned`, `husk`, `stray`, `pillager`, `vindicator`, `witch`, `wither_skeleton`, `guardian`, `hoglin`, `zoglin`, `ravager`, `piglin`, `zombified_piglin`, `bogged`, `parched`, `zombie_villager`, `piglin_brute`, `enderman`, `blaze`, `breeze`, `evoker`.
 
 Reference values (`rate / cap`, full default set in `TribulationConfig.defaultScaling()`):
 
@@ -128,6 +128,17 @@ Reference values (`rate / cap`, full default set in `TribulationConfig.defaultSc
 | piglin | 0.010 / 2.50 | 0.014 / 3.50 | 0.0012 / 0.30 | 0.010 / 1.0 | 0.024 / 6 | 0.020 / 5 |
 | zombified_piglin | 0.010 / 2.50 | 0.015 / 3.75 | 0.0012 / 0.30 | 0.010 / 1.0 | 0.024 / 6 | 0.020 / 5 |
 | bogged | 0.010 / 2.50 | 0.012 / 3.00 | 0.0012 / 0.30 | 0.010 / 1.0 | 0.020 / 5 | 0.015 / 4 |
+| parched | 0.010 / 2.50 | 0.012 / 3.00 | 0.0012 / 0.30 | 0.010 / 1.0 | 0.020 / 5 | 0.015 / 4 |
+| zombie_villager | 0.010 / 2.50 | 0.015 / 3.75 | 0.0012 / 0.30 | 0.010 / 1.0 | 0.032 / 8 | 0.024 / 6 |
+| piglin_brute | 0.014 / 3.50 | 0.016 / 4.00 | 0.0012 / 0.30 | 0.010 / 1.0 | 0.032 / 8 | 0.024 / 6 |
+| enderman | 0.010 / 2.50 | 0.014 / 3.50 | 0.0008 / 0.20 | 0.010 / 1.0 | 0.016 / 4 | 0.012 / 3 |
+| blaze | 0.010 / 2.50 | 0.012 / 3.00 | 0.0008 / 0.20 | 0.010 / 1.0 | 0.016 / 4 | 0.012 / 3 |
+| breeze | 0.008 / 2.00 | 0.012 / 3.00 | 0.0008 / 0.20 | 0.010 / 1.0 | 0.016 / 4 | 0.012 / 3 |
+| evoker | 0.008 / 2.00 | 0.008 / 2.00 | 0.0008 / 0.20 | 0.008 / 0.8 | 0.016 / 4 | 0.012 / 3 |
+
+A hostile that converts into a non-hostile mob (a cured zombie villager) loses its `tribulation_*` tags, and a champion's generated name, through `ConversionCleanupHandler` on Fabric's `MOB_CONVERSION` event. Vanilla conversion never copies attribute modifiers, so the result already has vanilla stats; hostile-to-hostile conversions are left as vanilla makes them.
+
+Weapon equipment skips the evoker even though it is an illager: it fights with spells and never swings a held weapon.
 
 ### Armor / Toughness Ceilings
 
@@ -203,7 +214,7 @@ At five level thresholds, scaled vanilla mobs unlock special behaviors keyed off
 
 ### Ability Table
 
-`AbilityManager.applyAbilities` runs only for the 21 vanilla mob keys whose toggle is enabled; each ability also checks its own `abilities.*` flag. Abilities are expressed as attribute modifiers (`tribulation:ability_*` IDs), infinite-duration effects, vanilla setters, equipment, or scoreboard tags consumed by mixins, so they persist in NBT. `MobAbilities.REGISTRY` holds 31 entries (the 29 `abilities.*` flags, two of which — `spiderWebPlacing` and `silverfishCallSleepers` — cover two mob keys each).
+`AbilityManager.applyAbilities` runs only for the 28 vanilla mob keys whose toggle is enabled; each ability also checks its own `abilities.*` flag. Abilities are expressed as attribute modifiers (`tribulation:ability_*` IDs), infinite-duration effects, vanilla setters, equipment, or scoreboard tags consumed by mixins, so they persist in NBT. `MobAbilities.REGISTRY` holds 31 entries (the 29 `abilities.*` flags, two of which — `spiderWebPlacing` and `silverfishCallSleepers` — cover two mob keys each).
 
 | Mob | Tier ≥ | Ability | Mechanism | Config flag |
 |---|---|---|---|---|
@@ -605,7 +616,7 @@ Above a level threshold, a small share of hostile spawns are promoted to named e
 
 1. Draws `1..maxAffixes` (default max 2) distinct affixes uniformly from the enabled pool (count is uniform over `[1, maxAffixes]`, clamped to the pool size) and stores their ids in the persistent, client-synced `CHAMPION_AFFIXES` attachment — both the "is champion" flag and the source of truth for affix behavior.
 2. Gains `tribulation:champion_health` / `champion_damage` modifiers (`ADD_MULTIPLIED_TOTAL` with amount `multiplier − 1`, so they stack on the fully-scaled value): ×`healthMultiplier` (1.5) on `MAX_HEALTH` and ×`damageMultiplier` (1.25) on `ATTACK_DAMAGE`.
-3. When `showNameTag` (default true), gets an always-visible custom name composed through `fragment.tribulation.champion.name.one/.two` from the affix display names `fragment.tribulation.affix.*` (Vampiric, Explosive, Repulsing, Thorned, Regenerating) — e.g. "Vampiric Zombie Champion", or "Vampiric Thorned Zombie Champion" for two affixes.
+3. When `showNameTag` (default true), gets a custom name, shown only while the crosshair is on the champion (never always-visible, which would render through blocks), composed through `fragment.tribulation.champion.name.one/.two` from the affix display names `fragment.tribulation.affix.*` (Vampiric, Explosive, Repulsing, Thorned, Regenerating) — e.g. "Vampiric Zombie Champion", or "Vampiric Thorned Zombie Champion" for two affixes.
 
 ### Affixes
 
@@ -932,7 +943,7 @@ Offset map values are each clamped `≥ 0`; unparseable keys are logged and drop
 ### Per-Mob Scaling & Toggles
 
 - `scaling` — map of mob key (or full ID for overrides) → `MobScaling` (`healthRate/healthCap`, `damageRate/damageCap`, `speedRate/speedCap`, `followRangeRate/followRangeCap`, `armorRate/armorCap`, `toughnessRate/toughnessCap`). Defaults per §1 table.
-- `mobToggles` — map of the 21 mob keys → bool, all default `true`.
+- `mobToggles` — map of the 28 mob keys → bool, all default `true`.
 - `unlistedHostileMobs.enabled` (true), `unlistedHostileMobs.excludedNamespaces` (`[]`), `unlistedHostileMobs.scaling` (health+damage only).
 
 ### Death Penalties
