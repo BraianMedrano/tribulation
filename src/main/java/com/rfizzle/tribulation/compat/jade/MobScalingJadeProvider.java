@@ -20,7 +20,7 @@ public final class MobScalingJadeProvider implements IServerDataProvider<EntityA
     public static final MobScalingJadeProvider INSTANCE = new MobScalingJadeProvider();
 
     public static final Identifier UID = Identifier.fromNamespaceAndPath(
-            Tribulation.MOD_ID, "mob_scaling");
+            Tribulation.MOD_ID, JadeProviderIds.MOB_SCALING);
 
     private MobScalingJadeProvider() {}
 
