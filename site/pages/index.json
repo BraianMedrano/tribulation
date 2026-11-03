@@ -29,7 +29,7 @@
             {
               "icon": "&#9876;",
               "title": "Mob Scaling",
-              "html": ["21 mob types scale across health, damage, speed, armor, toughness, and follow range — independent rate and cap per stat."]
+              "html": ["28 mob types scale across health, damage, speed, armor, toughness, and follow range — independent rate and cap per stat."]
             },
             {
               "icon": "&#9760;",

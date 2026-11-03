@@ -1,11 +1,11 @@
 {
   "nav": "Mobs",
   "metaTitle": "Mob Reference — Tribulation | Difficulty Overhaul for Minecraft",
-  "metaDescription": "Per-mob reference for all 21 scaled vanilla mobs: exact scaling rates and caps, tier-gated abilities with unlock levels, zombie variants, boss scaling, and modded mob fallback.",
+  "metaDescription": "Per-mob reference for all 28 scaled vanilla mobs: exact scaling rates and caps, tier-gated abilities with unlock levels, zombie variants, boss scaling, and modded mob fallback.",
   "ogTitle": "Mob Reference — Tribulation",
   "ogDescription": "Every scaled mob, its exact rates and caps, and the abilities it unlocks at each tier.",
   "title": "Mob Reference",
-  "lede": "All 21 scaled vanilla mobs, what they gain per level, and the abilities they unlock at each tier. Every number below is the shipping default — all of it is tunable in <a href='/config.html' class='text-accent hover:text-accent2 underline'>config</a>.",
+  "lede": "All 28 scaled vanilla mobs, what they gain per level, and the abilities they unlock at each tier. Every number below is the shipping default — all of it is tunable in <a href='/config.html' class='text-accent hover:text-accent2 underline'>config</a>.",
   "width": "6xl",
   "scale": "lg",
   "sections": [
@@ -70,6 +70,14 @@
               "bullets": [
                 "<span class='text-accent2 font-semibold'>Tier 5 (lvl 250):</span> +50% follow range — the pack aggros from much further away"
               ]
+            },
+            {
+              "id": "zombie-villager",
+              "title": "Zombie Villager",
+              "html": ["<span class='text-smoke text-sm'>HP +1.0%/lvl (max +250%) · Damage +1.5%/lvl (max +375%) · Speed +0.12%/lvl (max +30%) · Armor +0.032/lvl (max +8) · Toughness +0.024/lvl (max +6)</span>"],
+              "bullets": [
+                "No tier abilities yet — stats and equipment only"
+              ]
             }
           ]
         }
@@ -108,6 +116,14 @@
               "html": ["<span class='text-smoke text-sm'>HP +1.0%/lvl (max +250%) · Damage +1.2%/lvl (max +300%) · Speed +0.12%/lvl (max +30%) · Armor +0.020/lvl (max +5) · Toughness +0.015/lvl (max +4)</span>"],
               "bullets": [
                 "<span class='text-accent font-semibold'>Tier 2 (lvl 100):</span> its arrows upgrade from vanilla Poison to Poison II"
+              ]
+            },
+            {
+              "id": "parched",
+              "title": "Parched",
+              "html": ["<span class='text-smoke text-sm'>HP +1.0%/lvl (max +250%) · Damage +1.2%/lvl (max +300%) · Speed +0.12%/lvl (max +30%) · Armor +0.020/lvl (max +5) · Toughness +0.015/lvl (max +4)</span>"],
+              "bullets": [
+                "No tier abilities yet — stats and equipment only"
               ]
             },
             {
@@ -212,6 +228,14 @@
               ]
             },
             {
+              "id": "evoker",
+              "title": "Evoker",
+              "html": ["<span class='text-smoke text-sm'>HP +0.8%/lvl (max +200%) · Damage +0.8%/lvl (max +200%) · Speed +0.08%/lvl (max +20%) · Armor +0.016/lvl (max +4) · Toughness +0.012/lvl (max +3)</span>"],
+              "bullets": [
+                "No tier abilities yet — stats only"
+              ]
+            },
+            {
               "id": "ravager",
               "title": "Ravager",
               "html": ["<span class='text-smoke text-sm'>HP +1.6%/lvl (max +400%) · Damage +1.4%/lvl (max +350%) · Speed +0.08%/lvl (max +20%) · Armor +0.032/lvl (max +8) · Toughness +0.024/lvl (max +6)</span>"],
@@ -243,6 +267,22 @@
               ]
             },
             {
+              "id": "piglin-brute",
+              "title": "Piglin Brute",
+              "html": ["<span class='text-smoke text-sm'>HP +1.4%/lvl (max +350%) · Damage +1.6%/lvl (max +400%) · Speed +0.12%/lvl (max +30%) · Armor +0.032/lvl (max +8) · Toughness +0.024/lvl (max +6)</span>"],
+              "bullets": [
+                "No tier abilities yet — stats and equipment only"
+              ]
+            },
+            {
+              "id": "blaze",
+              "title": "Blaze",
+              "html": ["<span class='text-smoke text-sm'>HP +1.0%/lvl (max +250%) · Damage +1.2%/lvl (max +300%) · Speed +0.08%/lvl (max +20%) · Armor +0.016/lvl (max +4) · Toughness +0.012/lvl (max +3)</span>"],
+              "bullets": [
+                "No tier abilities yet — stats only"
+              ]
+            },
+            {
               "id": "hoglin",
               "title": "Hoglin",
               "html": ["<span class='text-smoke text-sm'>HP +1.4%/lvl (max +350%) · Damage +1.6%/lvl (max +400%) · Speed +0.12%/lvl (max +30%) · Armor +0.024/lvl (max +6) · Toughness +0.020/lvl (max +5)</span>"],
@@ -265,6 +305,36 @@
               "bullets": [
                 "Beam damage rides the damage axis",
                 "<span class='text-accent font-semibold'>Tier 3 (lvl 150):</span> charges its beam in half the time (floor 20 ticks) — far less reaction window"
+              ]
+            }
+          ]
+        }
+      ]
+    },
+    {
+      "id": "enderman-breeze",
+      "title": "Enderman &amp; Breeze",
+      "blocks": [
+        {
+          "type": "cards",
+          "mdColumns": 2,
+          "leftAccent": true,
+          "titleSize": "base",
+          "items": [
+            {
+              "id": "enderman",
+              "title": "Enderman",
+              "html": ["<span class='text-smoke text-sm'>HP +1.0%/lvl (max +250%) · Damage +1.4%/lvl (max +350%) · Speed +0.08%/lvl (max +20%) · Armor +0.016/lvl (max +4) · Toughness +0.012/lvl (max +3)</span>"],
+              "bullets": [
+                "No tier abilities yet — stats only"
+              ]
+            },
+            {
+              "id": "breeze",
+              "title": "Breeze",
+              "html": ["<span class='text-smoke text-sm'>HP +0.8%/lvl (max +200%) · Damage +1.2%/lvl (max +300%) · Speed +0.08%/lvl (max +20%) · Armor +0.016/lvl (max +4) · Toughness +0.012/lvl (max +3)</span>"],
+              "bullets": [
+                "No tier abilities yet — stats only"
               ]
             }
           ]

@@ -564,7 +564,7 @@
       "title": "mobToggles",
       "intro": "Per-mob on/off switches. Set to <code class='text-accent2'>false</code> to completely disable scaling for a specific mob type.",
       "blocks": [
-        { "type": "code", "small": true, "code": "{\n  \"mobToggles\": {\n    \"zombie\": true,\n    \"skeleton\": true,\n    \"creeper\": true,\n    \"spider\": true,\n    \"cave_spider\": true,\n    \"endermite\": true,\n    \"silverfish\": true,\n    \"drowned\": true,\n    \"husk\": true,\n    \"stray\": true,\n    \"pillager\": true,\n    \"vindicator\": true,\n    \"witch\": true,\n    \"wither_skeleton\": true,\n    \"guardian\": true,\n    \"hoglin\": true,\n    \"zoglin\": true,\n    \"ravager\": true,\n    \"piglin\": true,\n    \"zombified_piglin\": true,\n    \"bogged\": true\n  }\n}" }
+        { "type": "code", "small": true, "code": "{\n  \"mobToggles\": {\n    \"zombie\": true,\n    \"skeleton\": true,\n    \"creeper\": true,\n    \"spider\": true,\n    \"cave_spider\": true,\n    \"endermite\": true,\n    \"silverfish\": true,\n    \"drowned\": true,\n    \"husk\": true,\n    \"stray\": true,\n    \"pillager\": true,\n    \"vindicator\": true,\n    \"witch\": true,\n    \"wither_skeleton\": true,\n    \"guardian\": true,\n    \"hoglin\": true,\n    \"zoglin\": true,\n    \"ravager\": true,\n    \"piglin\": true,\n    \"zombified_piglin\": true,\n    \"bogged\": true,\n    \"parched\": true,\n    \"zombie_villager\": true,\n    \"piglin_brute\": true,\n    \"enderman\": true,\n    \"blaze\": true,\n    \"breeze\": true,\n    \"evoker\": true\n  }\n}" }
       ]
     },
     {

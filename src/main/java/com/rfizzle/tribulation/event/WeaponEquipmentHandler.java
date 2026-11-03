@@ -10,6 +10,7 @@ import net.minecraft.util.RandomSource;
 import net.minecraft.world.entity.EquipmentSlot;
 import net.minecraft.world.entity.Mob;
 import net.minecraft.world.entity.monster.illager.AbstractIllager;
+import net.minecraft.world.entity.monster.illager.Evoker;
 import net.minecraft.world.entity.monster.skeleton.AbstractSkeleton;
 import net.minecraft.world.entity.monster.zombie.Zombie;
 import net.minecraft.world.entity.monster.piglin.AbstractPiglin;
@@ -63,15 +64,16 @@ public final class WeaponEquipmentHandler {
      * The zombie, skeleton, and piglin families hold and swing melee/ranged gear,
      * and illagers (pillager/vindicator) render and use a held weapon via their
      * {@code ItemInHandLayer}. Everything else (creeper, spider, guardian, …) can't
-     * use a weapon, so a rolled one would be invisible dead weight. Gating here
-     * guards against config toggles or modded callers handing such a mob to
+     * use a weapon, so a rolled one would be invisible dead weight. The evoker is an
+     * illager but fights with spells, so it is left out too. Gating here guards
+     * against config toggles or modded callers handing such a mob to
      * {@link #processWeapon}.
      */
     public static boolean supportsWeapons(Mob mob) {
         return mob instanceof Zombie
                 || mob instanceof AbstractSkeleton
                 || mob instanceof AbstractPiglin
-                || mob instanceof AbstractIllager;
+                || (mob instanceof AbstractIllager && !(mob instanceof Evoker));
     }
 
     public static void processWeapon(Mob mob, int tier, TribulationConfig cfg) {

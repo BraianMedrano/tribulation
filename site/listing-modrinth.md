@@ -49,7 +49,7 @@ per-biome offsets single out hostile ground (the Deep Dark is +30 by default),
 and per-structure **danger zones** turn landmark raids into a real gauntlet —
 ancient cities +30, end cities +25, nether fortresses and bastions +20, ocean
 monuments and trial chambers +15. Every offset is configurable and understands
-biome and structure tags, so modded content slots in. 21 vanilla mob types have
+biome and structure tags, so modded content slots in. 28 vanilla mob types have
 individually tuned scaling rates and caps — zombies don't scale the same as
 skeletons or creepers. Modded hostile mobs are automatically supported with
 conservative fallback scaling (configurable per-namespace or per-entity).
