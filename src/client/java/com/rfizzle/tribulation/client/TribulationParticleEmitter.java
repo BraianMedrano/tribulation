@@ -41,8 +41,10 @@ public final class TribulationParticleEmitter {
     private static final double RADIUS = 16.0;
     private static final double RADIUS_SQR = RADIUS * RADIUS;
     /**
-     * Mean ticks between champion-aura sparks. With a 44-tick spark lifetime this
-     * keeps about eleven sparks circling a champion at once.
+     * Mean ticks between champion-aura sparks. About {@code
+     * CHAMPION_SPARK_LIFETIME_TICKS / CHAMPION_AURA_INTERVAL_TICKS} sparks circle a
+     * champion at once (see
+     * {@link com.rfizzle.tribulation.particle.ThreatParticleMath#CHAMPION_SPARK_LIFETIME_TICKS}).
      */
     private static final int CHAMPION_AURA_INTERVAL_TICKS = 4;
 

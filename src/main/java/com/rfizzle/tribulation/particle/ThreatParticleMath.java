@@ -16,6 +16,15 @@ public final class ThreatParticleMath {
      */
     public static final int SMOKE_BLOCK_LIGHT_FLOOR = 9;
 
+    /** Light floor of a cue that takes the world light as is. */
+    public static final int NO_LIGHT_FLOOR = -1;
+
+    /** Result of {@link #anchorEntityId} when the arguments name no anchor. */
+    public static final int NO_ANCHOR = -1;
+
+    /** Ticks a champion spark lives: one climb from the feet to the head. */
+    public static final int CHAMPION_SPARK_LIFETIME_TICKS = 44;
+
     /** Angular speed of a champion spark around its anchor, in radians per tick. */
     public static final double ORBIT_RADIANS_PER_TICK = 0.22;
 
@@ -47,9 +56,24 @@ public final class ThreatParticleMath {
         return base + grow * progress(age + partialTick, lifetime);
     }
 
-    /** The block light a floored particle renders with. */
+    /**
+     * The block light a floored particle renders with: never below
+     * {@code floor}, or the world light unchanged for {@link #NO_LIGHT_FLOOR}.
+     */
     public static int flooredBlockLight(int blockLight, int floor) {
+        if (floor == NO_LIGHT_FLOOR) return blockLight;
         return Math.max(blockLight, floor);
+    }
+
+    /**
+     * Decodes the champion spark's anchor from its first spawn argument. The
+     * emitter passes the mob's network id, always a whole number of at least
+     * one. Anything else, such as the zero or random spread a
+     * {@code /particle} command puts there, names no anchor.
+     */
+    public static int anchorEntityId(double arg) {
+        if (!(arg >= 1.0 && arg <= Integer.MAX_VALUE) || arg != Math.rint(arg)) return NO_ANCHOR;
+        return (int) arg;
     }
 
     /** Orbit radius that keeps a spark just outside an anchor of this width. */

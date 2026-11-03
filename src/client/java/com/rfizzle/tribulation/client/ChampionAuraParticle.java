@@ -1,5 +1,6 @@
 package com.rfizzle.tribulation.client;
 
+import com.rfizzle.tribulation.data.TribulationAttachments;
 import com.rfizzle.tribulation.particle.ThreatParticleMath;
 import net.minecraft.client.multiplayer.ClientLevel;
 import net.minecraft.client.particle.Particle;
@@ -20,10 +21,12 @@ import org.jspecify.annotations.Nullable;
  *
  * <p>The anchor travels through the particle's spawn arguments: the emitter
  * passes the entity's network id as {@code xd} and the start angle as
- * {@code yd}, which keeps the type a plain {@link SimpleParticleType}.
+ * {@code yd}, which keeps the type a plain {@link SimpleParticleType}. The
+ * provider spawns nothing unless those arguments name a live champion, so a
+ * {@code /particle} command, whose spread lands in the same arguments, cannot
+ * attach a spark to an unrelated entity.
  */
 public class ChampionAuraParticle extends SingleQuadParticle {
-    private static final int LIFETIME_TICKS = 44;
     private static final float HALF_SIZE = 0.07f;
     private static final int FLICKER_TICKS = 3;
 
@@ -36,7 +39,7 @@ public class ChampionAuraParticle extends SingleQuadParticle {
         this.anchor = anchor;
         this.sprites = sprites;
         this.angle = startAngle;
-        this.lifetime = LIFETIME_TICKS;
+        this.lifetime = ThreatParticleMath.CHAMPION_SPARK_LIFETIME_TICKS;
         this.quadSize = HALF_SIZE;
         this.hasPhysics = false;
         this.gravity = 0f;
@@ -83,7 +86,7 @@ public class ChampionAuraParticle extends SingleQuadParticle {
         return SingleQuadParticle.Layer.TRANSLUCENT;
     }
 
-    /** Resolves the anchor from the spawn arguments; spawns nothing if it is gone. */
+    /** Resolves the anchor from the spawn arguments; spawns nothing unless it is a live champion. */
     public static class Provider implements ParticleProvider<SimpleParticleType> {
         private final SpriteSet sprites;
 
@@ -96,8 +99,11 @@ public class ChampionAuraParticle extends SingleQuadParticle {
                                                  double x, double y, double z,
                                                  double anchorId, double startAngle, double unused,
                                                  RandomSource random) {
-            Entity anchor = level.getEntity((int) anchorId);
-            if (anchor == null || anchor.isRemoved()) return null;
+            int id = ThreatParticleMath.anchorEntityId(anchorId);
+            if (id == ThreatParticleMath.NO_ANCHOR) return null;
+            Entity anchor = level.getEntity(id);
+            if (anchor == null || anchor.isRemoved()
+                    || !anchor.hasAttached(TribulationAttachments.CHAMPION_AFFIXES)) return null;
             return new ChampionAuraParticle(level, anchor, startAngle, sprites);
         }
     }

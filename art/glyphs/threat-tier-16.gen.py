@@ -3,7 +3,9 @@
 
 Six 16px frames of a smoke puff that swells, darkens and thins out as it ages.
 The particle picks a frame from its age (setSpriteFromAge), so the frames ship
-split as threat_tier_0..5.png and the particle JSON lists them in order.
+split as threat_tier_0..5.png and the particle JSON lists them in order. With
+"frames: split" the renderer expands the "ships:" path, threat_tier.png, into
+one numbered file per frame, so the base name itself is never written.
 
 Each frame is three overlapping soft blobs whose radius grows with age; a fixed
 integer hash roughens the edge and, past the first third of the life, drops
