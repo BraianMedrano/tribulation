@@ -36,7 +36,8 @@
             "com.rfizzle.tribulation.gametest.PackTacticsGameTest",
             "com.rfizzle.tribulation.gametest.EnvironmentalPressureGameTest",
             "com.rfizzle.tribulation.gametest.SavedDataPersistenceGameTest",
-            "com.rfizzle.tribulation.gametest.ExtendedVanillaScalingGameTest"
+            "com.rfizzle.tribulation.gametest.ExtendedVanillaScalingGameTest",
+            "com.rfizzle.tribulation.gametest.LegacyMobMigrationGameTest"
         ]
     },
     "depends": {

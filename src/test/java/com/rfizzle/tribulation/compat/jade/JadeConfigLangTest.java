@@ -2,15 +2,19 @@
 package com.rfizzle.tribulation.compat.jade;
 
 import com.google.gson.Gson;
+import com.google.gson.JsonElement;
 import com.google.gson.JsonObject;
+import com.rfizzle.tribulation.Tribulation;
 import org.junit.jupiter.api.Test;
 
 import java.io.IOException;
+import java.io.InputStream;
+import java.io.InputStreamReader;
+import java.io.Reader;
 import java.nio.charset.StandardCharsets;
-import java.nio.file.Files;
-import java.nio.file.Path;
 
-import static org.junit.jupiter.api.Assertions.assertTrue;
+import static org.junit.jupiter.api.Assertions.assertFalse;
+import static org.junit.jupiter.api.Assertions.assertNotNull;
 
 /**
  * Jade lists every registered provider in its plugin config screen under
@@ -20,15 +24,28 @@ import static org.junit.jupiter.api.Assertions.assertTrue;
  */
 class JadeConfigLangTest {
 
-    private static final Path LANG = Path.of("src/main/resources/assets/tribulation/lang/en_us.json");
+    private static final String LANG = "assets/tribulation/lang/en_us.json";
 
-    /** Matches {@code MobScalingJadeProvider.UID} ({@code tribulation:mob_scaling}). */
-    private static final String MOB_SCALING_CONFIG_KEY = "config.jade.plugin_tribulation.mob_scaling";
+    /** The key Jade's plugin config screen looks up for a provider UID path. */
+    private static String configKey(String uidPath) {
+        return "config.jade.plugin_" + Tribulation.MOD_ID + "." + uidPath;
+    }
 
     @Test
     void mobScalingProviderHasAConfigTranslation() throws IOException {
-        JsonObject lang = new Gson().fromJson(Files.readString(LANG, StandardCharsets.UTF_8), JsonObject.class);
+        String key = configKey(JadeProviderIds.MOB_SCALING);
+        JsonElement value = shippedLang().get(key);
 
-        assertTrue(lang.has(MOB_SCALING_CONFIG_KEY), "en_us.json is missing " + MOB_SCALING_CONFIG_KEY);
+        assertNotNull(value, LANG + " is missing " + key);
+        assertFalse(value.getAsString().isBlank(), LANG + " has a blank translation for " + key);
+    }
+
+    private JsonObject shippedLang() throws IOException {
+        try (InputStream in = getClass().getClassLoader().getResourceAsStream(LANG)) {
+            assertNotNull(in, LANG + " is not on the classpath");
+            try (Reader reader = new InputStreamReader(in, StandardCharsets.UTF_8)) {
+                return new Gson().fromJson(reader, JsonObject.class);
+            }
+        }
     }
 }

@@ -35,6 +35,12 @@ import java.util.List;
  */
 public final class MobScalingHandler {
     public static final String PROCESSED_TAG = "tribulation_processed";
+    /**
+     * Marks a processed mob whose saved state is current: stamped at scaling
+     * and after {@link LegacyMobMigration} runs, so the migration touches each
+     * mob at most once and never undoes state set on it later.
+     */
+    public static final String MIGRATED_TAG = "tribulation_migrated_v1";
     public static final String MINECRAFT_NAMESPACE = "minecraft";
 
     public static final TagKey<EntityType<?>> BOSSES_TAG = TagKey.create(
@@ -50,7 +56,17 @@ public final class MobScalingHandler {
 
     static void onEntityLoad(Entity entity, ServerLevel world) {
         if (!(entity instanceof Mob mob)) return;
-        if (mob.entityTags().contains(PROCESSED_TAG)) return;
+        if (mob.entityTags().contains(PROCESSED_TAG)) {
+            if (!mob.entityTags().contains(MIGRATED_TAG)) {
+                try {
+                    LegacyMobMigration.migrate(mob);
+                } catch (Exception e) {
+                    Tribulation.LOGGER.error("Failed to migrate saved state of {}", mob, e);
+                }
+                mob.addTag(MIGRATED_TAG);
+            }
+            return;
+        }
 
         TribulationConfig cfg = Tribulation.getConfig();
         if (cfg == null) return;
@@ -99,6 +115,7 @@ public final class MobScalingHandler {
             BossScalingEngine.applyModifiers(mob, world, playerLevel, cfg);
             mob.setHealth(mob.getMaxHealth());
             mob.addTag(PROCESSED_TAG);
+            mob.addTag(MIGRATED_TAG);
             return;
         }
 
@@ -169,6 +186,7 @@ public final class MobScalingHandler {
         mob.setHealth(mob.getMaxHealth());
 
         mob.addTag(PROCESSED_TAG);
+        mob.addTag(MIGRATED_TAG);
     }
 
     /**
