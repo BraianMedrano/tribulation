@@ -224,7 +224,7 @@ At five level thresholds, scaled vanilla mobs unlock special behaviors keyed off
 | Creeper | 1 | Shorter fuse | max swell set to 15 ticks (`CreeperAccessor`) | `creeperShorterFuse` |
 | Creeper | 5 | Charged | 25% chance to set the powered flag | `creeperCharged` |
 | Skeleton | 2 | Sword switch | bow → stone sword | `skeletonSwordSwitch` |
-| Skeleton | 4 | Flame arrows | infinite Fire Resistance + `setRemainingFireTicks(MAX)` (self ablaze; arrows ignite) | `skeletonFlameArrows` |
+| Skeleton | 4 | Flame arrows | `tribulation_flame_arrows` tag (every arrow it looses is lit; the skeleton itself does not burn) | `skeletonFlameArrows` |
 | Spider | 2 | Web placing | `tribulation_web` tag (on-hit cobweb, mobGriefing-gated) | `spiderWebPlacing` |
 | Spider | 3 | Crop trample | `tribulation_crop_trample` tag (on-hit destroys crops/farmland, mobGriefing-gated) | `spiderCropTrample` |
 | Spider | 5 | Leap attack | `+0.5` `JUMP_STRENGTH` (×base) | `spiderLeapAttack` |
@@ -256,7 +256,7 @@ The 29 `abilities.*` config flags all default to `true`.
 
 - On-hit abilities (`spiderWebPlacing`, `spiderCropTrample`) are driven by `MobAbilityMixin` on `Mob#doHurtTarget`, gated by the `mobGriefing` gamerule; `huskHunger` is driven by `HuskAbilityMixin` on `Husk#doHurtTarget`.
 - Arrow-effect abilities (`straySlownessUpgrade`, `boggedPoisonUpgrade`) inject in `StrayAbilityMixin` / `BoggedAbilityMixin` on the `Stray#getArrow` / `Bogged#getArrow` overrides, reading the mob's tag.
-- Skeleton flame arrows are implemented by keeping the skeleton permanently on fire (fire-immune) so its arrows inherit ignition; there is no dedicated arrow-modification code.
+- Skeleton flame arrows inject in `SkeletonFlameArrowsMixin` on `AbstractSkeleton#getArrow`, reading the mob's tag and lighting the arrow for 100 seconds as vanilla's wither skeleton does. A burning shooter does not light its arrows, so the skeleton is not set on fire.
 - Crossbow enchants (`pillagerQuickCharge`, `pillagerMultishot`) use the `enchantHeldCrossbow` helper and no-op when the main hand is not a crossbow.
 
 ---

@@ -8,9 +8,11 @@ import net.minecraft.core.registries.BuiltInRegistries;
 
 /**
  * Custom particle types for Tribulation's threat-telegraphing cues and the
- * champion aura. Each is a
- * {@link SimpleParticleType} (no extra payload — the cue carries no data beyond
- * its identity) rendered client-side from a {@code .glyph}-authored sprite.
+ * champion aura. Each is a {@link SimpleParticleType} rendered client-side from
+ * a {@code .glyph}-authored sprite. The threat cues carry no data beyond their
+ * identity. {@link #CHAMPION_AURA} has no payload type either, but it reads its
+ * spawn velocity as data: the anchor's entity id and the spark's start angle
+ * (see {@code ChampionAuraParticle}).
  *
  * <p>Registered into {@link BuiltInRegistries#PARTICLE_TYPE} on both logical
  * sides during {@code onInitialize}; the client-side {@code ParticleProvider}

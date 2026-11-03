@@ -109,4 +109,26 @@ class ThreatParticleMathTest {
             assertTrue(a >= 0f && a <= 1f, "alpha " + a + " at age " + age);
         }
     }
+
+    @Test
+    void flooredBlockLight_noFloorKeepsTheWorldLight() {
+        assertEquals(3, ThreatParticleMath.flooredBlockLight(3, ThreatParticleMath.NO_LIGHT_FLOOR));
+    }
+
+    // --- champion anchor decoding ---
+
+    @Test
+    void anchorEntityId_decodesAWholePositiveId() {
+        assertEquals(42, ThreatParticleMath.anchorEntityId(42.0));
+    }
+
+    @Test
+    void anchorEntityId_rejectsArgumentsNoEmitterSends() {
+        // A /particle command with a zero or random spread lands here.
+        assertEquals(ThreatParticleMath.NO_ANCHOR, ThreatParticleMath.anchorEntityId(0.0));
+        assertEquals(ThreatParticleMath.NO_ANCHOR, ThreatParticleMath.anchorEntityId(-3.0));
+        assertEquals(ThreatParticleMath.NO_ANCHOR, ThreatParticleMath.anchorEntityId(0.37));
+        assertEquals(ThreatParticleMath.NO_ANCHOR, ThreatParticleMath.anchorEntityId(Double.NaN));
+        assertEquals(ThreatParticleMath.NO_ANCHOR, ThreatParticleMath.anchorEntityId(1e12));
+    }
 }

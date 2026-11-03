@@ -60,10 +60,7 @@ public class ThreatParticle extends SingleQuadParticle {
 
     @Override
     protected int getLightCoords(float partialTick) {
-        int coords = super.getLightCoords(partialTick);
-        if (style.blockLightFloor < 0) return coords;
-        int block = ThreatParticleMath.flooredBlockLight(LightCoordsUtil.block(coords), style.blockLightFloor);
-        return LightCoordsUtil.withBlock(coords, block);
+        return style.lightCoords(super.getLightCoords(partialTick));
     }
 
     @Override
@@ -79,9 +76,9 @@ public class ThreatParticle extends SingleQuadParticle {
          */
         TIER(-0.008f, 28, 16, 0.10f, 0.80f, 0.96f, 0.24f, true, ThreatParticleMath.SMOKE_BLOCK_LIGHT_FLOOR),
         /** Sooty dust: heavier, sinks, short-lived, larger. */
-        BIG(0.012f, 16, 12, 0.16f, 0.90f, 0.94f, 0f, false, -1),
+        BIG(0.012f, 16, 12, 0.16f, 0.90f, 0.94f, 0f, false, ThreatParticleMath.NO_LIGHT_FLOOR),
         /** Afterimage streak: no gravity, quick, sharp. */
-        SPEED(0.0f, 8, 8, 0.12f, 0.80f, 0.94f, 0f, false, -1);
+        SPEED(0.0f, 8, 8, 0.12f, 0.80f, 0.94f, 0f, false, ThreatParticleMath.NO_LIGHT_FLOOR);
 
         final float gravity;
         final int minLife;
@@ -93,7 +90,7 @@ public class ThreatParticle extends SingleQuadParticle {
         final float grow;
         /** Pick the sprite from the particle's age instead of at random. */
         final boolean spriteByAge;
-        /** Minimum block light to render with, or -1 to take the world light as is. */
+        /** Minimum block light to render with, or {@link ThreatParticleMath#NO_LIGHT_FLOOR}. */
         final int blockLightFloor;
 
         Style(float gravity, int minLife, int lifeJitter, float size, float alpha,
@@ -107,6 +104,12 @@ public class ThreatParticle extends SingleQuadParticle {
             this.grow = grow;
             this.spriteByAge = spriteByAge;
             this.blockLightFloor = blockLightFloor;
+        }
+
+        /** The world's packed light with this cue's block light floor applied; sky light is kept. */
+        int lightCoords(int coords) {
+            int block = ThreatParticleMath.flooredBlockLight(LightCoordsUtil.block(coords), blockLightFloor);
+            return LightCoordsUtil.withBlock(coords, block);
         }
     }
 

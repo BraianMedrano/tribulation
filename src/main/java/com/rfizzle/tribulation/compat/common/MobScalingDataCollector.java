@@ -42,6 +42,7 @@ public final class MobScalingDataCollector {
         TAG_ABILITIES.put("tribulation_web", "Web Placing");
         TAG_ABILITIES.put("tribulation_crop_trample", "Crop Trample");
         TAG_ABILITIES.put("tribulation_hunger2", "Hunger II");
+        TAG_ABILITIES.put(AbilityManager.TAG_FLAME_ARROWS, "Flame Arrows");
         TAG_ABILITIES.put(AbilityManager.TAG_SLOWNESS_ARROWS, "Slowness II Arrows");
         TAG_ABILITIES.put(AbilityManager.TAG_POISON_ARROWS, "Poison II Arrows");
         TAG_ABILITIES.put(AbilityManager.TAG_LINGERING_POTIONS, "Lingering Potions");
