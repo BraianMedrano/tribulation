@@ -38,6 +38,7 @@
     "key.category.tribulation.main": "Tribulation",
     "key.tribulation.peek_detail": "Peek Tier Detail",
 
+    "config.jade.plugin_tribulation.mob_scaling": "Tribulation Mob Scaling",
     "hud.tribulation.detail.title": "Tier Detail",
     "hud.tribulation.detail.tier_label": "Tier %s / 5",
     "hud.tribulation.detail.level": "Level %s",
