@@ -1,6 +1,7 @@
 package com.rfizzle.tribulation.mixin;
 
 import com.rfizzle.tribulation.Tribulation;
+import com.rfizzle.tribulation.ability.SkeletonWeaponSwitchGoal;
 import com.rfizzle.tribulation.config.TribulationConfig;
 import com.rfizzle.tribulation.config.TribulationConfig.SpecialSkeletons;
 import com.rfizzle.tribulation.event.SkeletonVariantHandler;
@@ -27,6 +28,19 @@ import org.spongepowered.asm.mixin.injection.callback.CallbackInfo;
  */
 @Mixin(AbstractSkeleton.class)
 public abstract class AbstractSkeletonMixin {
+
+    /**
+     * Registers the {@code skeleton_sword_switch} weapon swap on every skeleton.
+     * The goal is inert unless the ability stashed a second weapon, and it
+     * declares no flags, so its priority only orders it ahead of vanilla's
+     * attack goals (4) within a tick; it never blocks them.
+     */
+    @Inject(method = "registerGoals", at = @At("TAIL"))
+    private void tribulation$addWeaponSwitchGoal(CallbackInfo ci) {
+        AbstractSkeleton self = (AbstractSkeleton) (Object) this;
+        ((MobGoalSelectorAccessor) self).tribulation$getGoalSelector()
+                .addGoal(1, new SkeletonWeaponSwitchGoal(self));
+    }
 
     @Inject(method = "reassessWeaponGoal", at = @At("RETURN"))
     private void tribulation$applyVariantBowInterval(CallbackInfo ci) {

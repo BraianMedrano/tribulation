@@ -98,7 +98,7 @@
               "title": "Skeleton",
               "html": ["<span class='text-smoke text-sm'>HP +1.0%/lvl (max +250%) · Damage +1.2%/lvl (max +300%) · Speed +0.12%/lvl (max +30%) · Armor +0.020/lvl (max +5) · Toughness +0.015/lvl (max +4)</span>"],
               "bullets": [
-                "<span class='text-accent font-semibold'>Tier 2 (lvl 100):</span> trades its bow for a stone sword at spawn — a melee skirmisher instead of an archer",
+                "<span class='text-accent font-semibold'>Tier 2 (lvl 100):</span> carries a stone sword alongside its bow — it draws the sword when you close within 4 blocks and goes back to the bow once you back off past 7",
                 "<span class='text-accent font-semibold'>Tier 4 (lvl 200):</span> every arrow it looses is a flame arrow that sets you alight on hit — the skeleton itself does not burn"
               ]
             },

@@ -68,7 +68,7 @@ change how you fight them:
 
 - **Tier 1 (50)** — Zombies call reinforcements, creepers fuse in 0.75s,
   hoglins shrug off knockback
-- **Tier 2 (100)** — Skeletons trade bows for swords, spiders snare you in
+- **Tier 2 (100)** — Skeletons draw a sword when you close in, spiders snare you in
   webs, drowned carry tridents, piglins pick up crossbows
 - **Tier 3 (150)** — Zombies break doors, spiders trample crops, wither
   skeletons sprint, zoglins walk through fire

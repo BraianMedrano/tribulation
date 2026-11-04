@@ -1,6 +1,7 @@
 package com.rfizzle.tribulation.ability;
 
 import com.rfizzle.tribulation.config.TribulationConfig;
+import com.rfizzle.tribulation.data.TribulationAttachments;
 import com.rfizzle.tribulation.mixin.CreeperAccessor;
 import net.minecraft.core.HolderLookup;
 import net.minecraft.core.registries.Registries;
@@ -60,8 +61,12 @@ public final class MobAbilities {
             // ---- Skeleton ----
             new MobAbility("skeleton", "skeleton_sword_switch", 2,
                     a -> a.skeletonSwordSwitch,
+                    // Spawn with the sword drawn and the bow stashed; SkeletonWeaponSwitchGoal
+                    // then swaps between them as the target closes in or backs off.
                     (mob, cfg) -> {
-                        if (mob.getMainHandItem().is(Items.BOW)) {
+                        ItemStack bow = mob.getMainHandItem();
+                        if (bow.is(Items.BOW)) {
+                            mob.setAttached(TribulationAttachments.STASHED_WEAPON, bow.copy());
                             mob.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.STONE_SWORD));
                         }
                     }),
