@@ -7,6 +7,7 @@ import net.fabricmc.fabric.api.attachment.v1.AttachmentRegistry;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentSyncPredicate;
 import net.fabricmc.fabric.api.attachment.v1.AttachmentType;
 import net.minecraft.network.codec.ByteBufCodecs;
+import net.minecraft.world.item.ItemStack;
 
 import java.util.function.Function;
 
@@ -44,6 +45,16 @@ public final class TribulationAttachments {
             builder -> builder
                     .persistent(Codec.STRING.listOf())
                     .syncWith(ByteBufCodecs.STRING_UTF8.apply(ByteBufCodecs.list()), AttachmentSyncPredicate.all())
+    );
+
+    /**
+     * The weapon a {@code skeleton_sword_switch} skeleton is not currently holding
+     * (the bow while the sword is drawn, and the reverse). Server-only: the client
+     * only ever renders the drawn weapon, so it is not synced.
+     */
+    public static final AttachmentType<ItemStack> STASHED_WEAPON = AttachmentRegistry.create(
+            Tribulation.id("stashed_weapon"),
+            builder -> builder.persistent(ItemStack.OPTIONAL_CODEC)
     );
 
     private TribulationAttachments() {}

@@ -2,7 +2,15 @@ package com.rfizzle.tribulation.gametest;
 
 import com.rfizzle.tribulation.ability.AbilityManager;
 import com.rfizzle.tribulation.config.TribulationConfig;
+import com.rfizzle.tribulation.ability.SkeletonWeaponSwitchGoal;
+import com.rfizzle.tribulation.data.TribulationAttachments;
+import com.rfizzle.tribulation.mixin.MobGoalSelectorAccessor;
 import net.minecraft.core.BlockPos;
+import net.minecraft.nbt.CompoundTag;
+import net.minecraft.util.ProblemReporter;
+import net.minecraft.world.entity.decoration.ArmorStand;
+import net.minecraft.world.level.storage.TagValueInput;
+import net.minecraft.world.level.storage.TagValueOutput;
 import net.minecraft.core.Holder;
 import net.minecraft.core.registries.Registries;
 import net.fabricmc.fabric.api.gametest.v1.GameTest;
@@ -73,6 +81,95 @@ public class AbilitiesGameTest {
         if (inst != null && inst.getModifier(AbilityManager.abilityId("zombie_reinforcements")) != null) {
             helper.fail("Disabled toggle should leave no reinforcements modifier");
         }
+        helper.succeed();
+    }
+
+    // ---- Skeleton: sword switch ----
+
+    @GameTest(structure = "tribulation:empty_3x3")
+    public void skeleton_swordSwitchDrawsSwordAndStashesBow(GameTestHelper helper) {
+        Skeleton skeleton = (Skeleton) helper.spawnWithNoFreeWill(EntityTypes.SKELETON, SPAWN);
+        skeleton.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.BOW));
+        AbilityManager.applyAbilities(skeleton, 2, "skeleton", new TribulationConfig());
+
+        helper.assertTrue(skeleton.getMainHandItem().is(Items.STONE_SWORD),
+                "Tier-2 skeleton should spawn with the sword drawn, got " + skeleton.getMainHandItem());
+        ItemStack stashed = skeleton.getAttachedOrElse(TribulationAttachments.STASHED_WEAPON, ItemStack.EMPTY);
+        helper.assertTrue(stashed.is(Items.BOW), "The replaced bow should be stashed, got " + stashed);
+        helper.succeed();
+    }
+
+    @GameTest(structure = "tribulation:empty_3x3")
+    public void skeleton_swordSwitchDisabledKeepsBow(GameTestHelper helper) {
+        Skeleton skeleton = (Skeleton) helper.spawnWithNoFreeWill(EntityTypes.SKELETON, SPAWN);
+        skeleton.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.BOW));
+        TribulationConfig cfg = new TribulationConfig();
+        cfg.abilities.skeletonSwordSwitch = false;
+        AbilityManager.applyAbilities(skeleton, 2, "skeleton", cfg);
+
+        helper.assertTrue(skeleton.getMainHandItem().is(Items.BOW), "Disabled toggle should leave the bow drawn");
+        helper.assertFalse(skeleton.hasAttached(TribulationAttachments.STASHED_WEAPON),
+                "Disabled toggle should stash nothing");
+        helper.succeed();
+    }
+
+    @GameTest(structure = "tribulation:empty_3x3")
+    public void skeleton_swordSwitchGoalRegistered(GameTestHelper helper) {
+        // Plain spawn: spawnWithNoFreeWill strips every goal, ours included.
+        Skeleton skeleton = helper.spawn(EntityTypes.SKELETON, SPAWN);
+        boolean registered = ((MobGoalSelectorAccessor) skeleton).tribulation$getGoalSelector().getAvailableGoals()
+                .stream().anyMatch(g -> g.getGoal() instanceof SkeletonWeaponSwitchGoal);
+        helper.assertTrue(registered, "Every skeleton should carry the weapon-switch goal");
+        helper.succeed();
+    }
+
+    @GameTest(structure = "tribulation:empty_3x3")
+    public void skeleton_swordSwitchTracksTargetDistance(GameTestHelper helper) {
+        // The test level runs on Peaceful, which discards skeletons before their AI
+        // ticks, so the goal is driven directly instead of through the selector.
+        Skeleton skeleton = (Skeleton) helper.spawnWithNoFreeWill(EntityTypes.SKELETON, SPAWN);
+        skeleton.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.BOW));
+        AbilityManager.applyAbilities(skeleton, 2, "skeleton", new TribulationConfig());
+        ArmorStand target = helper.spawn(EntityTypes.ARMOR_STAND, SPAWN);
+        target.setNoGravity(true);
+        skeleton.setTarget(target);
+        SkeletonWeaponSwitchGoal goal = new SkeletonWeaponSwitchGoal(skeleton);
+
+        target.setPos(skeleton.getX() + 12, skeleton.getY(), skeleton.getZ());
+        helper.assertTrue(goal.canUse(), "A far target should trigger a swap");
+        goal.start();
+        helper.assertTrue(skeleton.getMainHandItem().is(Items.BOW), "A far target should make it draw the bow");
+        helper.assertTrue(skeleton.getAttachedOrElse(TribulationAttachments.STASHED_WEAPON, ItemStack.EMPTY)
+                .is(Items.STONE_SWORD), "The sword should be stashed while the bow is drawn");
+
+        target.setPos(skeleton.getX() + 5.5, skeleton.getY(), skeleton.getZ());
+        helper.assertFalse(goal.canUse(), "Inside the hysteresis band the bow should stay drawn");
+
+        target.setPos(skeleton.getX() + 1.5, skeleton.getY(), skeleton.getZ());
+        helper.assertTrue(goal.canUse(), "A close target should trigger a swap");
+        goal.start();
+        helper.assertTrue(skeleton.getMainHandItem().is(Items.STONE_SWORD), "A close target should make it draw the sword");
+        helper.assertTrue(skeleton.getAttachedOrElse(TribulationAttachments.STASHED_WEAPON, ItemStack.EMPTY)
+                .is(Items.BOW), "The bow should be stashed while the sword is drawn");
+        helper.succeed();
+    }
+
+    @GameTest(structure = "tribulation:empty_3x3")
+    public void skeleton_stashedWeaponSurvivesReload(GameTestHelper helper) {
+        Skeleton original = (Skeleton) helper.spawnWithNoFreeWill(EntityTypes.SKELETON, SPAWN);
+        original.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.BOW));
+        AbilityManager.applyAbilities(original, 2, "skeleton", new TribulationConfig());
+
+        TagValueOutput output = TagValueOutput.createWithContext(ProblemReporter.DISCARDING, helper.getLevel().registryAccess());
+        original.saveWithoutId(output);
+        CompoundTag saved = output.buildResult();
+        original.discard();
+
+        Skeleton reloaded = (Skeleton) helper.spawnWithNoFreeWill(EntityTypes.SKELETON, new BlockPos(2, 2, 1));
+        reloaded.load(TagValueInput.create(ProblemReporter.DISCARDING, helper.getLevel().registryAccess(), saved));
+
+        ItemStack stashed = reloaded.getAttachedOrElse(TribulationAttachments.STASHED_WEAPON, ItemStack.EMPTY);
+        helper.assertTrue(stashed.is(Items.BOW), "The stashed bow should survive save/load, got " + stashed);
         helper.succeed();
     }
 
