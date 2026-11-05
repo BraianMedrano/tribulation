@@ -19,7 +19,7 @@
         "LocalMobCapCalculatorMixin",
         "MobAbilityMixin",
         "MobCountsAccessor",
-        "MobGoalSelectorAccessor",
+        "MobServerAiStepMixin",
         "NaturalSpawnerGroupSizeMixin",
         "NaturalSpawnerSpawnStateMixin",
         "RaidScalingMixin",

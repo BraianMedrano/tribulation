@@ -2,9 +2,8 @@ package com.rfizzle.tribulation.gametest;
 
 import com.rfizzle.tribulation.ability.AbilityManager;
 import com.rfizzle.tribulation.config.TribulationConfig;
-import com.rfizzle.tribulation.ability.SkeletonWeaponSwitchGoal;
+import com.rfizzle.tribulation.ability.SkeletonWeaponSwitcher;
 import com.rfizzle.tribulation.data.TribulationAttachments;
-import com.rfizzle.tribulation.mixin.MobGoalSelectorAccessor;
 import net.minecraft.core.BlockPos;
 import net.minecraft.nbt.CompoundTag;
 import net.minecraft.util.ProblemReporter;
@@ -114,43 +113,61 @@ public class AbilitiesGameTest {
     }
 
     @GameTest(structure = "tribulation:empty_3x3")
-    public void skeleton_swordSwitchGoalRegistered(GameTestHelper helper) {
-        // Plain spawn: spawnWithNoFreeWill strips every goal, ours included.
-        Skeleton skeleton = helper.spawn(EntityTypes.SKELETON, SPAWN);
-        boolean registered = ((MobGoalSelectorAccessor) skeleton).tribulation$getGoalSelector().getAvailableGoals()
-                .stream().anyMatch(g -> g.getGoal() instanceof SkeletonWeaponSwitchGoal);
-        helper.assertTrue(registered, "Every skeleton should carry the weapon-switch goal");
-        helper.succeed();
-    }
-
-    @GameTest(structure = "tribulation:empty_3x3")
     public void skeleton_swordSwitchTracksTargetDistance(GameTestHelper helper) {
-        // The test level runs on Peaceful, which discards skeletons before their AI
-        // ticks, so the goal is driven directly instead of through the selector.
+        // Drives the switcher directly to pin the hysteresis band step by step;
+        // skeleton_swordSwitchDuringRealAiStepKeepsGoalSetIntact covers the AI hook.
         Skeleton skeleton = (Skeleton) helper.spawnWithNoFreeWill(EntityTypes.SKELETON, SPAWN);
         skeleton.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.BOW));
         AbilityManager.applyAbilities(skeleton, 2, "skeleton", new TribulationConfig());
         ArmorStand target = helper.spawn(EntityTypes.ARMOR_STAND, SPAWN);
         target.setNoGravity(true);
         skeleton.setTarget(target);
-        SkeletonWeaponSwitchGoal goal = new SkeletonWeaponSwitchGoal(skeleton);
 
         target.setPos(skeleton.getX() + 12, skeleton.getY(), skeleton.getZ());
-        helper.assertTrue(goal.canUse(), "A far target should trigger a swap");
-        goal.start();
+        SkeletonWeaponSwitcher.tick(skeleton);
         helper.assertTrue(skeleton.getMainHandItem().is(Items.BOW), "A far target should make it draw the bow");
         helper.assertTrue(skeleton.getAttachedOrElse(TribulationAttachments.STASHED_WEAPON, ItemStack.EMPTY)
                 .is(Items.STONE_SWORD), "The sword should be stashed while the bow is drawn");
 
         target.setPos(skeleton.getX() + 5.5, skeleton.getY(), skeleton.getZ());
-        helper.assertFalse(goal.canUse(), "Inside the hysteresis band the bow should stay drawn");
+        SkeletonWeaponSwitcher.tick(skeleton);
+        helper.assertTrue(skeleton.getMainHandItem().is(Items.BOW), "Inside the hysteresis band the bow should stay drawn");
 
         target.setPos(skeleton.getX() + 1.5, skeleton.getY(), skeleton.getZ());
-        helper.assertTrue(goal.canUse(), "A close target should trigger a swap");
-        goal.start();
+        SkeletonWeaponSwitcher.tick(skeleton);
         helper.assertTrue(skeleton.getMainHandItem().is(Items.STONE_SWORD), "A close target should make it draw the sword");
         helper.assertTrue(skeleton.getAttachedOrElse(TribulationAttachments.STASHED_WEAPON, ItemStack.EMPTY)
                 .is(Items.BOW), "The bow should be stashed while the sword is drawn");
+        helper.succeed();
+    }
+
+    @GameTest(structure = "tribulation:empty_3x3")
+    public void skeleton_swordSwitchDuringRealAiStepKeepsGoalSetIntact(GameTestHelper helper) {
+        // Regression: swapping inside GoalSelector.tick made vanilla reassessWeaponGoal
+        // mutate the goal set mid-iteration and crashed the server ("goal" is null).
+        // aiStep runs the real goal selector; Peaceful despawn only happens in the
+        // level tick, so stepping by hand inside the test body is safe.
+        Skeleton skeleton = helper.spawn(EntityTypes.SKELETON, SPAWN);
+        skeleton.setItemSlot(EquipmentSlot.MAINHAND, new ItemStack(Items.BOW));
+        AbilityManager.applyAbilities(skeleton, 2, "skeleton", new TribulationConfig());
+        ArmorStand target = helper.spawn(EntityTypes.ARMOR_STAND, SPAWN);
+        target.setNoGravity(true);
+        target.setPos(skeleton.getX() + 12, skeleton.getY(), skeleton.getZ());
+        skeleton.setTarget(target);
+
+        try {
+            for (int i = 0; i < 4; i++) {
+                skeleton.aiStep();
+            }
+        } catch (RuntimeException e) {
+            helper.fail("Weapon swap during the AI step must not break the goal selector: " + e);
+            return;
+        }
+
+        helper.assertTrue(skeleton.getMainHandItem().is(Items.BOW),
+                "A far target should make it draw the bow during the AI step, got " + skeleton.getMainHandItem());
+        helper.assertTrue(skeleton.getAttachedOrElse(TribulationAttachments.STASHED_WEAPON, ItemStack.EMPTY)
+                .is(Items.STONE_SWORD), "The sword should be stashed while the bow is drawn");
         helper.succeed();
     }
 

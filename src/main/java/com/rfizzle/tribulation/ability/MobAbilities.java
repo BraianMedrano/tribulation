@@ -61,7 +61,7 @@ public final class MobAbilities {
             // ---- Skeleton ----
             new MobAbility("skeleton", "skeleton_sword_switch", 2,
                     a -> a.skeletonSwordSwitch,
-                    // Spawn with the sword drawn and the bow stashed; SkeletonWeaponSwitchGoal
+                    // Spawn with the sword drawn and the bow stashed; SkeletonWeaponSwitcher
                     // then swaps between them as the target closes in or backs off.
                     (mob, cfg) -> {
                         ItemStack bow = mob.getMainHandItem();
